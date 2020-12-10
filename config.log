@@ -1,0 +1,29 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:565: checking for a BSD compatible install
+configure:618: checking whether build environment is sane
+configure:675: checking whether make sets ${MAKE}
+configure:721: checking for working aclocal
+configure:734: checking for working autoconf
+configure:747: checking for working automake
+configure:760: checking for working autoheader
+configure:773: checking for working makeinfo
+configure:794: checking host system type
+configure:815: checking target system type
+configure:835: checking whether make sets ${MAKE}
+configure:864: checking for gcc
+configure:977: checking whether the C compiler (gcc  ) works
+configure:993: gcc -o conftest    conftest.c  1>&5
+configure:990:1: warning: return type defaults to 'int' [-Wimplicit-int]
+  990 | main(){return(0);}
+      | ^~~~
+configure:1019: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:1024: checking whether we are using GNU C
+configure:1033: gcc -E conftest.c
+configure:1052: checking whether gcc accepts -g
+configure:1095: checking for a BSD compatible install
+configure:1149: checking target system type
+configure:1235: checking for sdl-config
+configure:1270: checking for SDL - version >= 1.0.1
+configure:1352: gcc -o conftest -g -O2 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT   conftest.c  -L/usr/lib -lSDL -lpthread 1>&5
