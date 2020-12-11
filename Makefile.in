@@ -132,8 +132,8 @@ r_aclipa.o r_aliasa.o r_drawa.o r_edgea.o surf16.o surf8.o worlda.o \
 d_vars.o nonintel.o
 sdlquake_DEPENDENCIES = 
 sdlquake_LDFLAGS = 
-CFLAGS = -m32 -w @CFLAGS@
-COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CFLAGS = -m32 -std=c++2a -w @CFLAGS@
+COMPILE = g++ $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  COPYING Makefile.am Makefile.in acinclude.m4 aclocal.m4 \
@@ -292,7 +292,7 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 	$(MAKE) $(AM_MAKEFLAGS) top_distdir="$(top_distdir)" distdir="$(distdir)" dist-hook
-cd_sdl.o: cd_sdl.cpp quakedef.h common.h bspfile.h vid.h sys.h zone.h \
+cd_sdl.o: cd_sdl.c quakedef.h common.h bspfile.h vid.h sys.h zone.h \
 	mathlib.h wad.h draw.h cvar.h screen.h net.h protocol.h cmd.h \
 	sbar.h sound.h render.h client.h progs.h pr_comp.h progdefs.h \
 	progdefs.q1 server.h model.h modelgen.h spritegn.h d_iface.h \

@@ -111,7 +111,7 @@ FIXME: actually change the command buffer to do less copying
 */
 void Cbuf_InsertText (char *text)
 {
-	char	*temp;
+	unsigned char	*temp;
 	int		templen;
 
 // copy off any commands still remaining in the exec buffer
@@ -123,7 +123,7 @@ void Cbuf_InsertText (char *text)
 		SZ_Clear (&cmd_text);
 	}
 	else
-		temp = NULL;	// shut up compiler
+		temp = nullptr;	// shut up compiler
 		
 // add the entire text of the file
 	Cbuf_AddText (text);
@@ -213,10 +213,8 @@ quake -nosound +cmd amlev1
 */
 void Cmd_StuffCmds_f (void)
 {
-	int		i, j;
-	int		s;
 	char	*text, *build, c;
-		
+
 	if (Cmd_Argc () != 1)
 	{
 		Con_Printf ("stuffcmds : execute command line parameters\n");
@@ -224,19 +222,19 @@ void Cmd_StuffCmds_f (void)
 	}
 
 // build the combined string to parse from
-	s = 0;
-	for (i=1 ; i<com_argc ; i++)
+	int size = 0;
+	for (auto i=1 ; i<com_argc ; i++)
 	{
 		if (!com_argv[i])
 			continue;		// NEXTSTEP nulls out -NXHost
-		s += Q_strlen (com_argv[i]) + 1;
+		size += Q_strlen (com_argv[i]) + 1;
 	}
-	if (!s)
+	if (!size)
 		return;
-		
-	text = zmalloc<decltype(text)> (s+1);
+
+	text = zmalloc<decltype(text)> (size+1);
 	text[0] = 0;
-	for (i=1 ; i<com_argc ; i++)
+	for (auto i=1 ; i<com_argc ; i++)
 	{
 		if (!com_argv[i])
 			continue;		// NEXTSTEP nulls out -NXHost
@@ -246,25 +244,27 @@ void Cmd_StuffCmds_f (void)
 	}
 	
 // pull out the commands
-	build = zmalloc<decltype(build)> (s+1);
+	build = zmalloc<decltype(build)> (size+1);
 	build[0] = 0;
 	
-	for (i=0 ; i<s-1 ; i++)
+	for (auto i=0 ; i<size-1 ; i++)
 	{
 		if (text[i] == '+')
 		{
 			i++;
 
-			for (j=i ; (text[j] != '+') && (text[j] != '-') && (text[j] != 0) ; j++)
-				;
+			for (auto j=i ; (text[j] != '+') && (text[j] != '-') && (text[j] != 0) ; j++) {
+                c = text[j];
+                text[j] = 0;
 
-			c = text[j];
-			text[j] = 0;
-			
-			Q_strcat (build, text+i);
-			Q_strcat (build, "\n");
-			text[j] = c;
-			i = j-1;
+                Q_strcat (build, text+i);
+                Q_strcat (build, "\n");
+                text[j] = c;
+                i = j-1;
+			}
+
+
+
 		}
 	}
 	
@@ -516,7 +516,7 @@ void Cmd_TokenizeString (char *text)
 
 		if (cmd_argc < MAX_ARGS)
 		{
-			cmd_argv[cmd_argc] = zmalloc<decltype(cmd_argv[cmd_argc])> (Q_strlen(com_token)+1);
+			cmd_argv[cmd_argc] = zmalloc<char*> (Q_strlen(com_token)+1);
 			Q_strcpy (cmd_argv[cmd_argc], com_token);
 			cmd_argc++;
 		}

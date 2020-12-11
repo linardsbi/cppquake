@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // common.c -- misc functions used in client and server
 
 #include "quakedef.h"
-#include "util.hpp"
 #include <string_view>
 
 #define NUM_SAFE_ARGVS  7
@@ -28,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static char* largv[MAX_NUM_ARGVS + NUM_SAFE_ARGVS + 1] = {};
 static char argvdummy[] = " ";
 
-static char     *safeargvs[NUM_SAFE_ARGVS] =
+static constexpr char     *safeargvs[NUM_SAFE_ARGVS] =
 	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
 
 cvar_t  registered = {"registered","0"};
@@ -784,7 +783,7 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 */
 void SZ_Write (sizebuf_t *buf, void *data, int length)
 {
-	Q_memcpy (SZ_GetSpace(buf,length),data,length);         
+	Q_memcpy (SZGetSpace<void*>(buf,length),data,length);
 }
 
 void SZ_Print (sizebuf_t *buf, char *data)
@@ -795,9 +794,9 @@ void SZ_Print (sizebuf_t *buf, char *data)
 
 // byte * cast to keep VC++ happy
 	if (buf->data[buf->cursize-1])
-		Q_memcpy ((byte *)SZ_GetSpace(buf, len),data,len); // no trailing 0
+		Q_memcpy ((byte *)SZGetSpace<void*>(buf, len),data,len); // no trailing 0
 	else
-		Q_memcpy ((byte *)SZ_GetSpace(buf, len-1)-1,data,len); // write over trailing 0
+		Q_memcpy ((byte *)SZGetSpace<void*>(buf, len-1)-1,data,len); // write over trailing 0
 }
 
 

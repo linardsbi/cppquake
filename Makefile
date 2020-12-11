@@ -59,7 +59,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = x86_64-unknown-linux-gnu
 host_triplet = 
-CC = g++
+CC = gcc
 ICONOBJ = 
 INETLIB = 
 MAKEINFO = makeinfo
@@ -133,8 +133,8 @@ d_vars.o nonintel.o
 sdlquake_DEPENDENCIES = 
 sdlquake_LDFLAGS = 
 CFLAGS = -m32 -std=c++2a -w -g -O2 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF
-COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
+COMPILE = g++ $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = g++
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  COPYING Makefile.am Makefile.in acinclude.m4 aclocal.m4 \
 config.guess config.sub configure configure.in install-sh missing \

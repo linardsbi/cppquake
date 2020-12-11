@@ -17,15 +17,20 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+#ifndef COMMON_H
+#define COMMON_H
+
 // comndef.h  -- general definitions
 #include <string_view>
+#include "sys.h"
+#include "console.h"
+
 #if !defined BYTE_DEFINED
 typedef unsigned char 		byte;
 #define BYTE_DEFINED 1
 #endif
 
 using qboolean = bool;
-using ustring_view = std::basic_string_view<unsigned char>;
 
 //============================================================================
 
@@ -41,7 +46,7 @@ typedef struct sizebuf_s
 void SZ_Alloc (sizebuf_t *buf, int startsize);
 void SZ_Free (sizebuf_t *buf);
 void SZ_Clear (sizebuf_t *buf);
-void *SZ_GetSpace (sizebuf_t *buf, int length);
+//void *SZ_GetSpace (sizebuf_t *buf, int length);
 void SZ_Write (sizebuf_t *buf, void *data, int length);
 void SZ_Print (sizebuf_t *buf, char *data);	// strcats onto the sizebuf
 
@@ -180,3 +185,27 @@ void COM_LoadCacheFile (char *path, struct cache_user_s *cu);
 extern	struct cvar_s	registered;
 
 extern qboolean		standard_quake, rogue, hipnotic;
+
+template <typename MemType>
+MemType SZGetSpace (sizebuf_t *buf, int length)
+{
+    if (buf->cursize + length > buf->maxsize)
+    {
+        if (!buf->allowoverflow)
+            Sys_Error ("SZ_GetSpace: overflow without allowoverflow set");
+
+        if (length > buf->maxsize)
+            Sys_Error ("SZ_GetSpace: %i is > full buffer size", length);
+
+        buf->overflowed = true;
+        Con_Printf ("SZ_GetSpace: overflow");
+        SZ_Clear (buf);
+    }
+
+    MemType data = buf->data + buf->cursize;
+    buf->cursize += length;
+
+    return data;
+}
+
+#endif

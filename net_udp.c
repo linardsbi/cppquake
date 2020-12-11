@@ -37,8 +37,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <libc.h>
 #endif
 
-extern int gethostname (char *, int);
-extern int close (int);
+int gethostname (char * chr, int i) {
+    chr[0] = 'z';
+    Sys_Printf("%s", "gethostname Not implemented!");
+}
+
+// fixme: what library was this linking with?
+int close (int) {
+    Sys_Printf("%s","close Not implemented!");
+}
 
 extern cvar_t hostname;
 

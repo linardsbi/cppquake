@@ -47,8 +47,8 @@ struct sockaddr_in
 	struct in_addr	sin_addr;
     char			sin_zero[8];
 };
-char *inet_ntoa(struct in_addr in);
-unsigned long inet_addr(const char *cp);
+//char *inet_ntoa(struct in_addr in);
+//unsigned long inet_addr(const char *cp);
 #endif
 #endif	// BAN_TEST
 
@@ -104,6 +104,21 @@ unsigned long banMask = 0xffffffff;
 
 void NET_Ban_f (void)
 {
+    auto inet_addr = [](const char* cp) -> unsigned long {
+        int ha1, ha2, ha3, ha4;
+
+        int ret = sscanf(cp, "%d.%d.%d.%d", &ha1, &ha2, &ha3, &ha4);
+        if (ret != 4)
+            return -1;
+
+        return (ha1 << 24) | (ha2 << 16) | (ha3 << 8) | ha4;
+    };
+    auto inet_ntoa = [](in_addr in) {
+        char buf [32];
+
+        sprintf(buf, "%u.%u.%u.%u", in.S_un.S_un_b.s_b1, in.S_un.S_un_b.s_b2, in.S_un.S_un_b.s_b3, in.S_un.S_un_b.s_b4);
+        return buf;
+    };
 	char	addrStr [32];
 	char	maskStr [32];
 	void	(*print) (char *fmt, ...);
@@ -519,7 +534,7 @@ static int		testSocket;
 static void Test_Poll(void*);
 PollProcedure	testPollProcedure = {NULL, 0.0, Test_Poll};
 
-static void Test_Poll(void)
+static void Test_Poll(void*)
 {
 	struct qsockaddr clientaddr;
 	int		control;
@@ -647,7 +662,7 @@ static int		test2Socket;
 static void Test2_Poll(void*);
 PollProcedure	test2PollProcedure = {NULL, 0.0, Test2_Poll};
 
-static void Test2_Poll(void)
+static void Test2_Poll(void*)
 {
 	struct qsockaddr clientaddr;
 	int		control;

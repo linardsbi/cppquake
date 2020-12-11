@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include <go32.h>
 #include "mpdosock.h"
+#include "mplpc.h"
 
 //#include "types.h"
 typedef unsigned char BYTE;
@@ -946,56 +947,56 @@ WSAGetLastError(void)
    return retVal;
 }
 
-unsigned long inet_addr(const char *cp)
-{
-	int ret;
-	unsigned int ha1, ha2, ha3, ha4;
-	unsigned long ipaddr;
+//unsigned long inet_addr(const char *cp)
+//{
+//	int ret;
+//	unsigned int ha1, ha2, ha3, ha4;
+//	unsigned long ipaddr;
+//
+//	ret = sscanf(cp, "%d.%d.%d.%d", &ha1, &ha2, &ha3, &ha4);
+//	if (ret != 4)
+//		return -1;
+//	ipaddr = (ha1 << 24) | (ha2 << 16) | (ha3 << 8) | ha4;
+//	return ipaddr;
+//#if 0
+//   RTQ_NODE *n = MGenGetNode(IDLE_QUEUE);
+//   LPCData  *p;
+//   LPCReturn *r;
+//   int       retVal;
+//
+//   SocketError = 0;
+//   _farsetsel(flat_selector);
+//   p = (LPCData *) FARPKL(&n->rtqDatum);
+//   SetLPCData(p);
+//   FARPOKL(&p->service, LPC_SOCKINETADDR);
+//
+//   fstrcpyto(p->Data, cp);
+//
+//   MGenMoveTo(IDLE_QUEUE, SEND_QUEUE);
+//   PostWindowsMessage();
+//
+//   while ((n = MGenGetNode(REC_QUEUE)) == 0)
+//      Yield();
+//
+//   r = (LPCReturn *) FARPKL(&n->rtqDatum);
+//
+//   if (FARPKS(&r->error) != LPC_NOERROR) {
+//      return -1;
+//   }
+//
+//   retVal = FARPKL(r->Data);
+//
+//   // get ready for next call
+//   MGenMoveTo(REC_QUEUE, IDLE_QUEUE);
+//
+//   return retVal;
+// #endif
+//}
 
-	ret = sscanf(cp, "%d.%d.%d.%d", &ha1, &ha2, &ha3, &ha4);
-	if (ret != 4)
-		return -1;
-	ipaddr = (ha1 << 24) | (ha2 << 16) | (ha3 << 8) | ha4;
-	return ipaddr;
-#if 0
-   RTQ_NODE *n = MGenGetNode(IDLE_QUEUE);
-   LPCData  *p;
-   LPCReturn *r;
-   int       retVal;
-
-   SocketError = 0;
-   _farsetsel(flat_selector);
-   p = (LPCData *) FARPKL(&n->rtqDatum);
-   SetLPCData(p);
-   FARPOKL(&p->service, LPC_SOCKINETADDR);
-
-   fstrcpyto(p->Data, cp);
-
-   MGenMoveTo(IDLE_QUEUE, SEND_QUEUE);
-   PostWindowsMessage();
-
-   while ((n = MGenGetNode(REC_QUEUE)) == 0)
-      Yield();
-
-   r = (LPCReturn *) FARPKL(&n->rtqDatum);
-
-   if (FARPKS(&r->error) != LPC_NOERROR) {
-      return -1;
-   }
-
-   retVal = FARPKL(r->Data);
-
-   // get ready for next call
-   MGenMoveTo(REC_QUEUE, IDLE_QUEUE);
-
-   return retVal;
- #endif
-}
-
-char *inet_ntoa (struct in_addr in)
-{
-	static char buf [32];
-
-	sprintf(buf, "%u.%u.%u.%u", in.S_un.S_un_b.s_b1, in.S_un.S_un_b.s_b2, in.S_un.S_un_b.s_b3, in.S_un.S_un_b.s_b4);
-	return buf;
-}
+//char *inet_ntoa (struct in_addr in)
+//{
+//	static char buf [32];
+//
+//	sprintf(buf, "%u.%u.%u.%u", in.S_un.S_un_b.s_b1, in.S_un.S_un_b.s_b2, in.S_un.S_un_b.s_b3, in.S_un.S_un_b.s_b4);
+//	return buf;
+//}

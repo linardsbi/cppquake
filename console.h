@@ -17,7 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-
+#ifndef CONSOLE_H
+#define CONSOLE_H
+using byte = unsigned char;
+using qboolean = bool;
 //
 // console
 //
@@ -44,3 +47,4 @@ void Con_ToggleConsole_f (void);
 
 void Con_NotifyBox (char *text);	// during startup for sound / cd warnings
 
+#endif

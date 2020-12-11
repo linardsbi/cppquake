@@ -226,24 +226,13 @@ int Sys_FileRead (int handle, void *dst, int count)
 	return size;
 		
 }
-
-int Sys_FileWrite (int handle, void *src, int count)
+// fixme: isn't it weird that reading and writing have the same code?
+int Sys_FileWrite (int handle, const void *src, int count)
 {
-
-    int size = 0;
 	if ( handle >= 0 ) {
-        auto data = static_cast<char*>(src);
-		while ( count > 0 ) {
-			const auto done = fread (data, 1, count, sys_handles[handle]);
-			if ( done == 0 ) {
-				break;
-			}
-			data += done;
-			count -= done;
-			size += done;
-		}
+        return fwrite(static_cast<const char*>(src), 1, count, sys_handles[handle]);
 	}
-	return size;
+	return 0;
 }
 
 int	Sys_FileTime (char *path)
