@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include "quakedef.h"
 #include "d_local.h"
+#include "util.hpp"
 
 viddef_t    vid;                // global video state
 unsigned short  d_8to16table[256];
@@ -91,17 +92,17 @@ void    VID_Init (unsigned char *palette)
     vid.numpages = 1;
     vid.colormap = host_colormap;
     vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
-    VGA_pagebase = vid.buffer = screen->pixels;
+    VGA_pagebase = vid.buffer = static_cast<pixel_t*>(screen->pixels);
     VGA_rowbytes = vid.rowbytes = screen->pitch;
     vid.conbuffer = vid.buffer;
     vid.conrowbytes = vid.rowbytes;
-    vid.direct = 0;
+    vid.direct = nullptr;
     
     // allocate z buffer and surface cache
     chunk = vid.width * vid.height * sizeof (*d_pzbuffer);
     cachesize = D_SurfaceCacheForRes (vid.width, vid.height);
     chunk += cachesize;
-    d_pzbuffer = Hunk_HighAllocName(chunk, "video");
+    d_pzbuffer = hunkHighAllocName<decltype(d_pzbuffer)>(chunk, "video");
     if (d_pzbuffer == NULL)
         Sys_Error ("Not enough memory for video mode\n");
 

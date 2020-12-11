@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "util.hpp"
+#include <string_view>
 
 #define NUM_SAFE_ARGVS  7
 ;
@@ -237,23 +238,25 @@ int Q_strcmp (char *s1, char *s2)
 	
 	return -1;
 }
-
-int Q_strncmp (char *s1, char *s2, int count)
-{
-	while (1)
-	{
-		if (!count--)
-			return 0;
-		if (*s1 != *s2)
-			return -1;              // strings not equal    
-		if (!*s1)
-			return 0;               // strings are equal
-		s1++;
-		s2++;
-	}
-	
-	return -1;
+bool Q_strncmp (std::string_view s1, std::string_view s2, const std::size_t count) {
+	return s1.compare(0, count, s2, 0, count);
 }
+//int Q_strncmp (char *s1, char *s2, int count)
+//{
+//	while (true)
+//	{
+//		if (!count--)
+//			return 0;
+//		if (*s1 != *s2)
+//			return -1;              // strings not equal
+//		if (!*s1)
+//			return 0;               // strings are equal
+//		s1++;
+//		s2++;
+//	}
+//
+//	return -1;
+//}
 
 int Q_strncasecmp (char *s1, char *s2, int n)
 {

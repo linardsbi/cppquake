@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // snd_mem.c: sound caching
 
 #include "quakedef.h"
+#include "util.hpp"
 
 int			cache_full_cycle;
 
@@ -39,11 +40,11 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 	int		sample, samplefrac, fracstep;
 	sfxcache_t	*sc;
 	
-	sc = Cache_Check (&sfx->cache);
+	sc = cacheCheck<decltype(sc)> (&sfx->cache);
 	if (!sc)
 		return;
 
-	stepscale = (float)inrate / shm->speed;	// this is usually 0.5, 1, or 2
+	stepscale = (float)inrate / (float)shm->speed;	// this is usually 0.5, 1, or 2
 
 	outcount = sc->length / stepscale;
 	sc->length = outcount;
@@ -105,7 +106,7 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 	byte	stackbuf[1*1024];		// avoid dirtying the cache heap
 
 // see if still in memory
-	sc = Cache_Check (&s->cache);
+	sc = cacheCheck<decltype(sc)> (&s->cache);
 	if (sc)
 		return sc;
 
@@ -136,7 +137,7 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 
 	len = len * info.width * info.channels;
 
-	sc = Cache_Alloc ( &s->cache, len + sizeof(sfxcache_t), s->name);
+	sc = cacheAlloc<decltype(sc)> ( &s->cache, len + sizeof(sfxcache_t), s->name);
 	if (!sc)
 		return NULL;
 	
@@ -178,7 +179,7 @@ short GetLittleShort(void)
 	return val;
 }
 
-int GetLittleLong(void)
+int GetLittleLong()
 {
 	int val = 0;
 	val = *data_p;
@@ -191,13 +192,13 @@ int GetLittleLong(void)
 
 void FindNextChunk(char *name)
 {
-	while (1)
+	while (true)
 	{
 		data_p=last_chunk;
 
 		if (data_p >= iff_end)
 		{	// didn't find the chunk
-			data_p = NULL;
+			data_p = nullptr;
 			return;
 		}
 		
@@ -205,14 +206,14 @@ void FindNextChunk(char *name)
 		iff_chunk_len = GetLittleLong();
 		if (iff_chunk_len < 0)
 		{
-			data_p = NULL;
+			data_p = nullptr;
 			return;
 		}
 //		if (iff_chunk_len > 1024*1024)
 //			Sys_Error ("FindNextChunk: %i length is past the 1 meg sanity limit", iff_chunk_len);
 		data_p -= 8;
 		last_chunk = data_p + 8 + ( (iff_chunk_len + 1) & ~1 );
-		if (!Q_strncmp(data_p, name, 4))
+		if (!Q_strncmp(reinterpret_cast<char *>(data_p), name, 4))
 			return;
 	}
 }
@@ -224,7 +225,7 @@ void FindChunk(char *name)
 }
 
 
-void DumpChunks(void)
+void DumpChunks()
 {
 	char	str[5];
 	
@@ -262,7 +263,7 @@ wavinfo_t GetWavinfo (char *name, byte *wav, int wavlength)
 
 // find "RIFF" chunk
 	FindChunk("RIFF");
-	if (!(data_p && !Q_strncmp(data_p+8, "WAVE", 4)))
+	if (!(data_p != nullptr && !Q_strncmp(reinterpret_cast<char*>(data_p+8), "WAVE", 4)))
 	{
 		Con_Printf("Missing RIFF/WAVE chunks\n");
 		return info;
@@ -303,7 +304,7 @@ wavinfo_t GetWavinfo (char *name, byte *wav, int wavlength)
 		FindNextChunk ("LIST");
 		if (data_p)
 		{
-			if (!strncmp (data_p + 28, "mark", 4))
+			if (!Q_strncmp(reinterpret_cast<char*>(data_p + 28), "mark", 4))
 			{	// this is not a proper parse, but it works with cooledit...
 				data_p += 24;
 				i = GetLittleLong ();	// samples in loop

@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "r_local.h"
+#include "util.hpp"
 
 //define	PASSAGES
 
@@ -153,7 +154,7 @@ void	R_InitTextures (void)
 	byte	*dest;
 	
 // create a simple checkerboard texture for the default
-	r_notexture_mip = Hunk_AllocName (sizeof(texture_t) + 16*16+8*8+4*4+2*2, "notexture");
+	r_notexture_mip = hunkAllocName<decltype(r_notexture_mip)> (sizeof(texture_t) + 16*16+8*8+4*4+2*2, "notexture");
 	
 	r_notexture_mip->width = r_notexture_mip->height = 16;
 	r_notexture_mip->offsets[0] = sizeof(texture_t);
@@ -262,7 +263,7 @@ void R_NewMap (void)
 
 	if (r_cnumsurfs > NUMSTACKSURFACES)
 	{
-		surfaces = Hunk_AllocName (r_cnumsurfs * sizeof(surf_t), "surfaces");
+		surfaces = hunkAllocName<decltype(surfaces)> (r_cnumsurfs * sizeof(surf_t), "surfaces");
 		surface_p = surfaces;
 		surf_max = &surfaces[r_cnumsurfs];
 		r_surfsonstack = false;
@@ -290,7 +291,7 @@ void R_NewMap (void)
 	}
 	else
 	{
-		auxedges = Hunk_AllocName (r_numallocatededges * sizeof(edge_t),
+		auxedges = hunkAllocName<decltype(auxedges)> (r_numallocatededges * sizeof(edge_t),
 								   "edges");
 	}
 

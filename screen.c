@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "r_local.h"
+#include "util.hpp"
 
 // only the refresh window will be updated unless these variables are flagged 
 int			scr_copytop;
@@ -551,7 +552,7 @@ void WritePCXfile (char *filename, byte *data, int width, int height,
 	pcx_t	*pcx;
 	byte		*pack;
 	  
-	pcx = Hunk_TempAlloc (width*height*2+1000);
+	pcx = hunkTempAlloc<decltype(pcx)> (width*height*2+1000);
 	if (pcx == NULL)
 	{
 		Con_Printf("SCR_ScreenShot_f: not enough memory\n");

@@ -286,11 +286,11 @@ R_DrawSprite
 void R_DrawSprite (void)
 {
 	int				i;
-	msprite_t		*psprite;
+
 	vec3_t			tvec;
 	float			dot, angle, sr, cr;
 
-	psprite = currententity->model->cache.data;
+    msprite_t		*psprite = static_cast<msprite_t*>(currententity->model->cache.data);
 
 	r_spritedesc.pspriteframe = R_GetSpriteframe (psprite);
 

@@ -683,7 +683,7 @@ void PF_checkpos (void)
 
 byte	checkpvs[MAX_MAP_LEAFS/8];
 
-int PF_newvcheckclient (int check)
+int PF_newcheckclient (int check)
 {
 	int		i;
 	byte	*pvs;
@@ -760,7 +760,7 @@ void PF_checkclient (void)
 // find a newv check if on a newv frame
 	if (sv.time - sv.lastchecktime >= 0.1)
 	{
-		sv.lastcheck = PF_newvcheckclient (sv.lastcheck);
+		sv.lastcheck = PF_newcheckclient (sv.lastcheck);
 		sv.lastchecktime = sv.time;
 	}
 
@@ -1647,7 +1647,7 @@ void PF_changelevel (void)
 	s1 = G_STRING(OFS_PARM0);
 	s2 = G_STRING(OFS_PARM1);
 
-	if ((int)pr_global_struct->serverflags & (SFL_newv_UNIT | SFL_newv_EPISODE))
+	if ((int)pr_global_struct->serverflags & (SFL_new_UNIT | SFL_new_EPISODE))
 		Cbuf_AddText (va("changelevel %s %s\n",s1, s2));
 	else
 		Cbuf_AddText (va("changelevel2 %s %s\n",s1, s2));

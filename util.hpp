@@ -9,6 +9,8 @@ MemType hunkAllocName(int size, char *name);
 
 template <typename MemType>
 MemType zmalloc(int size);
+template <typename MemType>
+MemType tagMalloc (int size, int tag);
 
 template <typename MemType>
 MemType SZGetSpace (sizebuf_t *buf, int length);

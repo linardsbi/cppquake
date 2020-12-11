@@ -17,6 +17,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
+#include <SDL.h>
+
 #endif
 
 #include "quakedef.h"
@@ -208,14 +210,11 @@ void Sys_FileSeek (int handle, int position)
 
 int Sys_FileRead (int handle, void *dst, int count)
 {
-	char *data;
-	int size, done;
-
-	size = 0;
+	int size = 0;
 	if ( handle >= 0 ) {
-		data = dst;
+        auto data = static_cast<char*>(dst);
 		while ( count > 0 ) {
-			done = fread (data, 1, count, sys_handles[handle]);
+			const auto done = fread (data, 1, count, sys_handles[handle]);
 			if ( done == 0 ) {
 				break;
 			}
@@ -228,16 +227,14 @@ int Sys_FileRead (int handle, void *dst, int count)
 		
 }
 
-int Sys_FileWrite (int handle, const void *src, int count)
+int Sys_FileWrite (int handle, void *src, int count)
 {
-	char *data;
-	int size, done;
 
-	size = 0;
+    int size = 0;
 	if ( handle >= 0 ) {
-		data = src;
+        auto data = static_cast<char*>(src);
 		while ( count > 0 ) {
-			done = fread (data, 1, count, sys_handles[handle]);
+			const auto done = fread (data, 1, count, sys_handles[handle]);
 			if ( done == 0 ) {
 				break;
 			}
@@ -342,7 +339,7 @@ byte *Sys_ZoneBase (int *size)
 				break;
 			}
 	}
-	return malloc (*size);
+	return static_cast<byte*>(malloc (*size));
 
 }
 

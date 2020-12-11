@@ -810,6 +810,7 @@ void Host_InitVCR (quakeparms_t *parms)
 		Sys_FileWrite(vcrFile, &i, sizeof(int));
 		i = com_argc - 1;
 		Sys_FileWrite(vcrFile, &i, sizeof(int));
+
 		for (i = 1; i < com_argc; i++)
 		{
 			if (i == n)

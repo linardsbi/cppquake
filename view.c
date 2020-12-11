@@ -614,27 +614,25 @@ void V_UpdatePalette (void)
 void V_UpdatePalette (void)
 {
 	int		i, j;
-	qboolean	new;
+	qboolean	aNew = false;
 	byte	*basepal, *newpal;
 	byte	pal[768];
 	int		r,g,b;
 	qboolean force;
 
 	V_CalcPowerupCshift ();
-	
-	new = false;
-	
+
 	for (i=0 ; i<NUM_CSHIFTS ; i++)
 	{
 		if (cl.cshifts[i].percent != cl.prev_cshifts[i].percent)
 		{
-			new = true;
+            aNew = true;
 			cl.prev_cshifts[i].percent = cl.cshifts[i].percent;
 		}
 		for (j=0 ; j<3 ; j++)
 			if (cl.cshifts[i].destcolor[j] != cl.prev_cshifts[i].destcolor[j])
 			{
-				new = true;
+                aNew = true;
 				cl.prev_cshifts[i].destcolor[j] = cl.cshifts[i].destcolor[j];
 			}
 	}
@@ -650,7 +648,7 @@ void V_UpdatePalette (void)
 		cl.cshifts[CSHIFT_BONUS].percent = 0;
 
 	force = V_CheckGamma ();
-	if (!new && !force)
+	if (!aNew && !force)
 		return;
 			
 	basepal = host_basepal;

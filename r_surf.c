@@ -346,7 +346,7 @@ void R_DrawSurfaceBlock8_mip0 (void)
 	unsigned char	pix, *psource, *prowdest;
 
 	psource = pbasesource;
-	prowdest = prowdestbase;
+	prowdest = static_cast<unsigned char*>(prowdestbase);
 
 	for (v=0 ; v<r_numvblocks ; v++)
 	{
@@ -396,7 +396,7 @@ void R_DrawSurfaceBlock8_mip1 (void)
 	unsigned char	pix, *psource, *prowdest;
 
 	psource = pbasesource;
-	prowdest = prowdestbase;
+    prowdest = static_cast<unsigned char*>(prowdestbase);
 
 	for (v=0 ; v<r_numvblocks ; v++)
 	{
@@ -446,7 +446,7 @@ void R_DrawSurfaceBlock8_mip2 (void)
 	unsigned char	pix, *psource, *prowdest;
 
 	psource = pbasesource;
-	prowdest = prowdestbase;
+    prowdest = static_cast<unsigned char*>(prowdestbase);
 
 	for (v=0 ; v<r_numvblocks ; v++)
 	{
@@ -496,7 +496,7 @@ void R_DrawSurfaceBlock8_mip3 (void)
 	unsigned char	pix, *psource, *prowdest;
 
 	psource = pbasesource;
-	prowdest = prowdestbase;
+    prowdest = static_cast<unsigned char*>(prowdestbase);
 
 	for (v=0 ; v<r_numvblocks ; v++)
 	{

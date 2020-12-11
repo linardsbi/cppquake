@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // snd_dma.c -- main control for any streaming sound output device
 
 #include "quakedef.h"
+#include "util.hpp"
 
 #ifdef _WIN32
 #include "winquake.h"
@@ -207,14 +208,14 @@ void S_Init (void)
 
 	SND_InitScaletable ();
 
-	known_sfx = Hunk_AllocName (MAX_SFX*sizeof(sfx_t), "sfx_t");
+	known_sfx = hunkAllocName<decltype(known_sfx)> (MAX_SFX*sizeof(sfx_t), "sfx_t");
 	num_sfx = 0;
 
 // create a piece of DMA memory
 
 	if (fakedma)
 	{
-		shm = (void *) Hunk_AllocName(sizeof(*shm), "shm");
+		shm = hunkAllocName<decltype(shm)>(sizeof(*shm), "shm");
 		shm->splitbuffer = 0;
 		shm->samplebits = 16;
 		shm->speed = 22050;
@@ -224,7 +225,7 @@ void S_Init (void)
 		shm->soundalive = true;
 		shm->gamealive = true;
 		shm->submission_chunk = 1;
-		shm->buffer = Hunk_AllocName(1<<16, "shmbuf");
+		shm->buffer = hunkAllocName<decltype(shm->buffer)>(1<<16, "shmbuf");
 	}
 
 	if ( shm ) {
@@ -972,7 +973,7 @@ void S_SoundList(void)
 	total = 0;
 	for (sfx=known_sfx, i=0 ; i<num_sfx ; i++, sfx++)
 	{
-		sc = Cache_Check (&sfx->cache);
+		sc = cacheCheck<decltype(sc)> (&sfx->cache);
 		if (!sc)
 			continue;
 		size = sc->length*sc->width*(sc->stereo+1);

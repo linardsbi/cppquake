@@ -82,6 +82,36 @@ Zone block
 
 
 */
+typedef struct cache_user_s
+{
+    void	*data;
+} cache_user_t;
+
+
+template <typename MemType>
+MemType hunkAlloc (int size);
+
+template <typename MemType>
+MemType hunkAllocName(int size, char *name);
+
+template <typename MemType>
+MemType zmalloc(int size);
+template <typename MemType>
+MemType tagMalloc (int size, int tag);
+
+template <typename MemType>
+MemType SZGetSpace (sizebuf_t *buf, int length);
+
+template <typename MemType>
+MemType hunkTempAlloc(int size);
+template <typename MemType>
+MemType hunkHighAllocName (int size, char *name);
+
+template <typename MemType>
+MemType cacheAlloc (cache_user_t *c, int size, char *name);
+
+template <typename MemType>
+MemType cacheCheck (cache_user_t *c);
 
 void Memory_Init (void *buf, int size);
 
@@ -108,10 +138,7 @@ void *Hunk_TempAlloc (int size);
 
 void Hunk_Check (void);
 
-typedef struct cache_user_s
-{
-	void	*data;
-} cache_user_t;
+
 
 void Cache_Flush (void);
 

@@ -18,13 +18,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // comndef.h  -- general definitions
-
+#include <string_view>
 #if !defined BYTE_DEFINED
 typedef unsigned char 		byte;
 #define BYTE_DEFINED 1
 #endif
 
 using qboolean = bool;
+using ustring_view = std::basic_string_view<unsigned char>;
 
 //============================================================================
 
@@ -127,7 +128,8 @@ int Q_strlen (char *str);
 char *Q_strrchr (char *s, char c);
 void Q_strcat (char *dest, char *src);
 int Q_strcmp (char *s1, char *s2);
-int Q_strncmp (char *s1, char *s2, int count);
+bool Q_strncmp (std::string_view s1, std::string_view s2, const std::size_t count);
+//int Q_strncmp (char *s1, char *s2, int count);
 int Q_strcasecmp (char *s1, char *s2);
 int Q_strncasecmp (char *s1, char *s2, int n);
 int	Q_atoi (char *str);
