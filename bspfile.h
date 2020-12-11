@@ -109,10 +109,10 @@ typedef struct miptex_s
 } miptex_t;
 
 
-typedef struct
+struct dvertex_t
 {
 	float	point[3];
-} dvertex_t;
+};
 
 
 // 0-2 are axial planes

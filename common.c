@@ -20,11 +20,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // common.c -- misc functions used in client and server
 
 #include "quakedef.h"
+#include "util.hpp"
 
 #define NUM_SAFE_ARGVS  7
-
-static char     *largv[MAX_NUM_ARGVS + NUM_SAFE_ARGVS + 1];
-static char     *argvdummy = " ";
+;
+static char* largv[MAX_NUM_ARGVS + NUM_SAFE_ARGVS + 1] = {};
+static char argvdummy[] = " ";
 
 static char     *safeargvs[NUM_SAFE_ARGVS] =
 	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
@@ -56,7 +57,7 @@ char	com_cmdline[CMDLINE_LENGTH];
 qboolean		standard_quake = true, rogue, hipnotic;
 
 // this graphic needs to be in the pak file to use registered features
-unsigned short pop[] =
+constexpr unsigned short pop[] =
 {
  0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 ,0x0000,0x0000,0x6600,0x0000,0x0000,0x0000,0x6600,0x0000
@@ -459,7 +460,7 @@ short   ShortNoSwap (short l)
 	return l;
 }
 
-int    LongSwap (int l)
+constexpr int    LongSwap (int l)
 {
 	byte    b1,b2,b3,b4;
 
@@ -520,7 +521,7 @@ void MSG_WriteChar (sizebuf_t *sb, int c)
 		Sys_Error ("MSG_WriteChar: range error");
 #endif
 
-	buf = SZ_GetSpace (sb, 1);
+	buf = SZGetSpace<decltype(buf)> (sb, 1);
 	buf[0] = c;
 }
 
@@ -533,7 +534,7 @@ void MSG_WriteByte (sizebuf_t *sb, int c)
 		Sys_Error ("MSG_WriteByte: range error");
 #endif
 
-	buf = SZ_GetSpace (sb, 1);
+	buf = SZGetSpace<decltype(buf)> (sb, 1);
 	buf[0] = c;
 }
 
@@ -546,7 +547,7 @@ void MSG_WriteShort (sizebuf_t *sb, int c)
 		Sys_Error ("MSG_WriteShort: range error");
 #endif
 
-	buf = SZ_GetSpace (sb, 2);
+	buf = SZGetSpace<decltype(buf)> (sb, 2);
 	buf[0] = c&0xff;
 	buf[1] = c>>8;
 }
@@ -555,7 +556,7 @@ void MSG_WriteLong (sizebuf_t *sb, int c)
 {
 	byte    *buf;
 	
-	buf = SZ_GetSpace (sb, 4);
+	buf = SZGetSpace<decltype(buf)> (sb, 4);
 	buf[0] = c&0xff;
 	buf[1] = (c>>8)&0xff;
 	buf[2] = (c>>16)&0xff;
@@ -580,7 +581,7 @@ void MSG_WriteFloat (sizebuf_t *sb, float f)
 void MSG_WriteString (sizebuf_t *sb, char *s)
 {
 	if (!s)
-		SZ_Write (sb, "", 1);
+		SZ_Write (sb, {}, 1);
 	else
 		SZ_Write (sb, s, Q_strlen(s)+1);
 }
@@ -736,7 +737,7 @@ void SZ_Alloc (sizebuf_t *buf, int startsize)
 {
 	if (startsize < 256)
 		startsize = 256;
-	buf->data = Hunk_AllocName (startsize, "sizebuf");
+	buf->data = hunkAllocName<decltype(buf->data)> (startsize, "sizebuf");
 	buf->maxsize = startsize;
 	buf->cursize = 0;
 }
@@ -754,7 +755,7 @@ void SZ_Clear (sizebuf_t *buf)
 {
 	buf->cursize = 0;
 }
-
+/*
 void *SZ_GetSpace (sizebuf_t *buf, int length)
 {
 	void    *data;
@@ -777,7 +778,7 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 	
 	return data;
 }
-
+*/
 void SZ_Write (sizebuf_t *buf, void *data, int length)
 {
 	Q_memcpy (SZ_GetSpace(buf,length),data,length);         
@@ -1558,17 +1559,17 @@ byte *COM_LoadFile (char *path, int usehunk)
 	COM_FileBase (path, base);
 	
 	if (usehunk == 1)
-		buf = Hunk_AllocName (len+1, base);
+		buf = hunkAllocName<decltype(buf)> (len+1, base);
 	else if (usehunk == 2)
-		buf = Hunk_TempAlloc (len+1);
+		buf = hunkTempAlloc<decltype(buf)> (len+1);
 	else if (usehunk == 0)
-		buf = Z_Malloc (len+1);
+		buf = zmalloc<decltype(buf)> (len+1);
 	else if (usehunk == 3)
-		buf = Cache_Alloc (loadcache, len+1, base);
+		buf = cacheAlloc<decltype(buf)> (loadcache, len+1, base);
 	else if (usehunk == 4)
 	{
 		if (len+1 > loadsize)
-			buf = Hunk_TempAlloc (len+1);
+			buf = hunkTempAlloc<decltype(buf)> (len+1);
 		else
 			buf = loadbuf;
 	}
@@ -1657,7 +1658,7 @@ pack_t *COM_LoadPackFile (char *packfile)
 	if (numpackfiles != PAK0_COUNT)
 		com_modified = true;    // not the original file
 
-	newfiles = Hunk_AllocName (numpackfiles * sizeof(packfile_t), "packfile");
+	newfiles = hunkAllocName<decltype(newfiles)> (numpackfiles * sizeof(packfile_t), "packfile");
 
 	Sys_FileSeek (packhandle, header.dirofs);
 	Sys_FileRead (packhandle, (void *)info, header.dirlen);
@@ -1677,7 +1678,7 @@ pack_t *COM_LoadPackFile (char *packfile)
 		newfiles[i].filelen = LittleLong(info[i].filelen);
 	}
 
-	pack = Hunk_Alloc (sizeof (pack_t));
+	pack = hunkAlloc<decltype(pack)> (sizeof (pack_t));
 	strcpy (pack->filename, packfile);
 	pack->handle = packhandle;
 	pack->numfiles = numpackfiles;
@@ -1708,7 +1709,7 @@ void COM_AddGameDirectory (char *dir)
 //
 // add the directory to the search path
 //
-	search = Hunk_Alloc (sizeof(searchpath_t));
+	search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));
 	strcpy (search->filename, dir);
 	search->next = com_searchpaths;
 	com_searchpaths = search;
@@ -1722,7 +1723,7 @@ void COM_AddGameDirectory (char *dir)
 		pak = COM_LoadPackFile (pakfile);
 		if (!pak)
 			break;
-		search = Hunk_Alloc (sizeof(searchpath_t));
+		search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));
 		search->pack = pak;
 		search->next = com_searchpaths;
 		com_searchpaths = search;               
@@ -1816,7 +1817,7 @@ void COM_InitFilesystem (void)
 			if (!com_argv[i] || com_argv[i][0] == '+' || com_argv[i][0] == '-')
 				break;
 			
-			search = Hunk_Alloc (sizeof(searchpath_t));
+			search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));
 			if ( !strcmp(COM_FileExtension(com_argv[i]), "pak") )
 			{
 				search->pack = COM_LoadPackFile (com_argv[i]);

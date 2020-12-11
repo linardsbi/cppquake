@@ -72,4 +72,21 @@ lumpinfo_t	*W_GetLumpinfo (char *name);
 void	*W_GetLumpName (char *name);
 void	*W_GetLumpNum (int num);
 
+template <typename LumpType>
+LumpType getLumpName(char *name) {
+	lumpinfo_t	*lump = W_GetLumpinfo (name);
+	
+	return reinterpret_cast<LumpType>(wad_base + lump->filepos);
+}
+
+template <typename LumpType>
+LumpType getLumpNum(int num) {
+	if (num < 0 || num > wad_numlumps)
+		Sys_Error ("W_GetLumpNum: bad number: %i", num);
+		
+	lumpinfo_t	*lump = wad_lumps + num;
+	
+	return reinterpret_cast<LumpType>(wad_base + lump->filepos);
+}
+
 void SwapPic (qpic_t *pic);

@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // cvar.c -- dynamic variable tracking
 
 #include "quakedef.h"
-
+#include "util.hpp"
 cvar_t	*cvar_vars;
 char	*cvar_null_string = "";
 
@@ -117,7 +117,7 @@ void Cvar_Set (char *var_name, char *value)
 	
 	Z_Free (var->string);	// free the old value string
 	
-	var->string = Z_Malloc (Q_strlen(value)+1);
+	var->string = zmalloc<decltype(var->string)> (Q_strlen(value)+1);
 	Q_strcpy (var->string, value);
 	var->value = Q_atof (var->string);
 	if (var->server && changed)
@@ -168,7 +168,7 @@ void Cvar_RegisterVariable (cvar_t *variable)
 		
 // copy the value off, because future sets will Z_Free it
 	oldstr = variable->string;
-	variable->string = Z_Malloc (Q_strlen(variable->string)+1);	
+	variable->string = zmalloc<decltype(variable->string)> (Q_strlen(variable->string)+1);	
 	Q_strcpy (variable->string, oldstr);
 	variable->value = Q_atof (variable->string);
 	

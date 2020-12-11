@@ -20,7 +20,6 @@ configure:990:1: warning: return type defaults to 'int' [-Wimplicit-int]
       | ^~~~
 configure:1019: checking whether the C compiler (gcc  ) is a cross-compiler
 configure:1024: checking whether we are using GNU C
-configure:1033: gcc -E conftest.c
 configure:1052: checking whether gcc accepts -g
 configure:1095: checking for a BSD compatible install
 configure:1149: checking target system type

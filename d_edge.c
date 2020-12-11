@@ -235,7 +235,7 @@ void D_DrawSurfaces (void)
 			}
 			else if (s->flags & SURF_DRAWTURB)
 			{
-				pface = s->data;
+				pface = static_cast<msurface_t *>(s->data);
 				miplevel = 0;
 				cacheblock = (pixel_t *)
 						((byte *)pface->texinfo->texture +
@@ -292,7 +292,7 @@ void D_DrawSurfaces (void)
 										// make entity passed in
 				}
 
-				pface = s->data;
+				pface = static_cast<msurface_t *>(s->data);
 				miplevel = D_MipLevelForScale (s->nearzi * scale_for_mip
 				* pface->texinfo->mipadjust);
 

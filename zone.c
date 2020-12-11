@@ -518,6 +518,8 @@ void *Hunk_HighAllocName (int size, char *name)
 }
 
 
+
+
 /*
 =================
 Hunk_TempAlloc
@@ -545,6 +547,8 @@ void *Hunk_TempAlloc (int size)
 
 	return buf;
 }
+
+
 
 /*
 ===============================================================================
@@ -929,7 +933,7 @@ void Memory_Init (void *buf, int size)
 		else
 			Sys_Error ("Memory_Init: you must specify a size in KB after -zone");
 	}
-	mainzone = Hunk_AllocName (zonesize, "zone" );
+	mainzone = hunkAlloc<decltype(mainzone)>Name (zonesize, "zone" );
 	Z_ClearZone (mainzone, zonesize);
 }
 

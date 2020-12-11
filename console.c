@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 #include <fcntl.h>
 #include "quakedef.h"
+#include "util.hpp"
 
 int 		con_linewidth;
 
@@ -226,7 +227,7 @@ void Con_Init (void)
 		}
 	}
 
-	con_text = Hunk_AllocName (CON_TEXTSIZE, "context");
+	con_text = hunkAllocName<decltype(con_text)> (CON_TEXTSIZE, "context");
 	Q_memset (con_text, ' ', CON_TEXTSIZE);
 	con_linewidth = -1;
 	Con_CheckResize ();

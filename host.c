@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "r_local.h"
-
+#include "util.hpp"
 /*
 
 A server can allways be started, even if the system started out as a client
@@ -192,7 +192,7 @@ void	Host_FindMaxClients (void)
 	svs.maxclientslimit = svs.maxclients;
 	if (svs.maxclientslimit < 4)
 		svs.maxclientslimit = 4;
-	svs.clients = Hunk_AllocName (svs.maxclientslimit*sizeof(client_t), "clients");
+	svs.clients = hunkAllocName<decltype(svs.clients)> (svs.maxclientslimit*sizeof(client_t), "clients");
 
 	if (svs.maxclients > 1)
 		Cvar_SetValue ("deathmatch", 1.0);
@@ -446,7 +446,7 @@ void Host_ShutdownServer(qboolean crash)
 	while (count);
 
 // make sure all the clients know we're disconnecting
-	buf.data = message;
+	buf.data = reinterpret_cast<byte *>(message);
 	buf.maxsize = 4;
 	buf.cursize = 0;
 	MSG_WriteByte(&buf, svc_disconnect);
@@ -788,12 +788,12 @@ void Host_InitVCR (quakeparms_t *parms)
 			Sys_Error("Invalid signature in vcr file\n");
 
 		Sys_FileRead (vcrFile, &com_argc, sizeof(int));
-		com_argv = malloc(com_argc * sizeof(char *));
+		com_argv = static_cast<char **>(malloc(com_argc * sizeof(char *)));
 		com_argv[0] = parms->argv[0];
 		for (i = 0; i < com_argc; i++)
 		{
 			Sys_FileRead (vcrFile, &len, sizeof(int));
-			p = malloc(len);
+			p = static_cast<char *>(malloc(len));
 			Sys_FileRead (vcrFile, p, len);
 			com_argv[i+1] = p;
 		}

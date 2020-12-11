@@ -141,7 +141,9 @@ int UDP_OpenSocket (int port)
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons(port);
-	if( bind (newsocket, (void *)&address, sizeof(address)) == -1)
+
+	// FIXME: weird pointer casting magic
+	//if( bind (newsocket, &address, sizeof(address)) == -1)
 		goto ErrorReturn;
 
 	return newsocket;
@@ -248,7 +250,7 @@ int UDP_Read (int socket, byte *buf, int len, struct qsockaddr *addr)
 	int addrlen = sizeof (struct qsockaddr);
 	int ret;
 
-	ret = recvfrom (socket, buf, len, 0, (struct sockaddr *)addr, &addrlen);
+	ret = recvfrom (socket, buf, len, 0, (struct sockaddr *)addr, reinterpret_cast<socklen_t*>(&addrlen));
 	if (ret == -1 && (errno == EWOULDBLOCK || errno == ECONNREFUSED))
 		return 0;
 	return ret;
@@ -333,11 +335,21 @@ int UDP_StringToAddr (char *string, struct qsockaddr *addr)
 
 int UDP_GetSocketAddr (int socket, struct qsockaddr *addr)
 {
+	auto inet_addr = [](const char* cp) {
+		int ha1, ha2, ha3, ha4;
+
+		int ret = sscanf(cp, "%d.%d.%d.%d", &ha1, &ha2, &ha3, &ha4);
+		if (ret != 4)
+			return -1;
+		
+		return (ha1 << 24) | (ha2 << 16) | (ha3 << 8) | ha4;
+	};
+
 	int addrlen = sizeof(struct qsockaddr);
 	unsigned int a;
 
 	Q_memset(addr, 0, sizeof(struct qsockaddr));
-	getsockname(socket, (struct sockaddr *)addr, &addrlen);
+	getsockname(socket, (struct sockaddr *)addr, reinterpret_cast<socklen_t*>(&addrlen));
 	a = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
 	if (a == 0 || a == inet_addr("127.0.0.1"))
 		((struct sockaddr_in *)addr)->sin_addr.s_addr = myAddr;

@@ -22,14 +22,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // vid buffer
 
 #include "quakedef.h"
-
-typedef struct {
+#include "util.hpp"
+struct rectdesc_t {
 	vrect_t	rect;
 	int		width;
 	int		height;
 	byte	*ptexbytes;
 	int		rowbytes;
-} rectdesc_t;
+};
 
 static rectdesc_t	r_rectdesc;
 
@@ -53,7 +53,7 @@ int			menu_numcachepics;
 
 qpic_t	*Draw_PicFromWad (char *name)
 {
-	return W_GetLumpName (name);
+	return getLumpName<qpic_t *>(name);
 }
 
 /*
@@ -79,7 +79,7 @@ qpic_t	*Draw_CachePic (char *path)
 		strcpy (pic->name, path);
 	}
 
-	dat = Cache_Check (&pic->cache);
+	dat = cacheCheck<decltype(dat)> (&pic->cache);
 
 	if (dat)
 		return dat;
@@ -111,9 +111,9 @@ void Draw_Init (void)
 {
 	int		i;
 
-	draw_chars = W_GetLumpName ("conchars");
-	draw_disc = W_GetLumpName ("disc");
-	draw_backtile = W_GetLumpName ("backtile");
+	draw_chars = getLumpName<decltype(draw_chars)> ("conchars");
+	draw_disc = getLumpName<decltype(draw_disc)> ("disc");
+	draw_backtile = getLumpName<decltype(draw_backtile)> ("backtile");
 
 	r_rectdesc.width = draw_backtile->width;
 	r_rectdesc.height = draw_backtile->height;

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "quakedef.h"
-
+#include "util.hpp"
 extern cvar_t	pausable;
 
 int	current_skill;
@@ -641,7 +641,7 @@ void Host_Loadgame_f (void)
 	for (i=0 ; i<MAX_LIGHTSTYLES ; i++)
 	{
 		fscanf (f, "%s\n", str);
-		sv.lightstyles[i] = Hunk_Alloc (strlen(str)+1);
+		sv.lightstyles[i] = hunkAlloc<decltype(sv.lightstyles[i])> (strlen(str)+1);
 		strcpy (sv.lightstyles[i], str);
 	}
 
@@ -809,7 +809,7 @@ int LoadGamestate(char *level, char *startspot)
 	for (i=0 ; i<MAX_LIGHTSTYLES ; i++)
 	{
 		fscanf (f, "%s\n", str);
-		sv.lightstyles[i] = Hunk_Alloc (strlen(str)+1);
+		sv.lightstyles[i] = hunkAlloc<decltype(sv.lightstyles[i])> (strlen(str)+1);
 		strcpy (sv.lightstyles[i], str);
 	}
 
@@ -1011,7 +1011,7 @@ void Host_Say(qboolean teamonly)
 	client_t *save;
 	int		j;
 	char	*p;
-	unsigned char	text[64];
+	char	text[64]; // todo: was unsigned
 	qboolean	fromServer = false;
 
 	if (cmd_source == src_command)

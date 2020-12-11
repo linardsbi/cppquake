@@ -228,7 +228,7 @@ int Sys_FileRead (int handle, void *dst, int count)
 		
 }
 
-int Sys_FileWrite (int handle, void *src, int count)
+int Sys_FileWrite (int handle, const void *src, int count)
 {
 	char *data;
 	int size, done;

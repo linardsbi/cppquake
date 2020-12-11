@@ -99,7 +99,7 @@ void PF_objerror (void)
 ==============
 PF_makevectors
 
-Writes new values for v_forward, v_up, and v_right based on angles
+Writes newv values for v_forward, v_up, and v_right based on angles
 makevectors(vector)
 ==============
 */
@@ -350,25 +350,25 @@ vector normalize(vector)
 void PF_normalize (void)
 {
 	float	*value1;
-	vec3_t	newvalue;
-	float	new;
+	vec3_t	newvvalue;
+	float	newv;
 	
 	value1 = G_VECTOR(OFS_PARM0);
 
-	new = value1[0] * value1[0] + value1[1] * value1[1] + value1[2]*value1[2];
-	new = sqrt(new);
+	newv = value1[0] * value1[0] + value1[1] * value1[1] + value1[2]*value1[2];
+	newv = sqrt(newv);
 	
-	if (new == 0)
-		newvalue[0] = newvalue[1] = newvalue[2] = 0;
+	if (newv == 0)
+		newvvalue[0] = newvvalue[1] = newvvalue[2] = 0;
 	else
 	{
-		new = 1/new;
-		newvalue[0] = value1[0] * new;
-		newvalue[1] = value1[1] * new;
-		newvalue[2] = value1[2] * new;
+		newv = 1/newv;
+		newvvalue[0] = value1[0] * newv;
+		newvvalue[1] = value1[1] * newv;
+		newvvalue[2] = value1[2] * newv;
 	}
 	
-	VectorCopy (newvalue, G_VECTOR(OFS_RETURN));	
+	VectorCopy (newvvalue, G_VECTOR(OFS_RETURN));	
 }
 
 /*
@@ -381,14 +381,14 @@ scalar vlen(vector)
 void PF_vlen (void)
 {
 	float	*value1;
-	float	new;
+	float	newv;
 	
 	value1 = G_VECTOR(OFS_PARM0);
 
-	new = value1[0] * value1[0] + value1[1] * value1[1] + value1[2]*value1[2];
-	new = sqrt(new);
+	newv = value1[0] * value1[0] + value1[1] * value1[1] + value1[2]*value1[2];
+	newv = sqrt(newv);
 	
-	G_FLOAT(OFS_RETURN) = new;
+	G_FLOAT(OFS_RETURN) = newv;
 }
 
 /*
@@ -683,7 +683,7 @@ void PF_checkpos (void)
 
 byte	checkpvs[MAX_MAP_LEAFS/8];
 
-int PF_newcheckclient (int check)
+int PF_newvcheckclient (int check)
 {
 	int		i;
 	byte	*pvs;
@@ -757,10 +757,10 @@ void PF_checkclient (void)
 	int		l;
 	vec3_t	view;
 	
-// find a new check if on a new frame
+// find a newv check if on a newv frame
 	if (sv.time - sv.lastchecktime >= 0.1)
 	{
-		sv.lastcheck = PF_newcheckclient (sv.lastcheck);
+		sv.lastcheck = PF_newvcheckclient (sv.lastcheck);
 		sv.lastchecktime = sv.time;
 	}
 
@@ -1647,7 +1647,7 @@ void PF_changelevel (void)
 	s1 = G_STRING(OFS_PARM0);
 	s2 = G_STRING(OFS_PARM1);
 
-	if ((int)pr_global_struct->serverflags & (SFL_NEW_UNIT | SFL_NEW_EPISODE))
+	if ((int)pr_global_struct->serverflags & (SFL_newv_UNIT | SFL_newv_EPISODE))
 		Cbuf_AddText (va("changelevel %s %s\n",s1, s2));
 	else
 		Cbuf_AddText (va("changelevel2 %s %s\n",s1, s2));

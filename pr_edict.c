@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // sv_edict.c -- entity dictionary
 
 #include "quakedef.h"
-
+#include "util.hpp"
 dprograms_t		*progs;
 dfunction_t		*pr_functions;
 char			*pr_strings;
@@ -283,7 +283,7 @@ char *PR_ValueString (etype_t type, eval_t *val)
 	ddef_t		*def;
 	dfunction_t	*f;
 	
-	type &= ~DEF_SAVEGLOBAL;
+	type = static_cast<etype_t>(type & ~DEF_SAVEGLOBAL);
 
 	switch (type)
 	{
@@ -335,7 +335,7 @@ char *PR_UglyValueString (etype_t type, eval_t *val)
 	ddef_t		*def;
 	dfunction_t	*f;
 	
-	type &= ~DEF_SAVEGLOBAL;
+	type = static_cast<etype_t>(type & ~DEF_SAVEGLOBAL);
 
 	switch (type)
 	{
@@ -383,16 +383,15 @@ char *PR_GlobalString (int ofs)
 	char	*s;
 	int		i;
 	ddef_t	*def;
-	void	*val;
 	static char	line[128];
 	
-	val = (void *)&pr_globals[ofs];
+	auto val = reinterpret_cast<eval_t *>(&pr_globals[ofs]);
 	def = ED_GlobalAtOfs(ofs);
 	if (!def)
 		sprintf (line,"%i(???)", ofs);
 	else
 	{
-		s = PR_ValueString (def->type, val);
+		s = PR_ValueString (static_cast<etype_t>(def->type), val);
 		sprintf (line,"%i(%s)%s", ofs, pr_strings + def->s_name, s);
 	}
 	
@@ -471,7 +470,7 @@ void ED_Print (edict_t *ed)
 		while (l++ < 15)
 			Con_Printf (" ");
 
-		Con_Printf ("%s\n", PR_ValueString(d->type, (eval_t *)v));		
+		Con_Printf ("%s\n", PR_ValueString(static_cast<etype_t>(d->type), (eval_t *)v));		
 	}
 }
 
@@ -516,7 +515,7 @@ void ED_Write (FILE *f, edict_t *ed)
 			continue;
 	
 		fprintf (f,"\"%s\" ",name);
-		fprintf (f,"\"%s\"\n", PR_UglyValueString(d->type, (eval_t *)v));		
+		fprintf (f,"\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(d->type), (eval_t *)v));		
 	}
 
 	fprintf (f, "}\n");
@@ -627,7 +626,7 @@ void ED_WriteGlobals (FILE *f)
 		type = def->type;
 		if ( !(def->type & DEF_SAVEGLOBAL) )
 			continue;
-		type &= ~DEF_SAVEGLOBAL;
+		type = static_cast<etype_t>(type & ~DEF_SAVEGLOBAL);
 
 		if (type != ev_string
 		&& type != ev_float
@@ -636,7 +635,7 @@ void ED_WriteGlobals (FILE *f)
 
 		name = pr_strings + def->s_name;		
 		fprintf (f,"\"%s\" ", name);
-		fprintf (f,"\"%s\"\n", PR_UglyValueString(type, (eval_t *)&pr_globals[def->ofs]));		
+		fprintf (f,"\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(type), (eval_t *)&pr_globals[def->ofs]));		
 	}
 	fprintf (f,"}\n");
 }
@@ -692,12 +691,12 @@ ED_NewString
 */
 char *ED_NewString (char *string)
 {
-	char	*new, *new_p;
+	char	*newMem, *new_p;
 	int		i,l;
 	
 	l = strlen(string) + 1;
-	new = Hunk_Alloc (l);
-	new_p = new;
+	newMem = hunkAlloc<decltype(newMem)> (l);
+	new_p = newMem;
 
 	for (i=0 ; i< l ; i++)
 	{
@@ -713,7 +712,7 @@ char *ED_NewString (char *string)
 			*new_p++ = string[i];
 	}
 	
-	return new;
+	return newMem;
 }
 
 

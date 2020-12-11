@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "quakedef.h"
-
+#include "util.hpp"
 /*
 
 key up events are sent even if in console mode
@@ -393,7 +393,7 @@ Key_SetBinding
 */
 void Key_SetBinding (int keynum, char *binding)
 {
-	char	*new;
+	char	*newChar;
 	int		l;
 			
 	if (keynum == -1)
@@ -406,12 +406,12 @@ void Key_SetBinding (int keynum, char *binding)
 		keybindings[keynum] = NULL;
 	}
 			
-// allocate memory for new binding
+// allocate memory for newChar binding
 	l = Q_strlen (binding);	
-	new = Z_Malloc (l+1);
-	Q_strcpy (new, binding);
-	new[l] = 0;
-	keybindings[keynum] = new;	
+	newChar = zmalloc<decltype(newChar)> (l+1);
+	Q_strcpy (newChar, binding);
+	newChar[l] = 0;
+	keybindings[keynum] = newChar;	
 }
 
 /*
