@@ -18,15 +18,15 @@ unsigned short  d_8to16table[256];
 int    VGA_width, VGA_height, VGA_rowbytes, VGA_bufferrowbytes = 0;
 byte    *VGA_pagebase;
 
-static SDL_Surface *screen = NULL;
+static SDL_Surface *screen = nullptr;
 
 static qboolean mouse_avail;
 static float   mouse_x, mouse_y;
 static int mouse_oldbuttonstate = 0;
 
 // No support for option menus
-void (*vid_menudrawfn)(void) = NULL;
-void (*vid_menukeyfn)(int key) = NULL;
+void (*vid_menudrawfn)() = nullptr;
+void (*vid_menukeyfn)(int key) = nullptr;
 
 void    VID_SetPalette (unsigned char *palette)
 {
@@ -103,7 +103,7 @@ void    VID_Init (unsigned char *palette)
     cachesize = D_SurfaceCacheForRes (vid.width, vid.height);
     chunk += cachesize;
     d_pzbuffer = hunkHighAllocName<decltype(d_pzbuffer)>(chunk, "video");
-    if (d_pzbuffer == NULL)
+    if (d_pzbuffer == nullptr)
         Sys_Error ("Not enough memory for video mode\n");
 
     // initialize the cache memory 
@@ -115,7 +115,7 @@ void    VID_Init (unsigned char *palette)
     SDL_ShowCursor(0);
 }
 
-void    VID_Shutdown (void)
+void    VID_Shutdown ()
 {
     SDL_Quit();
 }
@@ -189,7 +189,7 @@ Sys_SendKeyEvents
 ================
 */
 
-void Sys_SendKeyEvents(void)
+void Sys_SendKeyEvents()
 {
     SDL_Event event;
     int sym, state;
@@ -316,27 +316,27 @@ void Sys_SendKeyEvents(void)
     }
 }
 
-void IN_Init (void)
+void IN_Init ()
 {
     if ( COM_CheckParm ("-nomouse") )
         return;
     mouse_x = mouse_y = 0.0;
-    mouse_avail = 1;
+    mouse_avail = true;
 }
 
-void IN_Shutdown (void)
+void IN_Shutdown ()
 {
-    mouse_avail = 0;
+    mouse_avail = false;
 }
 
-void IN_Commands (void)
+void IN_Commands ()
 {
     int i;
     int mouse_buttonstate;
    
     if (!mouse_avail) return;
    
-    i = SDL_GetMouseState(NULL, NULL);
+    i = SDL_GetMouseState(nullptr, nullptr);
     /* Quake swaps the second and third buttons */
     mouse_buttonstate = (i & ~0x06) | ((i & 0x02)<<1) | ((i & 0x04)>>1);
     for (i=0 ; i<3 ; i++) {
@@ -384,7 +384,7 @@ void IN_Move (usercmd_t *cmd)
 Sys_ConsoleInput
 ================
 */
-char *Sys_ConsoleInput (void)
+char *Sys_ConsoleInput ()
 {
     return 0;
 }

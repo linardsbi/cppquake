@@ -27,7 +27,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 #include <fcntl.h>
 #include "quakedef.h"
-#include "util.hpp"
 
 int 		con_linewidth;
 

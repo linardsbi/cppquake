@@ -759,7 +759,7 @@ void Host_Frame (float time)
 			c++;
 	}
 
-	Con_Printf ("serverprofile: %2i clients %2i msec\n",  c,  m);
+	Sys_Printf("serverprofile: %2i clients %2i msec\n",  c,  m);
 }
 
 //============================================================================

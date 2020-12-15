@@ -11,6 +11,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <iostream>
 #ifndef __WIN32__
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -18,6 +19,7 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 #include <SDL.h>
+
 
 #endif
 
@@ -27,8 +29,8 @@ qboolean			isDedicated;
 
 int noconinput = 0;
 
-char *basedir = ".";
-char *cachedir = "/tmp";
+constexpr char basedir[] = ".";
+constexpr char cachedir[] = "/tmp";
 
 cvar_t  sys_linerefresh = {"sys_linerefresh","0"};// set for entity display
 cvar_t  sys_nostdout = {"sys_nostdout","0"};
@@ -285,8 +287,8 @@ double Sys_FloatTime (void)
 
 #else
 
-    struct timeval tp;
-    struct timezone tzp; 
+    timeval tp{};
+    struct timezone tzp{};
     static int      secbase; 
     
     gettimeofday(&tp, &tzp);  
@@ -347,32 +349,32 @@ void floating_point_exception_handler(int whatever)
 	signal(SIGFPE, floating_point_exception_handler);
 }
 
-void moncontrol(int x)
+void moncontrol(double x)
 {
+
 }
 
 int main (int c, char **v)
 {
-
-	double		time, oldtime, newtime;
-	quakeparms_t parms;
 	extern int vcrFile;
 	extern int recording;
 	static int frame;
+	constexpr int memPoolSize = 8*1024*1024;
+	constexpr float fpsInterval = 1.0;
 
 	moncontrol(0);
-
+    COM_InitArgv(c, v);
 //	signal(SIGFPE, floating_point_exception_handler);
 	signal(SIGFPE, SIG_IGN);
 
-	parms.memsize = 8*1024*1024;
-	parms.membase = malloc (parms.memsize);
-	parms.basedir = basedir;
-	parms.cachedir = cachedir;
-
-	COM_InitArgv(c, v);
-	parms.argc = com_argc;
-	parms.argv = com_argv;
+	quakeparms_t parms = {
+	        .basedir = basedir,
+	        .cachedir = cachedir,
+	        .argc = com_argc,
+	        .argv = com_argv,
+	        .membase = malloc(memPoolSize),
+            .memsize = memPoolSize,
+	};
 
 	Sys_Init();
 
@@ -380,12 +382,15 @@ int main (int c, char **v)
 
 	Cvar_RegisterVariable (&sys_nostdout);
 
-    oldtime = Sys_FloatTime () - 0.1;
-    while (1)
+    double oldtime = Sys_FloatTime () - 0.1;
+    auto fpsLastTime = SDL_GetTicks();
+
+    while (true)
     {
 // find time spent rendering last frame
-        newtime = Sys_FloatTime ();
-        time = newtime - oldtime;
+
+        double newtime = Sys_FloatTime ();
+        double time = newtime - oldtime;
 
         if (cls.state == ca_dedicated)
         {   // play vcrfiles at max speed
@@ -397,18 +402,26 @@ int main (int c, char **v)
             time = sys_ticrate.value;
         }
 
-        if (time > sys_ticrate.value*2)
+        if (time > sys_ticrate.value*2.0)
             oldtime = newtime;
         else
             oldtime += time;
 
-        if (++frame > 10)
-            moncontrol(1);      // profile only while we do each Quake frame
         Host_Frame (time);
-        moncontrol(0);
+
+        ++frame;
+        if (COM_CheckParm("-showfps")) {
+            SDL_Delay(1);
+            if (fpsLastTime < SDL_GetTicks() - fpsInterval * 1000) {
+                fpsLastTime = SDL_GetTicks();
+                Con_Printf("FPS: %d\n", frame); // profile only while we do each Quake frame
+                frame = 0;
+            }
+        }
+//        moncontrol(time);
 
 // graphic debugging aids
-        if (sys_linerefresh.value)
+        if (sys_linerefresh.value != 0)
             Sys_LineRefresh ();
     }
 
