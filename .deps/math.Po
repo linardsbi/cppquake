@@ -1,1 +1,4 @@
-# dummy
+math.o: math.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h
+/usr/include/stdc-predef.h:
+asm_i386.h:
+quakeasm.h:

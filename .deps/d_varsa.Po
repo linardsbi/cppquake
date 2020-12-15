@@ -1,1 +1,7 @@
-# dummy
+d_varsa.o: d_varsa.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h \
+ asm_draw.h d_ifacea.h
+/usr/include/stdc-predef.h:
+asm_i386.h:
+quakeasm.h:
+asm_draw.h:
+d_ifacea.h:

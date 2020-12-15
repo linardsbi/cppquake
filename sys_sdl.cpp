@@ -27,13 +27,11 @@
 
 qboolean			isDedicated;
 
-int noconinput = 0;
+char basedir[] = ".";
+char cachedir[] = "/tmp";
 
-constexpr char basedir[] = ".";
-constexpr char cachedir[] = "/tmp";
-
-cvar_t  sys_linerefresh = {"sys_linerefresh","0"};// set for entity display
-cvar_t  sys_nostdout = {"sys_nostdout","0"};
+cvar_t  sys_linerefresh = {"sys_linerefresh"};// set for entity display
+cvar_t  sys_nostdout = {"sys_nostdout"};
 
 // =======================================================================
 // General routines
@@ -95,7 +93,7 @@ void Sys_HighFPPrecision (void)
 #endif	// !id386
 
 
-void Sys_Error (char *error, ...)
+void Sys_Error (const char *error, ...)
 { 
     va_list     argptr;
     char        string[1024];

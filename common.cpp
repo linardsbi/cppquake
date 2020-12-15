@@ -152,7 +152,7 @@ void Q_memset (void *dest, int fill, int count)
 			((byte *)dest)[i] = fill;
 }
 
-void Q_memcpy (void *dest, void *src, int count)
+void Q_memcpy (void *dest, const void *src, int count)
 {
 	int             i;
 	
@@ -178,7 +178,7 @@ int Q_memcmp (void *m1, void *m2, int count)
 	return 0;
 }
 
-void Q_strcpy (char *dest, char *src)
+void Q_strcpy (char *dest, const char *src)
 {
 	while (*src)
 	{
@@ -197,11 +197,9 @@ void Q_strncpy (char *dest, char *src, int count)
 		*dest++ = 0;
 }
 
-int Q_strlen (char *str)
+int Q_strlen (const char *str)
 {
-	int             count;
-	
-	count = 0;
+	int count = 0;
 	while (str[count])
 		count++;
 
@@ -222,21 +220,23 @@ void Q_strcat (char *dest, char *src)
 	dest += Q_strlen(dest);
 	Q_strcpy (dest, src);
 }
-
-int Q_strcmp (char *s1, char *s2)
-{
-	while (1)
-	{
-		if (*s1 != *s2)
-			return -1;              // strings not equal    
-		if (!*s1)
-			return 0;               // strings are equal
-		s1++;
-		s2++;
-	}
-	
-	return -1;
+bool Q_strcmp (std::string_view s1, std::string_view s2) {
+    return s1.compare(s2);
 }
+//int Q_strcmp (char *s1, char *s2)
+//{
+//	while (1)
+//	{
+//		if (*s1 != *s2)
+//			return -1;              // strings not equal
+//		if (!*s1)
+//			return 0;               // strings are equal
+//		s1++;
+//		s2++;
+//	}
+//
+//	return -1;
+//}
 bool Q_strncmp (std::string_view s1, std::string_view s2, const std::size_t count) {
 	return s1.compare(0, count, s2, 0, count);
 }
@@ -351,7 +351,7 @@ int Q_atoi (char *str)
 }
 
 
-float Q_atof (char *str)
+float Q_atof (const char *str)
 {
 	double			val;
 	int             sign;
@@ -580,12 +580,9 @@ void MSG_WriteFloat (sizebuf_t *sb, float f)
 	SZ_Write (sb, &dat.l, 4);
 }
 
-void MSG_WriteString (sizebuf_t *sb, char *s)
+void MSG_WriteString (sizebuf_t *sb, std::string_view s)
 {
-	if (!s)
-		SZ_Write (sb, nullptr, 1);
-	else
-		SZ_Write (sb, s, Q_strlen(s)+1);
+    SZ_Write (sb, reinterpret_cast<const void*>(s.data()), s.length()+1);
 }
 
 void MSG_WriteCoord (sizebuf_t *sb, float f)
@@ -627,20 +624,15 @@ int MSG_ReadChar (void)
 	return c;
 }
 
-int MSG_ReadByte (void)
+int MSG_ReadByte ()
 {
-	int     c;
-	
 	if (msg_readcount+1 > net_message.cursize)
 	{
 		msg_badread = true;
 		return -1;
 	}
-		
-	c = (unsigned char)net_message.data[msg_readcount];
-	msg_readcount++;
-	
-	return c;
+
+	return net_message.data[msg_readcount++];
 }
 
 int MSG_ReadShort (void)
@@ -781,9 +773,9 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 	return data;
 }
 */
-void SZ_Write (sizebuf_t *buf, void *data, int length)
+
+void SZ_Write (sizebuf_t *buf, const void *data, std::size_t length)
 {
-    if (data == nullptr) return;
 	Q_memcpy (SZGetSpace<void*>(buf,length),data,length);
 }
 

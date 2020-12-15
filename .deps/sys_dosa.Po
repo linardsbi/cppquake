@@ -1,1 +1,4 @@
-# dummy
+sys_dosa.o: sys_dosa.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h
+/usr/include/stdc-predef.h:
+asm_i386.h:
+quakeasm.h:

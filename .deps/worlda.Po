@@ -1,1 +1,6 @@
-# dummy
+worlda.o: worlda.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h \
+ d_ifacea.h
+/usr/include/stdc-predef.h:
+asm_i386.h:
+quakeasm.h:
+d_ifacea.h:

@@ -15,8 +15,8 @@ unsigned short  d_8to16table[256];
 #define    BASEWIDTH    (320*2)
 #define    BASEHEIGHT   (200*2)
 
-int    VGA_width, VGA_height, VGA_rowbytes, VGA_bufferrowbytes = 0;
-byte    *VGA_pagebase;
+int    _VGA_width, _VGA_height, _VGA_rowbytes, _VGA_bufferrowbytes = 0;
+byte    *_VGA_pagebase;
 
 static SDL_Surface *screen = nullptr;
 
@@ -86,14 +86,14 @@ void    VID_Init (unsigned char *palette)
     VID_SetPalette(palette);
     SDL_WM_SetCaption("sdlquake","sdlquake");
     // now know everything we need to know about the buffer
-    VGA_width = vid.conwidth = vid.width;
-    VGA_height = vid.conheight = vid.height;
+    _VGA_width = vid.conwidth = vid.width;
+    _VGA_height = vid.conheight = vid.height;
     vid.aspect = ((float)vid.height / (float)vid.width) * (320.0 / 240.0);
     vid.numpages = 1;
     vid.colormap = host_colormap;
     vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
-    VGA_pagebase = vid.buffer = static_cast<pixel_t*>(screen->pixels);
-    VGA_rowbytes = vid.rowbytes = screen->pitch;
+    _VGA_pagebase = vid.buffer = static_cast<pixel_t*>(screen->pixels);
+    _VGA_rowbytes = vid.rowbytes = screen->pitch;
     vid.conbuffer = vid.buffer;
     vid.conrowbytes = vid.rowbytes;
     vid.direct = nullptr;

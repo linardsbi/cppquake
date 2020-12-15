@@ -32,44 +32,44 @@ typedef struct
 
 typedef enum {ss_loading, ss_active} server_state_t;
 
-typedef struct
+struct server_t
 {
-	qboolean	active;				// false if only a net client
+	qboolean	active{};				// false if only a net client
 
-	qboolean	paused;
-	qboolean	loadgame;			// handle connections specially
+	qboolean	paused{};
+	qboolean	loadgame{};			// handle connections specially
 
-	double		time;
+	double		time{};
 	
-	int			lastcheck;			// used by PF_checkclient
-	double		lastchecktime;
+	int			lastcheck{};			// used by PF_checkclient
+	double		lastchecktime{};
 	
-	char		name[64];			// map name
+	char		name[64]{};			// map name
 #ifdef QUAKE2
 	char		startspot[64];
 #endif
-	char		modelname[64];		// maps/<name>.bsp, for model_precache[0]
-	struct model_s 	*worldmodel;
-	char		*model_precache[MAX_MODELS];	// NULL terminated
-	struct model_s	*models[MAX_MODELS];
-	char		*sound_precache[MAX_SOUNDS];	// NULL terminated
-	char		*lightstyles[MAX_LIGHTSTYLES];
-	int			num_edicts;
-	int			max_edicts;
-	edict_t		*edicts;			// can NOT be array indexed, because
+	char		modelname[64]{};		// maps/<name>.bsp, for model_precache[0]
+	struct model_s 	*worldmodel{};
+	char		*model_precache[MAX_MODELS]{};	// NULL terminated
+	struct model_s	*models[MAX_MODELS]{};
+	char		*sound_precache[MAX_SOUNDS]{};	// NULL terminated
+	char		*lightstyles[MAX_LIGHTSTYLES]{""};
+	int			num_edicts{};
+	int			max_edicts{};
+	edict_t		*edicts{};			// can NOT be array indexed, because
 									// edict_t is variable sized, but can
 									// be used to reference the world ent
 	server_state_t	state;			// some actions are only valid during load
 
-	sizebuf_t	datagram;
-	byte		datagram_buf[MAX_DATAGRAM];
+	sizebuf_t	datagram{};
+	byte		datagram_buf[MAX_DATAGRAM]{};
 
-	sizebuf_t	reliable_datagram;	// copied to all clients at end of frame
-	byte		reliable_datagram_buf[MAX_DATAGRAM];
+	sizebuf_t	reliable_datagram{};	// copied to all clients at end of frame
+	byte		reliable_datagram_buf[MAX_DATAGRAM]{};
 
-	sizebuf_t	signon;
+	sizebuf_t	signon{};
 	byte		signon_buf[8192];
-} server_t;
+} ;
 
 
 #define	NUM_PING_TIMES		16

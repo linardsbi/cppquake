@@ -1,1 +1,6 @@
-# dummy
+r_edgea.o: r_edgea.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h \
+ asm_draw.h
+/usr/include/stdc-predef.h:
+asm_i386.h:
+quakeasm.h:
+asm_draw.h:

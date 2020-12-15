@@ -1,1 +1,6 @@
-# dummy
+d_copy.o: d_copy.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h \
+ asm_draw.h
+/usr/include/stdc-predef.h:
+asm_i386.h:
+quakeasm.h:
+asm_draw.h:

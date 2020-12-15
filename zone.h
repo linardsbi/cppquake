@@ -182,7 +182,7 @@ void Cache_MakeLRU (cache_system_t *cs);
 
 cache_system_t *Cache_TryAlloc (int size, qboolean nobottom);
 
-void *Cache_Alloc (cache_user_t *c, int size, char *name);
+
 // Returns NULL if all purgable data was tossed and there still
 // wasn't enough room.
 

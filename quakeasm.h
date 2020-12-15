@@ -214,6 +214,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	.extern C(D_PolysetSetEdgeTable)
 	.extern C(D_RasterizeAliasPolySmooth)
 
+
 	.extern float_point5
 	.extern Float2ToThe31nd
 	.extern izistep

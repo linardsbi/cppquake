@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "quakedef.h"
-#include "util.hpp"
+#include <string>
 /*
 
 key up events are sent even if in console mode
@@ -28,7 +28,7 @@ key up events are sent even if in console mode
 
 #define		MAXCMDLINE	256
 char	key_lines[32][MAXCMDLINE];
-int		key_linepos;
+unsigned	key_linepos;
 int		shift_down=false;
 int		key_lastpress;
 
@@ -158,7 +158,6 @@ Interactive line editing and console scrollback
 */
 void Key_Console (int key)
 {
-	char	*cmd;
 	
 	if (key == K_ENTER)
 	{
@@ -177,13 +176,14 @@ void Key_Console (int key)
 
 	if (key == K_TAB)
 	{	// command completion
-		cmd = Cmd_CompleteCommand (key_lines[edit_line]+1);
-		if (!cmd)
+		std::string cmd = Cmd_CompleteCommand (key_lines[edit_line]+1);
+		if (cmd.empty())
 			cmd = Cvar_CompleteVariable (key_lines[edit_line]+1);
-		if (cmd)
+
+		if (!cmd.empty())
 		{
-			Q_strcpy (key_lines[edit_line]+1, cmd);
-			key_linepos = Q_strlen(cmd)+1;
+			Q_strcpy (key_lines[edit_line]+1, cmd.c_str());
+			key_linepos = cmd.length()+1;
 			key_lines[edit_line][key_linepos] = ' ';
 			key_linepos++;
 			key_lines[edit_line][key_linepos] = 0;

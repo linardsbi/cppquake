@@ -212,7 +212,7 @@ am__v_CXX_ = $(am__v_CXX_$(AM_DEFAULT_VERBOSITY))
 am__v_CXX_0 = @echo "  CXX     " $@;
 am__v_CXX_1 = 
 CXXLD = $(CXX)
-CXXLINK = $(CXXLD) -m32 $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 AM_V_CXXLD = $(am__v_CXXLD_$(V))
 am__v_CXXLD_ = $(am__v_CXXLD_$(AM_DEFAULT_VERBOSITY))
@@ -225,7 +225,7 @@ am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
 am__v_CC_0 = @echo "  CC      " $@;
 am__v_CC_1 = 
 CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+LINK = $(CCLD) -m32 $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_CCLD = $(am__v_CCLD_$(V))
 am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
@@ -288,13 +288,13 @@ AWK = gawk
 CC = gcc
 CCAS = gcc
 CCASDEPMODE = depmode=gcc3
-CCASFLAGS = -g -O2
+CCASFLAGS = -g -O2 -m32 -DSDL
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF
+CFLAGS = -g -O2 -m32 -DSDL -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF
 CPPFLAGS = 
 CXX = g++
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -g -O2 -std=c++2a -m32 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT
+CXXFLAGS = -g -O2 -Wall -std=c++2a -m32 -DSDL -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT
 CYGPATH_W = echo
 DEFS = -DPACKAGE_NAME=\"sdlquake\" -DPACKAGE_TARNAME=\"sdlquake\" -DPACKAGE_VERSION=\"1.0.9\" -DPACKAGE_STRING=\"sdlquake\ 1.0.9\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DPACKAGE=\"sdlquake\" -DVERSION=\"1.0.9\"
 DEPDIR = .deps

@@ -566,7 +566,7 @@ void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 Cmd_Exists
 ============
 */
-qboolean	Cmd_Exists (char *cmd_name)
+qboolean	Cmd_Exists (const char *cmd_name)
 {
 	cmd_function_t	*cmd;
 

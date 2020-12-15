@@ -1353,7 +1353,10 @@ void Host_Spawn_f (void)
 	{
 		MSG_WriteByte (&host_client->message, svc_lightstyle);
 		MSG_WriteByte (&host_client->message, (char)i);
-		MSG_WriteString (&host_client->message, sv.lightstyles[i]);
+
+		if (sv.lightstyles[i] != nullptr) {
+            MSG_WriteString(&host_client->message, sv.lightstyles[i]);
+        }
 	}
 
 //

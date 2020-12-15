@@ -273,8 +273,8 @@ struct entity_state_t
 
 struct quakeparms_t
 {
-	const char	*basedir;
-	const char	*cachedir;		// for development over ISDN lines
+	char	*basedir;
+	char	*cachedir;		// for development over ISDN lines
 	int		argc;
 	char	**argv;
 	void	*membase;
@@ -284,7 +284,6 @@ struct quakeparms_t
 //=============================================================================
 
 extern qboolean noclip_anglehack;
-
 
 //
 // host

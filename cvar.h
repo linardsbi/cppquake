@@ -55,19 +55,19 @@ interface from being ambiguous.
 
 typedef struct cvar_s
 {
-	char	*name;
-	char	*string;
-	qboolean archive;		// set to true to cause it to be saved to vars.rc
-	qboolean server;		// notifies players when changed
-	float	value;
-	struct cvar_s *next;
+	const char	*name{};
+	char	*string{"0"};
+	qboolean archive{};		// set to true to cause it to be saved to vars.rc
+	qboolean server{};		// notifies players when changed
+	float	value{};
+	struct cvar_s *next{};
 } cvar_t;
 
 void 	Cvar_RegisterVariable (cvar_t *variable);
 // registers a cvar that allready has the name, string, and optionally the
 // archive elements set.
 
-void 	Cvar_Set (char *var_name, char *value);
+void 	Cvar_Set (const char *var_name, char *value);
 // equivelant to "<name> <variable>" typed at the console
 
 void	Cvar_SetValue (char *var_name, float value);
@@ -79,7 +79,7 @@ float	Cvar_VariableValue (char *var_name);
 char	*Cvar_VariableString (char *var_name);
 // returns an empty string if not defined
 
-char 	*Cvar_CompleteVariable (char *partial);
+const char * Cvar_CompleteVariable (char *partial);
 // attempts to match a partial variable name for command line completion
 // returns NULL if nothing fits
 
@@ -92,6 +92,6 @@ void 	Cvar_WriteVariables (FILE *f);
 // Writes lines containing "set variable value" for all variables
 // with the archive flag set to true.
 
-cvar_t *Cvar_FindVar (char *var_name);
+cvar_t *Cvar_FindVar (const char *var_name);
 
 extern cvar_t	*cvar_vars;
