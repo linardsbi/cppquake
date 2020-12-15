@@ -576,14 +576,14 @@ void MSG_WriteFloat (sizebuf_t *sb, float f)
 	
 	dat.f = f;
 	dat.l = LittleLong (dat.l);
-	
+
 	SZ_Write (sb, &dat.l, 4);
 }
 
 void MSG_WriteString (sizebuf_t *sb, char *s)
 {
 	if (!s)
-		SZ_Write (sb, {}, 1);
+		SZ_Write (sb, nullptr, 1);
 	else
 		SZ_Write (sb, s, Q_strlen(s)+1);
 }
@@ -783,6 +783,7 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 */
 void SZ_Write (sizebuf_t *buf, void *data, int length)
 {
+    if (data == nullptr) return;
 	Q_memcpy (SZGetSpace<void*>(buf,length),data,length);
 }
 

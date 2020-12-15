@@ -132,7 +132,7 @@ r_aclipa.o r_aliasa.o r_drawa.o r_edgea.o surf16.o surf8.o worlda.o \
 d_vars.o nonintel.o
 sdlquake_DEPENDENCIES = 
 sdlquake_LDFLAGS = 
-CFLAGS = -m32 -std=c++2a -w -g -O2 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF
+CFLAGS = -m32 -std=c++2a -w -g -O3 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF
 COMPILE = g++ $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = g++
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
@@ -213,6 +213,7 @@ maintainer-clean-compile:
 sdlquake: $(sdlquake_OBJECTS) $(sdlquake_DEPENDENCIES)
 	@rm -f sdlquake
 	$(LINK) $(sdlquake_LDFLAGS) $(sdlquake_OBJECTS) $(sdlquake_LDADD) $(LIBS)
+	yes | cp -rf ./sdlquake ../Quake.1[Game]-neno001/
 
 tags: TAGS
 

@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/param.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <unistd.h>
 
 #ifdef __sun__
 #include <sys/filio.h>
@@ -36,16 +37,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef NeXT
 #include <libc.h>
 #endif
-
-int gethostname (char * chr, int i) {
-    chr[0] = 'z';
-    Sys_Printf("%s", "gethostname Not implemented!");
-}
+// fixme: what library was this linking with?
+//extern int gethostname (char * chr, int i);
 
 // fixme: what library was this linking with?
-int close (int) {
-    Sys_Printf("%s","close Not implemented!");
-}
+//int close (int);
 
 extern cvar_t hostname;
 
@@ -135,7 +131,7 @@ void UDP_Listen (qboolean state)
 int UDP_OpenSocket (int port)
 {
 	int newsocket;
-	struct sockaddr_in address;
+	sockaddr_in address;
 	qboolean _true = true;
 
 	if ((newsocket = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -150,7 +146,7 @@ int UDP_OpenSocket (int port)
 	address.sin_port = htons(port);
 
 	// FIXME: weird pointer casting magic
-	//if( bind (newsocket, &address, sizeof(address)) == -1)
+	if(bind (newsocket, (const struct sockaddr *) &address, sizeof(address)) == -1)
 		goto ErrorReturn;
 
 	return newsocket;
