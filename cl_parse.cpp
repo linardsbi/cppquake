@@ -333,7 +333,7 @@ void CL_ParseUpdate (int bits)
 	int			i = 0;
 	model_t		*model = nullptr;
 	int			modnum = 0;
-	qboolean	forcelink = 0;
+	qboolean	forcelink = false;
 	entity_t	*ent = nullptr;
 	int			num = 0;
 	int			skin = 0;

@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // cl_tent.c -- client side temporary entities
 
+#include "math.h"
 #include "quakedef.hpp"
 
 int			num_temp_entities;
@@ -42,7 +43,7 @@ sfx_t			*cl_sfx_rail;
 CL_ParseTEnt
 =================
 */
-void CL_InitTEnts (void)
+void CL_InitTEnts ()
 {
 	cl_sfx_wizhit = S_PrecacheSound ("wizard/hit.wav");
 	cl_sfx_knighthit = S_PrecacheSound ("hknight/hit.wav");
@@ -64,10 +65,10 @@ CL_ParseBeam
 */
 void CL_ParseBeam (model_t *m)
 {
-	int		ent;
+	int		ent = 0;
 	vec3_t	start, end;
-	beam_t	*b;
-	int		i;
+	beam_t	*b = nullptr;
+	int		i = 0;
 	
 	ent = MSG_ReadShort ();
 	
@@ -112,16 +113,16 @@ void CL_ParseBeam (model_t *m)
 CL_ParseTEnt
 =================
 */
-void CL_ParseTEnt (void)
+void CL_ParseTEnt ()
 {
-	int		type;
+	int		type = 0;
 	vec3_t	pos;
 #ifdef QUAKE2
 	vec3_t	endpos;
 #endif
-	dlight_t	*dl;
-	int		rnd;
-	int		colorStart, colorLength;
+	dlight_t	*dl = nullptr;
+	int		rnd = 0;
+	int		colorStart = 0, colorLength = 0;
 
 	type = MSG_ReadByte ();
 	switch (type)
@@ -298,14 +299,14 @@ void CL_ParseTEnt (void)
 CL_NewTempEntity
 =================
 */
-entity_t *CL_NewTempEntity (void)
+auto CL_NewTempEntity () -> entity_t *
 {
-	entity_t	*ent;
+	entity_t	*ent = nullptr;
 
 	if (cl_numvisedicts == MAX_VISEDICTS)
-		return NULL;
+		return nullptr;
 	if (num_temp_entities == MAX_TEMP_ENTITIES)
-		return NULL;
+		return nullptr;
 	ent = &cl_temp_entities[num_temp_entities];
 	memset (ent, 0, sizeof(*ent));
 	num_temp_entities++;
@@ -322,15 +323,15 @@ entity_t *CL_NewTempEntity (void)
 CL_UpdateTEnts
 =================
 */
-void CL_UpdateTEnts (void)
+void CL_UpdateTEnts ()
 {
-	int			i;
-	beam_t		*b;
+	int			i = 0;
+	beam_t		*b = nullptr;
 	vec3_t		dist, org;
-	float		d;
-	entity_t	*ent;
-	float		yaw, pitch;
-	float		forward;
+	float		d = NAN;
+	entity_t	*ent = nullptr;
+	float		yaw = NAN, pitch = NAN;
+	float		forward = NAN;
 
 	num_temp_entities = 0;
 

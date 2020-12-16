@@ -18,9 +18,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include "math.h"
 #include "quakedef.hpp"
 
-void CL_FinishTimeDemo (void);
+void CL_FinishTimeDemo ();
 
 /*
 ==============================================================================
@@ -42,14 +43,14 @@ CL_StopPlayback
 Called when a demo file runs out, or the user starts a game
 ==============
 */
-void CL_StopPlayback (void)
+void CL_StopPlayback ()
 {
 	if (!cls.demoplayback)
 		return;
 
 	fclose (cls.demofile);
 	cls.demoplayback = false;
-	cls.demofile = NULL;
+	cls.demofile = nullptr;
 	cls.state = ca_disconnected;
 
 	if (cls.timedemo)
@@ -63,11 +64,11 @@ CL_WriteDemoMessage
 Dumps the current net message, prefixed by the length and view angles
 ====================
 */
-void CL_WriteDemoMessage (void)
+void CL_WriteDemoMessage ()
 {
-	int		len;
-	int		i;
-	float	f;
+	int		len = 0;
+	int		i = 0;
+	float	f = NAN;
 
 	len = LittleLong (net_message.cursize);
 	fwrite (&len, 4, 1, cls.demofile);
@@ -87,10 +88,10 @@ CL_GetMessage
 Handles recording and playback of demos, on top of NET_ code
 ====================
 */
-int CL_GetMessage (void)
+auto CL_GetMessage () -> int
 {
-	int		r, i;
-	float	f;
+	int		r = 0, i = 0;
+	float	f = NAN;
 	
 	if	(cls.demoplayback)
 	{
@@ -135,7 +136,7 @@ int CL_GetMessage (void)
 		return 1;
 	}
 
-	while (1)
+	while (true)
 	{
 		r = NET_GetMessage (cls.netcon);
 		
@@ -163,7 +164,7 @@ CL_Stop_f
 stop recording a demo
 ====================
 */
-void CL_Stop_f (void)
+void CL_Stop_f ()
 {
 	if (cmd_source != src_command)
 		return;
@@ -181,7 +182,7 @@ void CL_Stop_f (void)
 
 // finish up
 	fclose (cls.demofile);
-	cls.demofile = NULL;
+	cls.demofile = nullptr;
 	cls.demorecording = false;
 	Con_Printf ("Completed demo\n");
 }
@@ -193,11 +194,11 @@ CL_Record_f
 record <demoname> <map> [cd track]
 ====================
 */
-void CL_Record_f (void)
+void CL_Record_f ()
 {
-	int		c;
+	int		c = 0;
 	char	name[MAX_OSPATH];
-	int		track;
+	int		track = 0;
 
 	if (cmd_source != src_command)
 		return;
@@ -265,10 +266,10 @@ CL_PlayDemo_f
 play [demoname]
 ====================
 */
-void CL_PlayDemo_f (void)
+void CL_PlayDemo_f ()
 {
 	char	name[256];
-	int c;
+	int c = 0;
 	qboolean neg = false;
 
 	if (cmd_source != src_command)
@@ -322,10 +323,10 @@ CL_FinishTimeDemo
 
 ====================
 */
-void CL_FinishTimeDemo (void)
+void CL_FinishTimeDemo ()
 {
-	int		frames;
-	float	time;
+	int		frames = 0;
+	float	time = NAN;
 	
 	cls.timedemo = false;
 	
@@ -344,7 +345,7 @@ CL_TimeDemo_f
 timedemo [demoname]
 ====================
 */
-void CL_TimeDemo_f (void)
+void CL_TimeDemo_f ()
 {
 	if (cmd_source != src_command)
 		return;

@@ -1,5 +1,0 @@
-snd_mixa.o: snd_mixa.S /usr/include/stdc-predef.h asm_i386.hpp \
- quakeasm.hpp
-/usr/include/stdc-predef.h:
-asm_i386.hpp:
-quakeasm.hpp:

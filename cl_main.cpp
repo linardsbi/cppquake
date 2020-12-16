@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // cl_main.c  -- client main loop
 
+#include "math.h"
 #include "quakedef.hpp"
 
 // we need to declare some mouse variables here, because the menu system
@@ -59,9 +60,9 @@ CL_ClearState
 
 =====================
 */
-void CL_ClearState (void)
+void CL_ClearState ()
 {
-	int			i;
+	int			i = 0;
 
 	if (!sv.active)
 		Host_ClearMemory ();
@@ -85,7 +86,7 @@ void CL_ClearState (void)
 	cl.free_efrags = cl_efrags;
 	for (i=0 ; i<MAX_EFRAGS-1 ; i++)
 		cl.free_efrags[i].entnext = &cl.free_efrags[i+1];
-	cl.free_efrags[i].entnext = NULL;
+	cl.free_efrags[i].entnext = nullptr;
 }
 
 /*
@@ -96,7 +97,7 @@ Sends a disconnect message to the server
 This is also called on Host_Error, so it shouldn't cause any errors
 =====================
 */
-void CL_Disconnect (void)
+void CL_Disconnect ()
 {
 // stop sounds (especially looping!)
 	S_StopAllSounds (true);
@@ -128,7 +129,7 @@ void CL_Disconnect (void)
 	cls.signon = 0;
 }
 
-void CL_Disconnect_f (void)
+void CL_Disconnect_f ()
 {
 	CL_Disconnect ();
 	if (sv.active)
@@ -172,7 +173,7 @@ CL_SignonReply
 An svc_signonnum has been received, perform a client side setup
 =====================
 */
-void CL_SignonReply (void)
+void CL_SignonReply ()
 {
 	char 	str[8192];
 
@@ -216,7 +217,7 @@ CL_NextDemo
 Called to play the next demo in the demo loop
 =====================
 */
-void CL_NextDemo (void)
+void CL_NextDemo ()
 {
 	char	str[1024];
 
@@ -246,10 +247,10 @@ void CL_NextDemo (void)
 CL_PrintEntities_f
 ==============
 */
-void CL_PrintEntities_f (void)
+void CL_PrintEntities_f ()
 {
-	entity_t	*ent;
-	int			i;
+	entity_t	*ent = nullptr;
+	int			i = 0;
 	
 	for (i=0,ent=cl_entities ; i<cl.num_entities ; i++,ent++)
 	{
@@ -314,10 +315,10 @@ CL_AllocDlight
 
 ===============
 */
-dlight_t *CL_AllocDlight (int key)
+auto CL_AllocDlight (int key) -> dlight_t *
 {
-	int		i;
-	dlight_t	*dl;
+	int		i = 0;
+	dlight_t	*dl = nullptr;
 
 // first look for an exact key match
 	if (key)
@@ -359,11 +360,11 @@ CL_DecayLights
 
 ===============
 */
-void CL_DecayLights (void)
+void CL_DecayLights ()
 {
-	int			i;
-	dlight_t	*dl;
-	float		time;
+	int			i = 0;
+	dlight_t	*dl = nullptr;
+	float		time = NAN;
 	
 	time = cl.time - cl.oldtime;
 
@@ -388,9 +389,9 @@ Determines the fraction between the last two messages that the objects
 should be put at.
 ===============
 */
-float	CL_LerpPoint (void)
+auto	CL_LerpPoint () -> float
 {
-	float	f, frac;
+	float	f = NAN, frac = NAN;
 
 	f = cl.mtime[0] - cl.mtime[1];
 	
@@ -439,15 +440,15 @@ SetPal(2);
 CL_RelinkEntities
 ===============
 */
-void CL_RelinkEntities (void)
+void CL_RelinkEntities ()
 {
-	entity_t	*ent;
-	int			i, j;
-	float		frac, f, d;
+	entity_t	*ent = nullptr;
+	int			i = 0, j = 0;
+	float		frac = NAN, f = NAN, d = NAN;
 	vec3_t		delta;
-	float		bobjrotate;
+	float		bobjrotate = NAN;
 	vec3_t		oldorg;
-	dlight_t	*dl;
+	dlight_t	*dl = nullptr;
 
 // determine partial update time	
 	frac = CL_LerpPoint ();
@@ -490,7 +491,7 @@ void CL_RelinkEntities (void)
 // if the object wasn't included in the last packet, remove it
 		if (ent->msgtime != cl.mtime[0])
 		{
-			ent->model = NULL;
+			ent->model = nullptr;
 			continue;
 		}
 
@@ -631,9 +632,9 @@ CL_ReadFromServer
 Read all incoming data from the server
 ===============
 */
-int CL_ReadFromServer (void)
+auto CL_ReadFromServer () -> int
 {
-	int		ret;
+	int		ret = 0;
 
 	cl.oldtime = cl.time;
 	cl.time += host_frametime;
@@ -667,7 +668,7 @@ int CL_ReadFromServer (void)
 CL_SendCmd
 =================
 */
-void CL_SendCmd (void)
+void CL_SendCmd ()
 {
 	usercmd_t		cmd;
 
@@ -714,7 +715,7 @@ void CL_SendCmd (void)
 CL_Init
 =================
 */
-void CL_Init (void)
+void CL_Init ()
 {	
 	SZ_Alloc (&cls.message, 1024);
 

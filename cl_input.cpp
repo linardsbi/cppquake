@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Quake is a trademark of Id Software, Inc., (c) 1996 Id Software, Inc. All
 // rights reserved.
 
+#include "math.h"
 #include "quakedef.hpp"
 
 /*
@@ -57,8 +58,8 @@ int			in_impulse;
 
 void KeyDown (kbutton_t *b)
 {
-	int		k;
-	char	*c;
+	int		k = 0;
+	char	*c = nullptr;
 
 	c = Cmd_Argv(1);
 	if (c[0])
@@ -86,8 +87,8 @@ void KeyDown (kbutton_t *b)
 
 void KeyUp (kbutton_t *b)
 {
-	int		k;
-	char	*c;
+	int		k = 0;
+	char	*c = nullptr;
 	
 	c = Cmd_Argv(1);
 	if (c[0])
@@ -114,49 +115,49 @@ void KeyUp (kbutton_t *b)
 	b->state |= 4; 		// impulse up
 }
 
-void IN_KLookDown (void) {KeyDown(&in_klook);}
-void IN_KLookUp (void) {KeyUp(&in_klook);}
-void IN_MLookDown (void) {KeyDown(&in_mlook);}
-void IN_MLookUp (void) {
+void IN_KLookDown () {KeyDown(&in_klook);}
+void IN_KLookUp () {KeyUp(&in_klook);}
+void IN_MLookDown () {KeyDown(&in_mlook);}
+void IN_MLookUp () {
 KeyUp(&in_mlook);
 if ( !(in_mlook.state&1) &&  lookspring.value)
 	V_StartPitchDrift();
 }
-void IN_UpDown(void) {KeyDown(&in_up);}
-void IN_UpUp(void) {KeyUp(&in_up);}
-void IN_DownDown(void) {KeyDown(&in_down);}
-void IN_DownUp(void) {KeyUp(&in_down);}
-void IN_LeftDown(void) {KeyDown(&in_left);}
-void IN_LeftUp(void) {KeyUp(&in_left);}
-void IN_RightDown(void) {KeyDown(&in_right);}
-void IN_RightUp(void) {KeyUp(&in_right);}
-void IN_ForwardDown(void) {KeyDown(&in_forward);}
-void IN_ForwardUp(void) {KeyUp(&in_forward);}
-void IN_BackDown(void) {KeyDown(&in_back);}
-void IN_BackUp(void) {KeyUp(&in_back);}
-void IN_LookupDown(void) {KeyDown(&in_lookup);}
-void IN_LookupUp(void) {KeyUp(&in_lookup);}
-void IN_LookdownDown(void) {KeyDown(&in_lookdown);}
-void IN_LookdownUp(void) {KeyUp(&in_lookdown);}
-void IN_MoveleftDown(void) {KeyDown(&in_moveleft);}
-void IN_MoveleftUp(void) {KeyUp(&in_moveleft);}
-void IN_MoverightDown(void) {KeyDown(&in_moveright);}
-void IN_MoverightUp(void) {KeyUp(&in_moveright);}
+void IN_UpDown() {KeyDown(&in_up);}
+void IN_UpUp() {KeyUp(&in_up);}
+void IN_DownDown() {KeyDown(&in_down);}
+void IN_DownUp() {KeyUp(&in_down);}
+void IN_LeftDown() {KeyDown(&in_left);}
+void IN_LeftUp() {KeyUp(&in_left);}
+void IN_RightDown() {KeyDown(&in_right);}
+void IN_RightUp() {KeyUp(&in_right);}
+void IN_ForwardDown() {KeyDown(&in_forward);}
+void IN_ForwardUp() {KeyUp(&in_forward);}
+void IN_BackDown() {KeyDown(&in_back);}
+void IN_BackUp() {KeyUp(&in_back);}
+void IN_LookupDown() {KeyDown(&in_lookup);}
+void IN_LookupUp() {KeyUp(&in_lookup);}
+void IN_LookdownDown() {KeyDown(&in_lookdown);}
+void IN_LookdownUp() {KeyUp(&in_lookdown);}
+void IN_MoveleftDown() {KeyDown(&in_moveleft);}
+void IN_MoveleftUp() {KeyUp(&in_moveleft);}
+void IN_MoverightDown() {KeyDown(&in_moveright);}
+void IN_MoverightUp() {KeyUp(&in_moveright);}
 
-void IN_SpeedDown(void) {KeyDown(&in_speed);}
-void IN_SpeedUp(void) {KeyUp(&in_speed);}
-void IN_StrafeDown(void) {KeyDown(&in_strafe);}
-void IN_StrafeUp(void) {KeyUp(&in_strafe);}
+void IN_SpeedDown() {KeyDown(&in_speed);}
+void IN_SpeedUp() {KeyUp(&in_speed);}
+void IN_StrafeDown() {KeyDown(&in_strafe);}
+void IN_StrafeUp() {KeyUp(&in_strafe);}
 
-void IN_AttackDown(void) {KeyDown(&in_attack);}
-void IN_AttackUp(void) {KeyUp(&in_attack);}
+void IN_AttackDown() {KeyDown(&in_attack);}
+void IN_AttackUp() {KeyUp(&in_attack);}
 
-void IN_UseDown (void) {KeyDown(&in_use);}
-void IN_UseUp (void) {KeyUp(&in_use);}
-void IN_JumpDown (void) {KeyDown(&in_jump);}
-void IN_JumpUp (void) {KeyUp(&in_jump);}
+void IN_UseDown () {KeyDown(&in_use);}
+void IN_UseUp () {KeyUp(&in_use);}
+void IN_JumpDown () {KeyDown(&in_jump);}
+void IN_JumpUp () {KeyUp(&in_jump);}
 
-void IN_Impulse (void) {in_impulse=Q_atoi(Cmd_Argv(1));}
+void IN_Impulse () {in_impulse=Q_atoi(Cmd_Argv(1));}
 
 /*
 ===============
@@ -168,10 +169,10 @@ Returns 0.25 if a key was pressed and released during the frame,
 1.0 if held for the entire time
 ===============
 */
-float CL_KeyState (kbutton_t *key)
+auto CL_KeyState (kbutton_t *key) -> float
 {
-	float		val;
-	qboolean	impulsedown, impulseup, down;
+	float		val = NAN;
+	qboolean	impulsedown = 0, impulseup = 0, down = 0;
 	
 	impulsedown = key->state & 2;
 	impulseup = key->state & 4;
@@ -229,10 +230,10 @@ CL_AdjustAngles
 Moves the local angle positions
 ================
 */
-void CL_AdjustAngles (void)
+void CL_AdjustAngles ()
 {
-	float	speed;
-	float	up, down;
+	float	speed = NAN;
+	float	up = NAN, down = NAN;
 	
 	if (in_speed.state & 1)
 		speed = host_frametime * cl_anglespeedkey.value;
@@ -331,8 +332,8 @@ CL_SendMove
 */
 void CL_SendMove (usercmd_t *cmd)
 {
-	int		i;
-	int		bits;
+	int		i = 0;
+	int		bits = 0;
 	sizebuf_t	buf;
 	byte	data[128];
 	
@@ -406,7 +407,7 @@ void CL_SendMove (usercmd_t *cmd)
 CL_InitInput
 ============
 */
-void CL_InitInput (void)
+void CL_InitInput ()
 {
 	Cmd_AddCommand ("+moveup",IN_UpDown);
 	Cmd_AddCommand ("-moveup",IN_UpUp);
