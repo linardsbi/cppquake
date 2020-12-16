@@ -77,7 +77,10 @@ if test x$enable_asm = xyes; then
     CFLAGS="$CFLAGS -DUSE_ASM"
 fi
 
-CFLAGS="$CFLAGS -DELF"
+CFLAGS="$CFLAGS -DELF -m32"
+CXXFLAGS="$CXXFLAGS -DSDL -m32 -std=c++2a -I/usr/include/SDL"
+LDFLAGS="$LDFLAGS -m32"
+CCASFLAGS="$CCASFLAGS -m32"
 
 # Finally create all the generated files
 AC_OUTPUT([

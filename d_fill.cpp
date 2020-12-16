@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // d_clear: clears a specified rectangle to the specified color
 
-#include "quakedef.h"
+#include "quakedef.hpp"
 
 
 /*
@@ -29,9 +29,9 @@ D_FillRect
 */
 void D_FillRect (vrect_t *rect, int color)
 {
-	int				rx, ry, rwidth, rheight;
-	unsigned char	*dest;
-	unsigned		*ldest;
+	int				rx = 0, ry = 0, rwidth = 0, rheight = 0;
+	unsigned char	*dest = nullptr;
+	unsigned		*ldest = nullptr;
 
 	rx = rect->x;
 	ry = rect->y;

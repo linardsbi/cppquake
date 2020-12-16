@@ -1,16 +1,16 @@
 #include <unistd.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <limits.h>
+#include <csignal>
+#include <cstdlib>
+#include <climits>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <errno.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <cctype>
+#include <cerrno>
 #include <iostream>
 #ifndef __WIN32__
 #include <sys/ipc.h>
@@ -23,7 +23,7 @@
 
 #endif
 
-#include "quakedef.h"
+#include "quakedef.hpp"
 
 qboolean			isDedicated;
 
@@ -54,13 +54,13 @@ void Sys_Printf (char *fmt, ...)
 	//Con_Print (text);
 }
 
-void Sys_Quit (void)
+void Sys_Quit ()
 {
 	Host_Shutdown();
 	exit(0);
 }
 
-void Sys_Init(void)
+void Sys_Init()
 {
 #if id386
 	Sys_SetFPCW();
@@ -74,7 +74,7 @@ void Sys_Init(void)
 Sys_LowFPPrecision
 ================
 */
-void Sys_LowFPPrecision (void)
+void Sys_LowFPPrecision ()
 {
 // causes weird problems on Nextstep
 }
@@ -85,7 +85,7 @@ void Sys_LowFPPrecision (void)
 Sys_HighFPPrecision
 ================
 */
-void Sys_HighFPPrecision (void)
+void Sys_HighFPPrecision ()
 {
 // causes weird problems on Nextstep
 }
@@ -130,9 +130,9 @@ FILE IO
 #define	MAX_HANDLES		10
 FILE	*sys_handles[MAX_HANDLES];
 
-int		findhandle (void)
+auto		findhandle () -> int
 {
-	int		i;
+	int		i = 0;
 	
 	for (i=1 ; i<MAX_HANDLES ; i++)
 		if (!sys_handles[i])
@@ -146,10 +146,10 @@ int		findhandle (void)
 Qfilelength
 ================
 */
-static int Qfilelength (FILE *f)
+static auto Qfilelength (FILE *f) -> int
 {
-	int		pos;
-	int		end;
+	int		pos = 0;
+	int		end = 0;
 
 	pos = ftell (f);
 	fseek (f, 0, SEEK_END);
@@ -159,10 +159,10 @@ static int Qfilelength (FILE *f)
 	return end;
 }
 
-int Sys_FileOpenRead (char *path, int *hndl)
+auto Sys_FileOpenRead (char *path, int *hndl) -> int
 {
-	FILE	*f;
-	int		i;
+	FILE	*f = nullptr;
+	int		i = 0;
 	
 	i = findhandle ();
 
@@ -178,10 +178,10 @@ int Sys_FileOpenRead (char *path, int *hndl)
 	return Qfilelength(f);
 }
 
-int Sys_FileOpenWrite (char *path)
+auto Sys_FileOpenWrite (char *path) -> int
 {
-	FILE	*f;
-	int		i;
+	FILE	*f = nullptr;
+	int		i = 0;
 	
 	i = findhandle ();
 
@@ -197,7 +197,7 @@ void Sys_FileClose (int handle)
 {
 	if ( handle >= 0 ) {
 		fclose (sys_handles[handle]);
-		sys_handles[handle] = NULL;
+		sys_handles[handle] = nullptr;
 	}
 }
 
@@ -208,7 +208,7 @@ void Sys_FileSeek (int handle, int position)
 	}
 }
 
-int Sys_FileRead (int handle, void *dst, int count)
+auto Sys_FileRead (int handle, void *dst, int count) -> int
 {
 	int size = 0;
 	if ( handle >= 0 ) {
@@ -227,7 +227,7 @@ int Sys_FileRead (int handle, void *dst, int count)
 		
 }
 // fixme: isn't it weird that reading and writing have the same code?
-int Sys_FileWrite (int handle, const void *src, int count)
+auto Sys_FileWrite (int handle, const void *src, int count) -> int
 {
 	if ( handle >= 0 ) {
         return fwrite(static_cast<const char*>(src), 1, count, sys_handles[handle]);
@@ -235,9 +235,9 @@ int Sys_FileWrite (int handle, const void *src, int count)
 	return 0;
 }
 
-int	Sys_FileTime (char *path)
+auto	Sys_FileTime (char *path) -> int
 {
-	FILE	*f;
+	FILE	*f = nullptr;
 	
 	f = fopen(path, "rb");
 	if (f)
@@ -262,7 +262,7 @@ void Sys_DebugLog(char *file, char *fmt, ...)
 {
     va_list argptr; 
     static char data[1024];
-    FILE *fp;
+    FILE *fp = nullptr;
     
     va_start(argptr, fmt);
     vsprintf(data, fmt, argptr);
@@ -272,7 +272,7 @@ void Sys_DebugLog(char *file, char *fmt, ...)
     fclose(fp);
 }
 
-double Sys_FloatTime (void)
+auto Sys_FloatTime () -> double
 {
 #ifdef __WIN32__
 
@@ -313,7 +313,7 @@ void alarm_handler(int x)
 	oktogo=1;
 }
 
-byte *Sys_ZoneBase (int *size)
+auto Sys_ZoneBase (int *size) -> byte *
 {
 
 	char *QUAKEOPT = getenv("QUAKEOPT");
@@ -332,11 +332,11 @@ byte *Sys_ZoneBase (int *size)
 
 }
 
-void Sys_LineRefresh(void)
+void Sys_LineRefresh()
 {
 }
 
-void Sys_Sleep(void)
+void Sys_Sleep()
 {
 	SDL_Delay(1);
 }
@@ -352,7 +352,7 @@ void moncontrol(double x)
 
 }
 
-int main (int c, char **v)
+auto main (int c, char **v) -> int
 {
 	extern int vcrFile;
 	extern int recording;
@@ -434,8 +434,8 @@ Sys_MakeCodeWriteable
 void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 {
 
-	int r;
-	unsigned long addr;
+	int r = 0;
+	unsigned long addr = 0;
 	int psize = getpagesize();
 
 	fprintf(stderr, "writable code %lx-%lx\n", startaddr, startaddr+length);

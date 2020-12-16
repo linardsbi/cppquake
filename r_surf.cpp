@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_surf.c: surface-related refresh code
 
-#include "quakedef.h"
-#include "r_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
 
 drawsurf_t	r_drawsurf;
 
@@ -37,10 +38,10 @@ int				r_lightwidth;
 int				r_numhblocks, r_numvblocks;
 unsigned char	*r_source, *r_sourcemax;
 
-void R_DrawSurfaceBlock8_mip0 (void);
-void R_DrawSurfaceBlock8_mip1 (void);
-void R_DrawSurfaceBlock8_mip2 (void);
-void R_DrawSurfaceBlock8_mip3 (void);
+void R_DrawSurfaceBlock8_mip0 ();
+void R_DrawSurfaceBlock8_mip1 ();
+void R_DrawSurfaceBlock8_mip2 ();
+void R_DrawSurfaceBlock8_mip3 ();
 
 static void	(*surfmiptable[4])(void) = {
 	R_DrawSurfaceBlock8_mip0,
@@ -58,17 +59,17 @@ unsigned		blocklights[18*18];
 R_AddDynamicLights
 ===============
 */
-void R_AddDynamicLights (void)
+void R_AddDynamicLights ()
 {
-	msurface_t *surf;
-	int			lnum;
-	int			sd, td;
-	float		dist, rad, minlight;
+	msurface_t *surf = nullptr;
+	int			lnum = 0;
+	int			sd = 0, td = 0;
+	float		dist = NAN, rad = NAN, minlight = NAN;
 	vec3_t		impact, local;
-	int			s, t;
-	int			i;
-	int			smax, tmax;
-	mtexinfo_t	*tex;
+	int			s = 0, t = 0;
+	int			i = 0;
+	int			smax = 0, tmax = 0;
+	mtexinfo_t	*tex = nullptr;
 
 	surf = r_drawsurf.surf;
 	smax = (surf->extents[0]>>4)+1;
@@ -146,15 +147,15 @@ R_BuildLightMap
 Combine and scale multiple lightmaps into the 8.8 format in blocklights
 ===============
 */
-void R_BuildLightMap (void)
+void R_BuildLightMap ()
 {
-	int			smax, tmax;
-	int			t;
-	int			i, size;
-	byte		*lightmap;
-	unsigned	scale;
-	int			maps;
-	msurface_t	*surf;
+	int			smax = 0, tmax = 0;
+	int			t = 0;
+	int			i = 0, size = 0;
+	byte		*lightmap = nullptr;
+	unsigned	scale = 0;
+	int			maps = 0;
+	msurface_t	*surf = nullptr;
 
 	surf = r_drawsurf.surf;
 
@@ -210,10 +211,10 @@ R_TextureAnimation
 Returns the proper texture for a given time and base texture
 ===============
 */
-texture_t *R_TextureAnimation (texture_t *base)
+auto R_TextureAnimation (texture_t *base) -> texture_t *
 {
-	int		reletive;
-	int		count;
+	int		reletive = 0;
+	int		count = 0;
 
 	if (currententity->frame)
 	{
@@ -245,16 +246,16 @@ texture_t *R_TextureAnimation (texture_t *base)
 R_DrawSurface
 ===============
 */
-void R_DrawSurface (void)
+void R_DrawSurface ()
 {
-	unsigned char	*basetptr;
-	int				smax, tmax, twidth;
-	int				u;
-	int				soffset, basetoffset, texwidth;
-	int				horzblockstep;
-	unsigned char	*pcolumndest;
-	void			(*pblockdrawer)(void);
-	texture_t		*mt;
+	unsigned char	*basetptr = nullptr;
+	int				smax = 0, tmax = 0, twidth = 0;
+	int				u = 0;
+	int				soffset = 0, basetoffset = 0, texwidth = 0;
+	int				horzblockstep = 0;
+	unsigned char	*pcolumndest = nullptr;
+	void			(*pblockdrawer)();
+	texture_t		*mt = nullptr;
 
 // calculate the lightings
 	R_BuildLightMap ();
@@ -340,10 +341,10 @@ void R_DrawSurface (void)
 R_DrawSurfaceBlock8_mip0
 ================
 */
-void R_DrawSurfaceBlock8_mip0 (void)
+void R_DrawSurfaceBlock8_mip0 ()
 {
-	int				v, i, b, lightstep, lighttemp, light;
-	unsigned char	pix, *psource, *prowdest;
+	int				v = 0, i = 0, b = 0, lightstep = 0, lighttemp = 0, light = 0;
+	unsigned char	pix = 0, *psource = nullptr, *prowdest = nullptr;
 
 	psource = pbasesource;
 	prowdest = static_cast<unsigned char*>(prowdestbase);
@@ -390,10 +391,10 @@ void R_DrawSurfaceBlock8_mip0 (void)
 R_DrawSurfaceBlock8_mip1
 ================
 */
-void R_DrawSurfaceBlock8_mip1 (void)
+void R_DrawSurfaceBlock8_mip1 ()
 {
-	int				v, i, b, lightstep, lighttemp, light;
-	unsigned char	pix, *psource, *prowdest;
+	int				v = 0, i = 0, b = 0, lightstep = 0, lighttemp = 0, light = 0;
+	unsigned char	pix = 0, *psource = nullptr, *prowdest = nullptr;
 
 	psource = pbasesource;
     prowdest = static_cast<unsigned char*>(prowdestbase);
@@ -440,10 +441,10 @@ void R_DrawSurfaceBlock8_mip1 (void)
 R_DrawSurfaceBlock8_mip2
 ================
 */
-void R_DrawSurfaceBlock8_mip2 (void)
+void R_DrawSurfaceBlock8_mip2 ()
 {
-	int				v, i, b, lightstep, lighttemp, light;
-	unsigned char	pix, *psource, *prowdest;
+	int				v = 0, i = 0, b = 0, lightstep = 0, lighttemp = 0, light = 0;
+	unsigned char	pix = 0, *psource = nullptr, *prowdest = nullptr;
 
 	psource = pbasesource;
     prowdest = static_cast<unsigned char*>(prowdestbase);
@@ -490,10 +491,10 @@ void R_DrawSurfaceBlock8_mip2 (void)
 R_DrawSurfaceBlock8_mip3
 ================
 */
-void R_DrawSurfaceBlock8_mip3 (void)
+void R_DrawSurfaceBlock8_mip3 ()
 {
-	int				v, i, b, lightstep, lighttemp, light;
-	unsigned char	pix, *psource, *prowdest;
+	int				v = 0, i = 0, b = 0, lightstep = 0, lighttemp = 0, light = 0;
+	unsigned char	pix = 0, *psource = nullptr, *prowdest = nullptr;
 
 	psource = pbasesource;
     prowdest = static_cast<unsigned char*>(prowdestbase);
@@ -542,20 +543,20 @@ R_DrawSurfaceBlock16
 FIXME: make this work
 ================
 */
-void R_DrawSurfaceBlock16 (void)
+void R_DrawSurfaceBlock16 ()
 {
-	int				k;
-	unsigned char	*psource;
-	int				lighttemp, lightstep, light;
-	unsigned short	*prowdest;
+	int				k = 0;
+	unsigned char	*psource = nullptr;
+	int				lighttemp = 0, lightstep = 0, light = 0;
+	unsigned short	*prowdest = nullptr;
 
 	prowdest = (unsigned short *)prowdestbase;
 
 	for (k=0 ; k<blocksize ; k++)
 	{
-		unsigned short	*pdest;
-		unsigned char	pix;
-		int				b;
+		unsigned short	*pdest = nullptr;
+		unsigned char	pix = 0;
+		int				b = 0;
 
 		psource = pbasesource;
 		lighttemp = lightright - lightleft;
@@ -594,9 +595,9 @@ R_GenTurbTile
 */
 void R_GenTurbTile (pixel_t *pbasetex, void *pdest)
 {
-	int		*turb;
-	int		i, j, s, t;
-	byte	*pd;
+	int		*turb = nullptr;
+	int		i = 0, j = 0, s = 0, t = 0;
+	byte	*pd = nullptr;
 	
 	turb = sintable + ((int)(cl.time*SPEED)&(CYCLE-1));
 	pd = (byte *)pdest;
@@ -620,9 +621,9 @@ R_GenTurbTile16
 */
 void R_GenTurbTile16 (pixel_t *pbasetex, void *pdest)
 {
-	int				*turb;
-	int				i, j, s, t;
-	unsigned short	*pd;
+	int				*turb = nullptr;
+	int				i = 0, j = 0, s = 0, t = 0;
+	unsigned short	*pd = nullptr;
 
 	turb = sintable + ((int)(cl.time*SPEED)&(CYCLE-1));
 	pd = (unsigned short *)pdest;

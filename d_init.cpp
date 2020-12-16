@@ -19,8 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // d_init.c: rasterization driver initialization
 
-#include "quakedef.h"
-#include "d_local.h"
+#include "quakedef.hpp"
+#include "d_local.hpp"
 
 #define NUM_MIPS	4
 
@@ -45,7 +45,7 @@ void (*d_drawspans) (espan_t *pspan);
 D_Init
 ===============
 */
-void D_Init (void)
+void D_Init ()
 {
 
 	r_skydirect = 1;
@@ -86,7 +86,7 @@ void D_CopyRects (vrect_t *prects, int transparent)
 D_EnableBackBufferAccess
 ===============
 */
-void D_EnableBackBufferAccess (void)
+void D_EnableBackBufferAccess ()
 {
 	VID_LockBuffer ();
 }
@@ -97,7 +97,7 @@ void D_EnableBackBufferAccess (void)
 D_TurnZOn
 ===============
 */
-void D_TurnZOn (void)
+void D_TurnZOn ()
 {
 // not needed for software version
 }
@@ -108,7 +108,7 @@ void D_TurnZOn (void)
 D_DisableBackBufferAccess
 ===============
 */
-void D_DisableBackBufferAccess (void)
+void D_DisableBackBufferAccess ()
 {
 	VID_UnlockBuffer ();
 }
@@ -119,9 +119,9 @@ void D_DisableBackBufferAccess (void)
 D_SetupFrame
 ===============
 */
-void D_SetupFrame (void)
+void D_SetupFrame ()
 {
-	int		i;
+	int		i = 0;
 
 	if (r_dowarp)
 		d_viewbuffer = r_warpbuffer;

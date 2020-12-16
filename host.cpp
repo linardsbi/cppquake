@@ -19,9 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // host.c -- coordinates spawning and killing of local servers
 
-#include "quakedef.h"
-#include "r_local.h"
-#include "util.hpp"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
+
 /*
 
 A server can allways be started, even if the system started out as a client
@@ -91,18 +92,18 @@ void Host_EndGame (char *message, ...)
 {
 	va_list		argptr;
 	char		string[1024];
-	
+
 	va_start (argptr,message);
 	vsprintf (string,message,argptr);
 	va_end (argptr);
 	Con_DPrintf ("Host_EndGame: %s\n",string);
-	
+
 	if (sv.active)
 		Host_ShutdownServer (false);
 
 	if (cls.state == ca_dedicated)
 		Sys_Error ("Host_EndGame: %s\n",string);	// dedicated servers exit
-	
+
 	if (cls.demonum != -1)
 		CL_NextDemo ();
 	else
@@ -123,18 +124,18 @@ void Host_Error (char *error, ...)
 	va_list		argptr;
 	char		string[1024];
 	static	qboolean inerror = false;
-	
+
 	if (inerror)
 		Sys_Error ("Host_Error: recursively entered");
 	inerror = true;
-	
+
 	SCR_EndLoadingPlaque ();		// reenable screen updates
 
 	va_start (argptr,error);
 	vsprintf (string,error,argptr);
 	va_end (argptr);
 	Con_Printf ("Host_Error: %s\n",string);
-	
+
 	if (sv.active)
 		Host_ShutdownServer (false);
 
@@ -154,12 +155,12 @@ void Host_Error (char *error, ...)
 Host_FindMaxClients
 ================
 */
-void	Host_FindMaxClients (void)
+void	Host_FindMaxClients ()
 {
-	int		i;
+	int		i = 0;
 
 	svs.maxclients = 1;
-		
+
 	i = COM_CheckParm ("-dedicated");
 	if (i)
 	{
@@ -206,10 +207,10 @@ void	Host_FindMaxClients (void)
 Host_InitLocal
 ======================
 */
-void Host_InitLocal (void)
+void Host_InitLocal ()
 {
 	Host_InitCommands ();
-	
+
 	Cvar_RegisterVariable (&host_framerate);
 	Cvar_RegisterVariable (&host_speeds);
 
@@ -231,7 +232,7 @@ void Host_InitLocal (void)
 	Cvar_RegisterVariable (&temp1);
 
 	Host_FindMaxClients ();
-	
+
 	host_time = 1.0;		// so a think at time 0 won't get called
 }
 
@@ -243,9 +244,9 @@ Host_WriteConfiguration
 Writes key bindings and archived cvars to config.cfg
 ===============
 */
-void Host_WriteConfiguration (void)
+void Host_WriteConfiguration ()
 {
-	FILE	*f;
+	FILE	*f = nullptr;
 
 // dedicated servers initialize the host but don't parse and set the
 // config.cfg cvars
@@ -257,7 +258,7 @@ void Host_WriteConfiguration (void)
 			Con_Printf ("Couldn't write config.cfg.\n");
 			return;
 		}
-		
+
 		Key_WriteBindings (f);
 		Cvar_WriteVariables (f);
 
@@ -270,7 +271,7 @@ void Host_WriteConfiguration (void)
 =================
 SV_ClientPrintf
 
-Sends text across to be displayed 
+Sends text across to be displayed
 FIXME: make this just a stuffed echo?
 =================
 */
@@ -278,11 +279,11 @@ void SV_ClientPrintf (char *fmt, ...)
 {
 	va_list		argptr;
 	char		string[1024];
-	
+
 	va_start (argptr,fmt);
 	vsprintf (string, fmt,argptr);
 	va_end (argptr);
-	
+
 	MSG_WriteByte (&host_client->message, svc_print);
 	MSG_WriteString (&host_client->message, string);
 }
@@ -298,12 +299,12 @@ void SV_BroadcastPrintf (char *fmt, ...)
 {
 	va_list		argptr;
 	char		string[1024];
-	int			i;
-	
+	int			i = 0;
+
 	va_start (argptr,fmt);
 	vsprintf (string, fmt,argptr);
 	va_end (argptr);
-	
+
 	for (i=0 ; i<svs.maxclients ; i++)
 		if (svs.clients[i].active && svs.clients[i].spawned)
 		{
@@ -323,11 +324,11 @@ void Host_ClientCommands (char *fmt, ...)
 {
 	va_list		argptr;
 	char		string[1024];
-	
+
 	va_start (argptr,fmt);
 	vsprintf (string, fmt,argptr);
 	va_end (argptr);
-	
+
 	MSG_WriteByte (&host_client->message, svc_stufftext);
 	MSG_WriteString (&host_client->message, string);
 }
@@ -342,9 +343,9 @@ if (crash = true), don't bother sending signofs
 */
 void SV_DropClient (qboolean crash)
 {
-	int		saveSelf;
-	int		i;
-	client_t *client;
+	int		saveSelf = 0;
+	int		i = 0;
+	client_t *client = nullptr;
 
 	if (!crash)
 	{
@@ -354,7 +355,7 @@ void SV_DropClient (qboolean crash)
 			MSG_WriteByte (&host_client->message, svc_disconnect);
 			NET_SendMessage (host_client->netconnection, &host_client->message);
 		}
-	
+
 		if (host_client->edict && host_client->spawned)
 		{
 		// call the prog function for removing a client
@@ -370,7 +371,7 @@ void SV_DropClient (qboolean crash)
 
 // break the net connection
 	NET_Close (host_client->netconnection);
-	host_client->netconnection = NULL;
+	host_client->netconnection = nullptr;
 
 // free the client (the body stays around)
 	host_client->active = false;
@@ -404,11 +405,11 @@ This only happens at the end of a game, not between levels
 */
 void Host_ShutdownServer(qboolean crash)
 {
-	int		i;
-	int		count;
+	int		i = 0;
+	int		count = 0;
 	sizebuf_t	buf;
 	char		message[4];
-	double	start;
+	double	start = NAN;
 
 	if (!sv.active)
 		return;
@@ -474,7 +475,7 @@ This clears all the memory used by both the client and server, but does
 not reinitialize anything.
 ================
 */
-void Host_ClearMemory (void)
+void Host_ClearMemory ()
 {
 	Con_DPrintf ("Clearing memory\n");
 	D_FlushCaches ();
@@ -498,7 +499,7 @@ Host_FilterTime
 Returns false if the time is too short to run a frame
 ===================
 */
-qboolean Host_FilterTime (float time)
+auto Host_FilterTime (float time) -> qboolean
 {
 	realtime += time;
 
@@ -517,7 +518,7 @@ qboolean Host_FilterTime (float time)
 		if (host_frametime < 0.001)
 			host_frametime = 0.001;
 	}
-	
+
 	return true;
 }
 
@@ -529,11 +530,11 @@ Host_GetConsoleCommands
 Add them exactly as if they had been typed at the console
 ===================
 */
-void Host_GetConsoleCommands (void)
+void Host_GetConsoleCommands ()
 {
-	char	*cmd;
+	char	*cmd = nullptr;
 
-	while (1)
+	while (true)
 	{
 		cmd = Sys_ConsoleInput ();
 		if (!cmd)
@@ -553,12 +554,12 @@ Host_ServerFrame
 
 void _Host_ServerFrame (void)
 {
-// run the world state	
+// run the world state
 	pr_global_struct->frametime = host_frametime;
 
 // read client messages
 	SV_RunClients ();
-	
+
 // move things around and think
 // always pause in single player if in console or menus
 	if (!sv.paused && (svs.maxclients > 1 || key_dest == key_game) )
@@ -570,12 +571,12 @@ void Host_ServerFrame (void)
 	float	save_host_frametime;
 	float	temp_host_frametime;
 
-// run the world state	
+// run the world state
 	pr_global_struct->frametime = host_frametime;
 
 // set the time and clear the general datagram
 	SV_ClearDatagram ();
-	
+
 // check for new clients
 	SV_CheckForNewClients ();
 
@@ -597,20 +598,20 @@ void Host_ServerFrame (void)
 
 #else
 
-void Host_ServerFrame (void)
+void Host_ServerFrame ()
 {
-// run the world state	
+// run the world state
 	pr_global_struct->frametime = host_frametime;
 
 // set the time and clear the general datagram
 	SV_ClearDatagram ();
-	
+
 // check for new clients
 	SV_CheckForNewClients ();
 
 // read client messages
 	SV_RunClients ();
-	
+
 // move things around and think
 // always pause in single player if in console or menus
 	if (!sv.paused && (svs.maxclients > 1 || key_dest == key_game) )
@@ -635,18 +636,18 @@ void _Host_Frame (float time)
 	static double		time1 = 0;
 	static double		time2 = 0;
 	static double		time3 = 0;
-	int			pass1, pass2, pass3;
+	int			pass1 = 0, pass2 = 0, pass3 = 0;
 
 	if (setjmp (host_abortserver) )
 		return;			// something bad happened, or the server disconnected
 
 // keep the random time dependent
 	rand ();
-	
+
 // decide the simulation time
 	if (!Host_FilterTime (time))
 		return;			// don't run too fast, or packets will flood out
-		
+
 // get new key events
 	Sys_SendKeyEvents ();
 
@@ -661,7 +662,7 @@ void _Host_Frame (float time)
 // if running the server locally, make intentions now
 	if (sv.active)
 		CL_SendCmd ();
-	
+
 //-------------------
 //
 // server operations
@@ -670,7 +671,7 @@ void _Host_Frame (float time)
 
 // check for commands typed to the host
 	Host_GetConsoleCommands ();
-	
+
 	if (sv.active)
 		Host_ServerFrame ();
 
@@ -696,12 +697,12 @@ void _Host_Frame (float time)
 // update video
 	if (host_speeds.value)
 		time1 = Sys_FloatTime ();
-		
+
 	SCR_UpdateScreen ();
 
 	if (host_speeds.value)
 		time2 = Sys_FloatTime ();
-		
+
 // update audio
 	if (cls.signon == SIGNONS)
 	{
@@ -710,7 +711,7 @@ void _Host_Frame (float time)
 	}
 	else
 		S_Update (vec3_origin, vec3_origin, vec3_origin, vec3_origin);
-	
+
 	CDAudio_Update();
 
 	if (host_speeds.value)
@@ -722,30 +723,30 @@ void _Host_Frame (float time)
 		Con_Printf ("%3i tot %3i server %3i gfx %3i snd\n",
 					pass1+pass2+pass3, pass1, pass2, pass3);
 	}
-	
+
 	host_framecount++;
 }
 
 void Host_Frame (float time)
 {
-	double	time1, time2;
+	double	time1 = NAN, time2 = NAN;
 	static double	timetotal;
 	static int		timecount;
-	int		i, c, m;
+	int		i = 0, c = 0, m = 0;
 
 	if (!serverprofile.value)
 	{
 		_Host_Frame (time);
 		return;
 	}
-	
+
 	time1 = Sys_FloatTime ();
 	_Host_Frame (time);
 	time2 = Sys_FloatTime ();	
 	
 	timetotal += time2 - time1;
 	timecount++;
-	
+
 	if (timecount < 1000)
 		return;
 
@@ -771,9 +772,9 @@ extern int vcrFile;
 
 void Host_InitVCR (quakeparms_t *parms)
 {
-	int		i, len, n;
-	char	*p;
-	
+	int		i = 0, len = 0, n = 0;
+	char	*p = nullptr;
+
 	if (COM_CheckParm("-playback"))
 	{
 		if (com_argc != 2)
@@ -825,7 +826,7 @@ void Host_InitVCR (quakeparms_t *parms)
 			Sys_FileWrite(vcrFile, com_argv[i], len);
 		}
 	}
-	
+
 }
 
 /*
@@ -854,7 +855,7 @@ void Host_Init (quakeparms_t *parms)
 
 	Memory_Init (parms->membase, parms->memsize);
 	Cbuf_Init ();
-	Cmd_Init ();	
+	Cmd_Init ();
 	V_Init ();
 	Chase_Init ();
 	Host_InitVCR (parms);
@@ -862,18 +863,18 @@ void Host_Init (quakeparms_t *parms)
 	Host_InitLocal ();
 	W_LoadWadFile ("gfx.wad");
 	Key_Init ();
-	Con_Init ();	
-	M_Init ();	
+	Con_Init ();
+	M_Init ();
 	PR_Init ();
 	Mod_Init ();
 	NET_Init ();
 	SV_Init ();
 
-	Con_Printf ("Exe: "__TIME__" "__DATE__"\n");
+	Con_Printf ("Exe: " __TIME__" " __DATE__"\n");
 	Con_Printf ("%4.1f megabyte heap\n",parms->memsize/ (1024*1024.0));
-	
+
 	R_InitTextures ();		// needed even for dedicated servers
- 
+
 	if (cls.state != ca_dedicated)
 	{
 		host_basepal = (byte *)COM_LoadHunkFile ("gfx/palette.lmp");
@@ -917,8 +918,8 @@ void Host_Init (quakeparms_t *parms)
 	host_hunklevel = Hunk_LowMark ();
 
 	host_initialized = true;
-	
-	Sys_Printf ("========Quake Initialized=========\n");	
+
+	Sys_Printf ("========Quake Initialized=========\n");
 }
 
 
@@ -930,7 +931,7 @@ FIXME: this is a callback from Sys_Quit and Sys_Error.  It would be better
 to run quit through here before the final handoff to the sys code.
 ===============
 */
-void Host_Shutdown(void)
+void Host_Shutdown()
 {
 	static qboolean isdown = false;
 	

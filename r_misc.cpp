@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_misc.c
 
-#include "quakedef.h"
-#include "r_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
 
 
 /*
@@ -28,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 R_CheckVariables
 ===============
 */
-void R_CheckVariables (void)
+void R_CheckVariables ()
 {
 	static float	oldbright;
 
@@ -47,14 +48,14 @@ Show
 Debugging use
 ============
 */
-void Show (void)
+void Show ()
 {
 	vrect_t	vr;
 
 	vr.x = vr.y = 0;
 	vr.width = vid.width;
 	vr.height = vid.height;
-	vr.pnext = NULL;
+	vr.pnext = nullptr;
 	VID_Update (&vr);
 }
 
@@ -66,11 +67,11 @@ R_TimeRefresh_f
 For program optimization
 ====================
 */
-void R_TimeRefresh_f (void)
+void R_TimeRefresh_f ()
 {
-	int			i;
-	float		start, stop, time;
-	int			startangle;
+	int			i = 0;
+	float		start = NAN, stop = NAN, time = NAN;
+	int			startangle = 0;
 	vrect_t		vr;
 
 	startangle = r_refdef.viewangles[1];
@@ -90,7 +91,7 @@ void R_TimeRefresh_f (void)
 		vr.y = r_refdef.vrect.y;
 		vr.width = r_refdef.vrect.width;
 		vr.height = r_refdef.vrect.height;
-		vr.pnext = NULL;
+		vr.pnext = nullptr;
 		VID_Update (&vr);
 	}
 	stop = Sys_FloatTime ();
@@ -110,9 +111,9 @@ Only called by R_DisplayTime
 */
 void R_LineGraph (int x, int y, int h)
 {
-	int		i;
-	byte	*dest;
-	int		s;
+	int		i = 0;
+	byte	*dest = nullptr;
+	int		s = 0;
 
 // FIXME: should be disabled on no-buffer adapters, or should be in the driver
 	
@@ -147,13 +148,13 @@ Performance monitoring tool
 */
 #define	MAX_TIMINGS		100
 extern float mouse_x, mouse_y;
-void R_TimeGraph (void)
+void R_TimeGraph ()
 {
 	static	int		timex;
-	int		a;
-	float	r_time2;
+	int		a = 0;
+	float	r_time2 = NAN;
 	static byte	r_timings[MAX_TIMINGS];
-	int		x;
+	int		x = 0;
 	
 	r_time2 = Sys_FloatTime ();
 
@@ -191,10 +192,10 @@ void R_TimeGraph (void)
 R_PrintTimes
 =============
 */
-void R_PrintTimes (void)
+void R_PrintTimes ()
 {
-	float	r_time2;
-	float		ms;
+	float	r_time2 = NAN;
+	float		ms = NAN;
 
 	r_time2 = Sys_FloatTime ();
 
@@ -211,9 +212,9 @@ void R_PrintTimes (void)
 R_PrintDSpeeds
 =============
 */
-void R_PrintDSpeeds (void)
+void R_PrintDSpeeds ()
 {
-	float	ms, dp_time, r_time2, rw_time, db_time, se_time, de_time, dv_time;
+	float	ms = NAN, dp_time = NAN, r_time2 = NAN, rw_time = NAN, db_time = NAN, se_time = NAN, de_time = NAN, dv_time = NAN;
 
 	r_time2 = Sys_FloatTime ();
 
@@ -236,15 +237,15 @@ void R_PrintDSpeeds (void)
 R_PrintAliasStats
 =============
 */
-void R_PrintAliasStats (void)
+void R_PrintAliasStats ()
 {
 	Con_Printf ("%3i polygon model drawn\n", r_amodels_drawn);
 }
 
 
-void WarpPalette (void)
+void WarpPalette ()
 {
-	int		i,j;
+	int		i = 0,j = 0;
 	byte	newpalette[768];
 	int		basecolor[3];
 	
@@ -270,9 +271,9 @@ void WarpPalette (void)
 R_TransformFrustum
 ===================
 */
-void R_TransformFrustum (void)
+void R_TransformFrustum ()
 {
-	int		i;
+	int		i = 0;
 	vec3_t	v, v2;
 	
 	for (i=0 ; i<4 ; i++)
@@ -316,7 +317,7 @@ R_TransformPlane
 */
 void R_TransformPlane (mplane_t *p, float *normal, float *dist)
 {
-	float	d;
+	float	d = NAN;
 	
 	d = DotProduct (r_origin, p->normal);
 	*dist = p->dist - d;
@@ -330,9 +331,9 @@ void R_TransformPlane (mplane_t *p, float *normal, float *dist)
 R_SetUpFrustumIndexes
 ===============
 */
-void R_SetUpFrustumIndexes (void)
+void R_SetUpFrustumIndexes ()
 {
-	int		i, j, *pindex;
+	int		i = 0, j = 0, *pindex = nullptr;
 
 	pindex = r_frustum_indexes;
 
@@ -364,11 +365,11 @@ void R_SetUpFrustumIndexes (void)
 R_SetupFrame
 ===============
 */
-void R_SetupFrame (void)
+void R_SetupFrame ()
 {
-	int				edgecount;
+	int				edgecount = 0;
 	vrect_t			vrect;
-	float			w, h;
+	float			w = NAN, h = NAN;
 
 // don't allow cheats in multiplayer
 	if (cl.maxclients > 1)

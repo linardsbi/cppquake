@@ -17,10 +17,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-#include "quakedef.h"
+#include "quakedef.hpp"
 
-#include "net_loop.h"
-#include "net_dgrm.h"
+#include "net_loop.hpp"
+#include "net_dgrm.hpp"
 
 net_driver_t net_drivers[MAX_NET_DRIVERS] =
 {
@@ -61,7 +61,7 @@ net_driver_t net_drivers[MAX_NET_DRIVERS] =
 
 int net_numdrivers = 2;
 
-#include "net_udp.h"
+#include "net_udp.hpp"
 
 net_landriver_t	net_landrivers[MAX_NET_DRIVERS] =
 {

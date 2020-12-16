@@ -18,18 +18,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include "quakedef.h"
+#include "quakedef.hpp"
 
 
 /*
 
 */
 
-typedef struct
+using prstack_t = struct
 {
 	int				s;
 	dfunction_t		*f;
-} prstack_t;
+};
 
 #define	MAX_STACK_DEPTH		32
 prstack_t	pr_stack[MAX_STACK_DEPTH];
@@ -136,8 +136,8 @@ char *pr_opnames[] =
 "BITOR"
 };
 
-char *PR_GlobalString (int ofs);
-char *PR_GlobalStringNoContents (int ofs);
+auto PR_GlobalString (int ofs) -> char *;
+auto PR_GlobalStringNoContents (int ofs) -> char *;
 
 
 //=============================================================================
@@ -149,7 +149,7 @@ PR_PrintStatement
 */
 void PR_PrintStatement (dstatement_t *s)
 {
-	int		i;
+	int		i = 0;
 	
 	if ( (unsigned)s->op < sizeof(pr_opnames)/sizeof(pr_opnames[0]))
 	{
@@ -187,10 +187,10 @@ void PR_PrintStatement (dstatement_t *s)
 PR_StackTrace
 ============
 */
-void PR_StackTrace (void)
+void PR_StackTrace ()
 {
-	dfunction_t	*f;
-	int			i;
+	dfunction_t	*f = nullptr;
+	int			i = 0;
 	
 	if (pr_depth == 0)
 	{
@@ -219,18 +219,18 @@ PR_Profile_f
 
 ============
 */
-void PR_Profile_f (void)
+void PR_Profile_f ()
 {
-	dfunction_t	*f, *best;
-	int			max;
-	int			num;
-	int			i;
+	dfunction_t	*f = nullptr, *best = nullptr;
+	int			max = 0;
+	int			num = 0;
+	int			i = 0;
 	
 	num = 0;	
 	do
 	{
 		max = 0;
-		best = NULL;
+		best = nullptr;
 		for (i=0 ; i<progs->numfunctions ; i++)
 		{
 			f = &pr_functions[i];
@@ -291,9 +291,9 @@ PR_EnterFunction
 Returns the new program statement counter
 ====================
 */
-int PR_EnterFunction (dfunction_t *f)
+auto PR_EnterFunction (dfunction_t *f) -> int
 {
-	int		i, j, c, o;
+	int		i = 0, j = 0, c = 0, o = 0;
 
 	pr_stack[pr_depth].s = pr_xstatement;
 	pr_stack[pr_depth].f = pr_xfunction;	
@@ -330,9 +330,9 @@ int PR_EnterFunction (dfunction_t *f)
 PR_LeaveFunction
 ====================
 */
-int PR_LeaveFunction (void)
+auto PR_LeaveFunction () -> int
 {
-	int		i, c;
+	int		i = 0, c = 0;
 
 	if (pr_depth <= 0)
 		Sys_Error ("prog stack underflow");
@@ -360,15 +360,15 @@ PR_ExecuteProgram
 */
 void PR_ExecuteProgram (func_t fnum)
 {
-	eval_t	*a, *b, *c;
-	int			s;
-	dstatement_t	*st;
-	dfunction_t	*f, *newf;
-	int		runaway;
-	int		i;
-	edict_t	*ed;
-	int		exitdepth;
-	eval_t	*ptr;
+	eval_t	*a = nullptr, *b = nullptr, *c = nullptr;
+	int			s = 0;
+	dstatement_t	*st = nullptr;
+	dfunction_t	*f = nullptr, *newf = nullptr;
+	int		runaway = 0;
+	int		i = 0;
+	edict_t	*ed = nullptr;
+	int		exitdepth = 0;
+	eval_t	*ptr = nullptr;
 
 	if (!fnum || fnum >= progs->numfunctions)
 	{
@@ -387,7 +387,7 @@ void PR_ExecuteProgram (func_t fnum)
 
 	s = PR_EnterFunction (f);
 	
-while (1)
+while (true)
 {
 	s++;	// next statement
 

@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-#include "quakedef.h"
+#include "quakedef.hpp"
 #include <string>
 /*
 
@@ -46,11 +46,11 @@ int		keyshift[256];		// key to map to if shift held down in console
 int		key_repeats[256];	// if > 1, it is autorepeating
 qboolean	keydown[256];
 
-typedef struct
+using keyname_t = struct
 {
 	char	*name;
 	int		keynum;
-} keyname_t;
+};
 
 keyname_t keynames[] =
 {
@@ -137,7 +137,7 @@ keyname_t keynames[] =
 
 	{"SEMICOLON", ';'},	// because a raw semicolon seperates commands
 
-	{NULL,0}
+	{nullptr,0}
 };
 
 /*
@@ -338,9 +338,9 @@ the given string.  Single ascii characters return themselves, while
 the K_* names are matched up.
 ===================
 */
-int Key_StringToKeynum (char *str)
+auto Key_StringToKeynum (char *str) -> int
 {
-	keyname_t	*kn;
+	keyname_t	*kn = nullptr;
 	
 	if (!str || !str[0])
 		return -1;
@@ -364,9 +364,9 @@ given keynum.
 FIXME: handle quote special (general escape sequence?)
 ===================
 */
-char *Key_KeynumToString (int keynum)
+auto Key_KeynumToString (int keynum) -> char *
 {
-	keyname_t	*kn;	
+	keyname_t	*kn = nullptr;	
 	static	char	tinystr[2];
 	
 	if (keynum == -1)
@@ -393,8 +393,8 @@ Key_SetBinding
 */
 void Key_SetBinding (int keynum, char *binding)
 {
-	char	*newChar;
-	int		l;
+	char	*newChar = nullptr;
+	int		l = 0;
 			
 	if (keynum == -1)
 		return;
@@ -403,7 +403,7 @@ void Key_SetBinding (int keynum, char *binding)
 	if (keybindings[keynum])
 	{
 		Z_Free (keybindings[keynum]);
-		keybindings[keynum] = NULL;
+		keybindings[keynum] = nullptr;
 	}
 			
 // allocate memory for newChar binding
@@ -419,9 +419,9 @@ void Key_SetBinding (int keynum, char *binding)
 Key_Unbind_f
 ===================
 */
-void Key_Unbind_f (void)
+void Key_Unbind_f ()
 {
-	int		b;
+	int		b = 0;
 
 	if (Cmd_Argc() != 2)
 	{
@@ -439,9 +439,9 @@ void Key_Unbind_f (void)
 	Key_SetBinding (b, "");
 }
 
-void Key_Unbindall_f (void)
+void Key_Unbindall_f ()
 {
-	int		i;
+	int		i = 0;
 	
 	for (i=0 ; i<256 ; i++)
 		if (keybindings[i])
@@ -454,9 +454,9 @@ void Key_Unbindall_f (void)
 Key_Bind_f
 ===================
 */
-void Key_Bind_f (void)
+void Key_Bind_f ()
 {
-	int			i, c, b;
+	int			i = 0, c = 0, b = 0;
 	char		cmd[1024];
 	
 	c = Cmd_Argc();
@@ -503,7 +503,7 @@ Writes lines containing "bind key value"
 */
 void Key_WriteBindings (FILE *f)
 {
-	int		i;
+	int		i = 0;
 
 	for (i=0 ; i<256 ; i++)
 		if (keybindings[i])
@@ -517,9 +517,9 @@ void Key_WriteBindings (FILE *f)
 Key_Init
 ===================
 */
-void Key_Init (void)
+void Key_Init ()
 {
-	int		i;
+	int		i = 0;
 
 	for (i=0 ; i<32 ; i++)
 	{
@@ -598,7 +598,7 @@ Should NOT be called during an interrupt!
 */
 void Key_Event (int key, qboolean down)
 {
-	char	*kb;
+	char	*kb = nullptr;
 	char	cmd[1024];
 
 	keydown[key] = down;
@@ -746,9 +746,9 @@ void Key_Event (int key, qboolean down)
 Key_ClearStates
 ===================
 */
-void Key_ClearStates (void)
+void Key_ClearStates ()
 {
-	int		i;
+	int		i = 0;
 
 	for (i=0 ; i<256 ; i++)
 	{

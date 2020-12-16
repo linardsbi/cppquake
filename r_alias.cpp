@@ -19,9 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_alias.c: routines for setting up to draw alias models
 
-#include "quakedef.h"
-#include "r_local.h"
-#include "d_local.h"	// FIXME: shouldn't be needed (is needed for patch
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
+#include "d_local.hpp"	// FIXME: shouldn't be needed (is needed for patch
 						// right now, but that should move)
 
 #define LIGHT_MIN	5		// lowest light value we'll allow, to avoid the
@@ -55,10 +56,10 @@ int				r_anumverts;
 
 float	aliastransform[3][4];
 
-typedef struct {
+using aedge_t = struct {
 	int	index0;
 	int	index1;
-} aedge_t;
+};
 
 static aedge_t	aedges[12] = {
 {0, 1}, {1, 2}, {2, 3}, {3, 0},
@@ -69,7 +70,7 @@ static aedge_t	aedges[12] = {
 #define NUMVERTEXNORMALS	162
 
 float	r_avertexnormals[NUMVERTEXNORMALS][3] = {
-#include "anorms.h"
+#include "anorms.hpp"
 };
 
 void R_AliasTransformAndProjectFinalVerts (finalvert_t *fv,
@@ -86,17 +87,17 @@ void R_AliasProjectFinalVert (finalvert_t *fv, auxvert_t *av);
 R_AliasCheckBBox
 ================
 */
-qboolean R_AliasCheckBBox (void)
+auto R_AliasCheckBBox () -> qboolean
 {
-	int					i, flags, frame, numv;
-	aliashdr_t			*pahdr;
-	float				zi, basepts[8][3], v0, v1, frac;
-	finalvert_t			*pv0, *pv1, viewpts[16];
-	auxvert_t			*pa0, *pa1, viewaux[16];
-	maliasframedesc_t	*pframedesc;
-	qboolean			zclipped, zfullyclipped;
-	unsigned			anyclip, allclip;
-	int					minz;
+	int					i = 0, flags = 0, frame = 0, numv = 0;
+	aliashdr_t			*pahdr = nullptr;
+	float				zi = NAN, basepts[8][3], v0 = NAN, v1 = NAN, frac = NAN;
+	finalvert_t			*pv0 = nullptr, *pv1 = nullptr, viewpts[16];
+	auxvert_t			*pa0 = nullptr, *pa1 = nullptr, viewaux[16];
+	maliasframedesc_t	*pframedesc = nullptr;
+	qboolean			zclipped = 0, zfullyclipped = 0;
+	unsigned			anyclip = 0, allclip = 0;
+	int					minz = 0;
 	
 // expand, rotate, and translate points into worldspace
 
@@ -265,13 +266,13 @@ R_AliasPreparePoints
 General clipped case
 ================
 */
-void R_AliasPreparePoints (void)
+void R_AliasPreparePoints ()
 {
-	int			i;
-	stvert_t	*pstverts;
-	finalvert_t	*fv;
-	auxvert_t	*av;
-	mtriangle_t	*ptri;
+	int			i = 0;
+	stvert_t	*pstverts = nullptr;
+	finalvert_t	*fv = nullptr;
+	auxvert_t	*av = nullptr;
+	mtriangle_t	*ptri = nullptr;
 	finalvert_t	*pfv[3];
 
 	pstverts = (stvert_t *)((byte *)paliashdr + paliashdr->stverts);
@@ -336,7 +337,7 @@ R_AliasSetUpTransform
 */
 void R_AliasSetUpTransform (int trivial_accept)
 {
-	int				i;
+	int				i = 0;
 	float			rotationmatrix[3][4], t2matrix[3][4];
 	static float	tmatrix[3][4];
 	static float	viewmatrix[3][4];
@@ -415,8 +416,8 @@ R_AliasTransformFinalVert
 void R_AliasTransformFinalVert (finalvert_t *fv, auxvert_t *av,
 	trivertx_t *pverts, stvert_t *pstverts)
 {
-	int		temp;
-	float	lightcos, *plightnormal;
+	int		temp = 0;
+	float	lightcos = NAN, *plightnormal = nullptr;
 
 	av->fv[0] = DotProduct(pverts->v, aliastransform[0]) +
 			aliastransform[0][3];
@@ -458,9 +459,9 @@ R_AliasTransformAndProjectFinalVerts
 */
 void R_AliasTransformAndProjectFinalVerts (finalvert_t *fv, stvert_t *pstverts)
 {
-	int			i, temp;
-	float		lightcos, *plightnormal, zi;
-	trivertx_t	*pverts;
+	int			i = 0, temp = 0;
+	float		lightcos = NAN, *plightnormal = nullptr, zi = NAN;
+	trivertx_t	*pverts = nullptr;
 
 	pverts = r_apverts;
 
@@ -513,7 +514,7 @@ R_AliasProjectFinalVert
 */
 void R_AliasProjectFinalVert (finalvert_t *fv, auxvert_t *av)
 {
-	float	zi;
+	float	zi = NAN;
 
 // project points
 	zi = 1.0 / av->fv[2];
@@ -530,10 +531,10 @@ void R_AliasProjectFinalVert (finalvert_t *fv, auxvert_t *av)
 R_AliasPrepareUnclippedPoints
 ================
 */
-void R_AliasPrepareUnclippedPoints (void)
+void R_AliasPrepareUnclippedPoints ()
 {
-	stvert_t	*pstverts;
-	finalvert_t	*fv;
+	stvert_t	*pstverts = nullptr;
+	finalvert_t	*fv = nullptr;
 
 	pstverts = (stvert_t *)((byte *)paliashdr + paliashdr->stverts);
 	r_anumverts = pmdl->numverts;
@@ -558,13 +559,13 @@ void R_AliasPrepareUnclippedPoints (void)
 R_AliasSetupSkin
 ===============
 */
-void R_AliasSetupSkin (void)
+void R_AliasSetupSkin ()
 {
-	int					skinnum;
-	int					i, numskins;
-	maliasskingroup_t	*paliasskingroup;
-	float				*pskinintervals, fullskininterval;
-	float				skintargettime, skintime;
+	int					skinnum = 0;
+	int					i = 0, numskins = 0;
+	maliasskingroup_t	*paliasskingroup = nullptr;
+	float				*pskinintervals = nullptr, fullskininterval = NAN;
+	float				skintargettime = NAN, skintime = NAN;
 
 	skinnum = currententity->skinnum;
 	if ((skinnum >= pmdl->numskins) || (skinnum < 0))
@@ -649,12 +650,12 @@ R_AliasSetupFrame
 set r_apverts
 =================
 */
-void R_AliasSetupFrame (void)
+void R_AliasSetupFrame ()
 {
-	int				frame;
-	int				i, numframes;
-	maliasgroup_t	*paliasgroup;
-	float			*pintervals, fullinterval, targettime, time;
+	int				frame = 0;
+	int				i = 0, numframes = 0;
+	maliasgroup_t	*paliasgroup = nullptr;
+	float			*pintervals = nullptr, fullinterval = NAN, targettime = NAN, time = NAN;
 
 	frame = currententity->frame;
 	if ((frame >= pmdl->numframes) || (frame < 0))

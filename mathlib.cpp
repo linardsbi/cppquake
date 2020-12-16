@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // mathlib.c -- math primitives
 
-#include <math.h>
-#include "quakedef.h"
+#include <cmath>
+#include <cmath>
+#include "quakedef.hpp"
 
 void Sys_Error (const char *error, ...);
 
@@ -29,13 +30,13 @@ int nanmask = 255<<23;
 
 /*-----------------------------------------------------------------*/
 
-#define DEG2RAD( a ) ( a * M_PI ) / 180.0F
+#define DEG2RAD( a ) (( (a) * M_PI ) / 180.0F)
 
 void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal )
 {
-	float d;
+	float d = NAN;
 	vec3_t n;
-	float inv_denom;
+	float inv_denom = NAN;
 
 	inv_denom = 1.0F / DotProduct( normal, normal );
 
@@ -55,8 +56,8 @@ void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal )
 */
 void PerpendicularVector( vec3_t dst, const vec3_t src )
 {
-	int	pos;
-	int i;
+	int	pos = 0;
+	int i = 0;
 	float minelem = 1.0F;
 	vec3_t tempvec;
 
@@ -97,7 +98,7 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 	float	zrot[3][3];
 	float	tmpmat[3][3];
 	float	rot[3][3];
-	int	i;
+	int	i = 0;
 	vec3_t vr, vup, vf;
 
 	vf[0] = dir[0];
@@ -152,7 +153,7 @@ void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, 
 /*-----------------------------------------------------------------*/
 
 
-float	anglemod(float a)
+auto	anglemod(float a) -> float
 {
 #if 0
 	if (a >= 0)
@@ -171,7 +172,7 @@ BOPS_Error
 Split out like this for ASM to call.
 ==================
 */
-void BOPS_Error (void)
+void BOPS_Error ()
 {
 	Sys_Error ("BoxOnPlaneSide:  Bad signbits");
 }
@@ -186,10 +187,10 @@ BoxOnPlaneSide
 Returns 1, 2, or 1 + 2
 ==================
 */
-int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, mplane_t *p)
+auto BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, mplane_t *p) -> int
 {
-	float	dist1, dist2;
-	int		sides;
+	float	dist1 = NAN, dist2 = NAN;
+	int		sides = 0;
 
 #if 0	// this is done by the BOX_ON_PLANE_SIDE macro before calling this
 		// function
@@ -291,8 +292,8 @@ if (sides == 0)
 
 void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 {
-	float		angle;
-	float		sr, sp, sy, cr, cp, cy;
+	float		angle = NAN;
+	float		sr = NAN, sp = NAN, sy = NAN, cr = NAN, cp = NAN, cy = NAN;
 	
 	angle = angles[YAW] * (M_PI*2 / 360);
 	sy = sin(angle);
@@ -315,9 +316,9 @@ void AngleVectors (vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 	up[2] = cr*cp;
 }
 
-int VectorCompare (vec3_t v1, vec3_t v2)
+auto VectorCompare (vec3_t v1, vec3_t v2) -> int
 {
-	int		i;
+	int		i = 0;
 	
 	for (i=0 ; i<3 ; i++)
 		if (v1[i] != v2[i])
@@ -334,7 +335,7 @@ void VectorMA (vec3_t veca, float scale, vec3_t vecb, vec3_t vecc)
 }
 
 
-vec_t _DotProduct (vec3_t v1, vec3_t v2)
+auto _DotProduct (vec3_t v1, vec3_t v2) -> vec_t
 {
 	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
 }
@@ -367,12 +368,12 @@ void CrossProduct (vec3_t v1, vec3_t v2, vec3_t cross)
 	cross[2] = v1[0]*v2[1] - v1[1]*v2[0];
 }
 
-double sqrt(double x);
+auto sqrt(double x) -> double;
 
-vec_t Length(vec3_t v)
+auto Length(vec3_t v) -> vec_t
 {
-	int		i;
-	float	length;
+	int		i = 0;
+	float	length = NAN;
 	
 	length = 0;
 	for (i=0 ; i< 3 ; i++)
@@ -382,9 +383,9 @@ vec_t Length(vec3_t v)
 	return length;
 }
 
-float VectorNormalize (vec3_t v)
+auto VectorNormalize (vec3_t v) -> float
 {
-	float	length, ilength;
+	float	length = NAN, ilength = NAN;
 
 	length = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
 	length = sqrt (length);		// FIXME
@@ -416,7 +417,7 @@ void VectorScale (vec3_t in, vec_t scale, vec3_t out)
 }
 
 
-int Q_log2(int val)
+auto Q_log2(int val) -> int
 {
 	int answer=0;
 	while (val>>=1)
@@ -500,8 +501,8 @@ quotient must fit in 32 bits.
 void FloorDivMod (double numer, double denom, int *quotient,
 		int *rem)
 {
-	int		q, r;
-	double	x;
+	int		q = 0, r = 0;
+	double	x = NAN;
 
 #ifndef PARANOID
 	if (denom <= 0.0)
@@ -544,7 +545,7 @@ void FloorDivMod (double numer, double denom, int *quotient,
 GreatestCommonDivisor
 ====================
 */
-int GreatestCommonDivisor (int i1, int i2)
+auto GreatestCommonDivisor (int i1, int i2) -> int
 {
 	if (i1 > i2)
 	{
@@ -573,7 +574,7 @@ Inverts an 8.24 value to a 16.16 value
 ====================
 */
 
-fixed16_t Invert24To16(fixed16_t val)
+auto Invert24To16(fixed16_t val) -> fixed16_t
 {
 	if (val < 256)
 		return (0xFFFFFFFF);

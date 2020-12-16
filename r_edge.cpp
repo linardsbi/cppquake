@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_edge.c
 
-#include "quakedef.h"
-#include "r_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
 
 #if 0
 // FIXME
@@ -56,7 +57,7 @@ int	current_iv;
 
 int	edge_head_u_shift20, edge_tail_u_shift20;
 
-static void (*pdrawfunc)(void);
+static void (*pdrawfunc)();
 
 edge_t	edge_head;
 edge_t	edge_tail;
@@ -65,8 +66,8 @@ edge_t	edge_sentinel;
 
 float	fv;
 
-void R_GenerateSpans (void);
-void R_GenerateSpansBackward (void);
+void R_GenerateSpans ();
+void R_GenerateSpansBackward ();
 
 void R_LeadingEdge (edge_t *edge);
 void R_LeadingEdgeBackwards (edge_t *edge);
@@ -81,10 +82,10 @@ void R_TrailingEdge (surf_t *surf, edge_t *edge);
 R_DrawCulledPolys
 ==============
 */
-void R_DrawCulledPolys (void)
+void R_DrawCulledPolys ()
 {
-	surf_t			*s;
-	msurface_t		*pface;
+	surf_t			*s = nullptr;
+	msurface_t		*pface = nullptr;
 
 	currententity = &cl_entities[0];
 
@@ -124,16 +125,16 @@ void R_DrawCulledPolys (void)
 R_BeginEdgeFrame
 ==============
 */
-void R_BeginEdgeFrame (void)
+void R_BeginEdgeFrame ()
 {
-	int		v;
+	int		v = 0;
 
 	edge_p = r_edges;
 	edge_max = &r_edges[r_numallocatededges];
 
 	surface_p = &surfaces[2];	// background is surface 1,
 								//  surface 0 is a dummy
-	surfaces[1].spans = NULL;	// no background spans yet
+	surfaces[1].spans = nullptr;	// no background spans yet
 	surfaces[1].flags = SURF_DRAWBACKGROUND;
 
 // put the background behind everything in the world
@@ -153,7 +154,7 @@ void R_BeginEdgeFrame (void)
 // FIXME: set with memset
 	for (v=r_refdef.vrect.y ; v<r_refdef.vrectbottom ; v++)
 	{
-		newedges[v] = removeedges[v] = NULL;
+		newedges[v] = removeedges[v] = nullptr;
 	}
 }
 
@@ -172,7 +173,7 @@ edge_head.next).
 */
 void R_InsertNewEdges (edge_t *edgestoadd, edge_t *edgelist)
 {
-	edge_t	*next_edge;
+	edge_t	*next_edge = nullptr;
 
 	do
 	{
@@ -198,7 +199,7 @@ addedge:
 		edgestoadd->prev = edgelist->prev;
 		edgelist->prev->next = edgestoadd;
 		edgelist->prev = edgestoadd;
-	} while ((edgestoadd = next_edge) != NULL);
+	} while ((edgestoadd = next_edge) != nullptr);
 }
 
 #endif	// !id386
@@ -218,7 +219,7 @@ void R_RemoveEdges (edge_t *pedge)
 	{
 		pedge->next->prev = pedge->prev;
 		pedge->prev->next = pedge->next;
-	} while ((pedge = pedge->nextremove) != NULL);
+	} while ((pedge = pedge->nextremove) != nullptr);
 }
 
 #endif	// !id386
@@ -233,9 +234,9 @@ R_StepActiveU
 */
 void R_StepActiveU (edge_t *pedge)
 {
-	edge_t		*pnext_edge, *pwedge;
+	edge_t		*pnext_edge = nullptr, *pwedge = nullptr;
 
-	while (1)
+	while (true)
 	{
 nextedge:
 		pedge->u += pedge->u_step;
@@ -301,9 +302,9 @@ R_CleanupSpan
 */
 void R_CleanupSpan ()
 {
-	surf_t	*surf;
-	int		iu;
-	espan_t	*span;
+	surf_t	*surf = nullptr;
+	int		iu = 0;
+	espan_t	*span = nullptr;
 
 // now that we've reached the right edge of the screen, we're done with any
 // unfinished surfaces, so emit a span for whatever's on top
@@ -335,9 +336,9 @@ R_LeadingEdgeBackwards
 */
 void R_LeadingEdgeBackwards (edge_t *edge)
 {
-	espan_t			*span;
-	surf_t			*surf, *surf2;
-	int				iu;
+	espan_t			*span = nullptr;
+	surf_t			*surf = nullptr, *surf2 = nullptr;
+	int				iu = 0;
 
 // it's adding a new surface in, so find the correct place
 	surf = &surfaces[edge->surfs[1]];
@@ -415,8 +416,8 @@ R_TrailingEdge
 */
 void R_TrailingEdge (surf_t *surf, edge_t *edge)
 {
-	espan_t			*span;
-	int				iu;
+	espan_t			*span = nullptr;
+	int				iu = 0;
 
 // don't generate a span if this is an inverted span, with the end
 // edge preceding the start edge (that is, we haven't seen the
@@ -459,10 +460,10 @@ R_LeadingEdge
 */
 void R_LeadingEdge (edge_t *edge)
 {
-	espan_t			*span;
-	surf_t			*surf, *surf2;
-	int				iu;
-	double			fu, newzi, testzi, newzitop, newzibottom;
+	espan_t			*span = nullptr;
+	surf_t			*surf = nullptr, *surf2 = nullptr;
+	int				iu = 0;
+	double			fu = NAN, newzi = NAN, testzi = NAN, newzitop = NAN, newzibottom = NAN;
 
 	if (edge->surfs[1])
 	{
@@ -585,10 +586,10 @@ gotposition:
 R_GenerateSpans
 ==============
 */
-void R_GenerateSpans (void)
+void R_GenerateSpans ()
 {
-	edge_t			*edge;
-	surf_t			*surf;
+	edge_t			*edge = nullptr;
+	surf_t			*surf = nullptr;
 
 	r_bmodelactive = 0;
 
@@ -624,9 +625,9 @@ void R_GenerateSpans (void)
 R_GenerateSpansBackward
 ==============
 */
-void R_GenerateSpansBackward (void)
+void R_GenerateSpansBackward ()
 {
-	edge_t			*edge;
+	edge_t			*edge = nullptr;
 
 	r_bmodelactive = 0;
 
@@ -660,12 +661,12 @@ Output:
 Each surface has a linked list of its visible spans
 ==============
 */
-void R_ScanEdges (void)
+void R_ScanEdges ()
 {
-	int		iv, bottom;
+	int		iv = 0, bottom = 0;
 	byte	basespans[MAXSPANS*sizeof(espan_t)+CACHE_SIZE];
-	espan_t	*basespan_p;
-	surf_t	*s;
+	espan_t	*basespan_p = nullptr;
+	surf_t	*s = nullptr;
 
 	basespan_p = (espan_t *)
 			((long)(basespans + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
@@ -678,7 +679,7 @@ void R_ScanEdges (void)
 	edge_head.u = r_refdef.vrect.x << 20;
 	edge_head_u_shift20 = edge_head.u >> 20;
 	edge_head.u_step = 0;
-	edge_head.prev = NULL;
+	edge_head.prev = nullptr;
 	edge_head.next = &edge_tail;
 	edge_head.surfs[0] = 0;
 	edge_head.surfs[1] = 1;
@@ -739,7 +740,7 @@ void R_ScanEdges (void)
 
 		// clear the surface span pointers
 			for (s = &surfaces[1] ; s<surface_p ; s++)
-				s->spans = NULL;
+				s->spans = nullptr;
 
 			span_p = basespan_p;
 		}

@@ -19,7 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sv_phys.c
 
-#include "quakedef.h"
+#include <cmath>
+#include "quakedef.hpp"
 
 /*
 
@@ -58,10 +59,10 @@ void SV_Physics_Toss (edict_t *ent);
 SV_CheckAllEnts
 ================
 */
-void SV_CheckAllEnts (void)
+void SV_CheckAllEnts ()
 {
-	int			e;
-	edict_t		*check;
+	int			e = 0;
+	edict_t		*check = nullptr;
 
 // see if any solid entities are inside the final position
 	check = NEXT_EDICT(sv.edicts);
@@ -89,7 +90,7 @@ SV_CheckVelocity
 */
 void SV_CheckVelocity (edict_t *ent)
 {
-	int		i;
+	int		i = 0;
 
 //
 // bound velocity
@@ -123,9 +124,9 @@ in a frame.  Not used for pushmove objects, because they must be exact.
 Returns false if the entity removed itself.
 =============
 */
-qboolean SV_RunThink (edict_t *ent)
+auto SV_RunThink (edict_t *ent) -> qboolean
 {
-	float	thinktime;
+	float	thinktime = NAN;
 
 	thinktime = ent->v.nextthink;
 	if (thinktime <= 0 || thinktime > sv.time + host_frametime)
@@ -152,7 +153,7 @@ Two entities have touched, so run their touch functions
 */
 void SV_Impact (edict_t *e1, edict_t *e2)
 {
-	int		old_self, old_other;
+	int		old_self = 0, old_other = 0;
 	
 	old_self = pr_global_struct->self;
 	old_other = pr_global_struct->other;
@@ -187,11 +188,11 @@ returns the blocked flags (1 = floor, 2 = step / wall)
 */
 #define	STOP_EPSILON	0.1
 
-int ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overbounce)
+auto ClipVelocity (vec3_t in, vec3_t normal, vec3_t out, float overbounce) -> int
 {
-	float	backoff;
-	float	change;
-	int		i, blocked;
+	float	backoff = NAN;
+	float	change = NAN;
+	int		i = 0, blocked = 0;
 	
 	blocked = 0;
 	if (normal[2] > 0)
@@ -226,19 +227,19 @@ If steptrace is not NULL, the trace of any vertical wall hit will be stored
 ============
 */
 #define	MAX_CLIP_PLANES	5
-int SV_FlyMove (edict_t *ent, float time, trace_t *steptrace)
+auto SV_FlyMove (edict_t *ent, float time, trace_t *steptrace) -> int
 {
-	int			bumpcount, numbumps;
+	int			bumpcount = 0, numbumps = 0;
 	vec3_t		dir;
-	float		d;
-	int			numplanes;
+	float		d = NAN;
+	int			numplanes = 0;
 	vec3_t		planes[MAX_CLIP_PLANES];
 	vec3_t		primal_velocity, original_velocity, new_velocity;
-	int			i, j;
+	int			i = 0, j = 0;
 	trace_t		trace;
 	vec3_t		end;
-	float		time_left;
-	int			blocked;
+	float		time_left = NAN;
+	int			blocked = 0;
 	
 	numbumps = 4;
 	
@@ -370,7 +371,7 @@ SV_AddGravity
 */
 void SV_AddGravity (edict_t *ent)
 {
-	float	ent_gravity;
+	float	ent_gravity = NAN;
 
 #ifdef QUAKE2
 	if (ent->v.gravity)
@@ -378,7 +379,7 @@ void SV_AddGravity (edict_t *ent)
 	else
 		ent_gravity = 1.0;
 #else
-	eval_t	*val;
+	eval_t	*val = nullptr;
 
 	val = GetEdictFieldValue(ent, "gravity");
 	if (val && val->_float)
@@ -405,7 +406,7 @@ SV_PushEntity
 Does not change the entities velocity at all
 ============
 */
-trace_t SV_PushEntity (edict_t *ent, vec3_t push)
+auto SV_PushEntity (edict_t *ent, vec3_t push) -> trace_t
 {
 	trace_t	trace;
 	vec3_t	end;
@@ -438,11 +439,11 @@ SV_PushMove
 */
 void SV_PushMove (edict_t *pusher, float movetime)
 {
-	int			i, e;
-	edict_t		*check, *block;
+	int			i = 0, e = 0;
+	edict_t		*check = nullptr, *block = nullptr;
 	vec3_t		mins, maxs, move;
 	vec3_t		entorig, pushorig;
-	int			num_moved;
+	int			num_moved = 0;
 	edict_t		*moved_edict[MAX_EDICTS];
 	vec3_t		moved_from[MAX_EDICTS];
 
@@ -703,9 +704,9 @@ SV_Physics_Pusher
 */
 void SV_Physics_Pusher (edict_t *ent)
 {
-	float	thinktime;
-	float	oldltime;
-	float	movetime;
+	float	thinktime = NAN;
+	float	oldltime = NAN;
+	float	movetime = NAN;
 
 	oldltime = ent->v.ltime;
 	
@@ -761,8 +762,8 @@ clipping hull.
 */
 void SV_CheckStuck (edict_t *ent)
 {
-	int		i, j;
-	int		z;
+	int		i = 0, j = 0;
+	int		z = 0;
 	vec3_t	org;
 
 	if (!SV_TestEntityPosition(ent))
@@ -805,10 +806,10 @@ void SV_CheckStuck (edict_t *ent)
 SV_CheckWater
 =============
 */
-qboolean SV_CheckWater (edict_t *ent)
+auto SV_CheckWater (edict_t *ent) -> qboolean
 {
 	vec3_t	point;
-	int		cont;
+	int		cont = 0;
 #ifdef QUAKE2
 	int		truecont;
 #endif
@@ -867,7 +868,7 @@ SV_WallFriction
 void SV_WallFriction (edict_t *ent, trace_t *trace)
 {
 	vec3_t		forward, right, up;
-	float		d, i;
+	float		d = NAN, i = NAN;
 	vec3_t		into, side;
 	
 	AngleVectors (ent->v.v_angle, forward, right, up);
@@ -898,12 +899,12 @@ Try fixing by pushing one pixel in each direction.
 This is a hack, but in the interest of good gameplay...
 ======================
 */
-int SV_TryUnstick (edict_t *ent, vec3_t oldvel)
+auto SV_TryUnstick (edict_t *ent, vec3_t oldvel) -> int
 {
-	int		i;
+	int		i = 0;
 	vec3_t	oldorg;
 	vec3_t	dir;
-	int		clip;
+	int		clip = 0;
 	trace_t	steptrace;
 	
 	VectorCopy (ent->v.origin, oldorg);
@@ -960,8 +961,8 @@ void SV_WalkMove (edict_t *ent)
 	vec3_t		upmove, downmove;
 	vec3_t		oldorg, oldvel;
 	vec3_t		nosteporg, nostepvel;
-	int			clip;
-	int			oldonground;
+	int			clip = 0;
+	int			oldonground = 0;
 	trace_t		steptrace, downtrace;
 	
 //
@@ -1107,7 +1108,7 @@ void SV_Physics_Client (edict_t	*ent, int num)
 	case MOVETYPE_FLY:
 		if (!SV_RunThink (ent))
 			return;
-		SV_FlyMove (ent, host_frametime, NULL);
+		SV_FlyMove (ent, host_frametime, nullptr);
 		break;
 		
 	case MOVETYPE_NOCLIP:
@@ -1197,7 +1198,7 @@ SV_CheckWaterTransition
 */
 void SV_CheckWaterTransition (edict_t *ent)
 {
-	int		cont;
+	int		cont = 0;
 #ifdef QUAKE2
 	vec3_t	point;
 	
@@ -1246,7 +1247,7 @@ void SV_Physics_Toss (edict_t *ent)
 {
 	trace_t	trace;
 	vec3_t	move;
-	float	backoff;
+	float	backoff = NAN;
 #ifdef QUAKE2
 	edict_t	*groundentity;
 
@@ -1467,7 +1468,7 @@ void SV_Physics_Step (edict_t *ent)
 #else
 void SV_Physics_Step (edict_t *ent)
 {
-	qboolean	hitsound;
+	qboolean	hitsound = 0;
 
 // freefall if not onground
 	if ( ! ((int)ent->v.flags & (FL_ONGROUND | FL_FLY | FL_SWIM) ) )
@@ -1479,7 +1480,7 @@ void SV_Physics_Step (edict_t *ent)
 
 		SV_AddGravity (ent);
 		SV_CheckVelocity (ent);
-		SV_FlyMove (ent, host_frametime, NULL);
+		SV_FlyMove (ent, host_frametime, nullptr);
 		SV_LinkEdict (ent, true);
 
 		if ( (int)ent->v.flags & FL_ONGROUND )	// just hit ground
@@ -1504,10 +1505,10 @@ SV_Physics
 
 ================
 */
-void SV_Physics (void)
+void SV_Physics ()
 {
-	int		i;
-	edict_t	*ent;
+	int		i = 0;
+	edict_t	*ent = nullptr;
 
 // let the progs know that a new frame has started
 	pr_global_struct->self = EDICT_TO_PROG(sv.edicts);

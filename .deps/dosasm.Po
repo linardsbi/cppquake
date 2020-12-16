@@ -1,3 +1,3 @@
-dosasm.o: dosasm.S /usr/include/stdc-predef.h asm_i386.h
+dosasm.o: dosasm.S /usr/include/stdc-predef.h asm_i386.hpp
 /usr/include/stdc-predef.h:
-asm_i386.h:
+asm_i386.hpp:

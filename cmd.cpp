@@ -19,19 +19,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // cmd.c -- Quake script command processing module
 
-#include "quakedef.h"
-#include "util.hpp"
+#include "quakedef.hpp"
 
-void Cmd_ForwardToServer (void);
+
+void Cmd_ForwardToServer ();
 
 #define	MAX_ALIAS_NAME	32
 
-typedef struct cmdalias_s
+using cmdalias_t = struct cmdalias_s
 {
 	struct cmdalias_s	*next;
 	char	name[MAX_ALIAS_NAME];
 	char	*value;
-} cmdalias_t;
+};
 
 cmdalias_t	*cmd_alias;
 
@@ -51,7 +51,7 @@ next frame.  This allows commands like:
 bind g "impulse 5 ; +attack ; wait ; -attack ; impulse 2"
 ============
 */
-void Cmd_Wait_f (void)
+void Cmd_Wait_f ()
 {
 	cmd_wait = true;
 }
@@ -71,7 +71,7 @@ sizebuf_t	cmd_text;
 Cbuf_Init
 ============
 */
-void Cbuf_Init (void)
+void Cbuf_Init ()
 {
 	SZ_Alloc (&cmd_text, 8192);		// space for commands and script files
 }
@@ -86,7 +86,7 @@ Adds command text at the end of the buffer
 */
 void Cbuf_AddText (char *text)
 {
-	int		l;
+	int		l = 0;
 	
 	l = Q_strlen (text);
 
@@ -111,8 +111,8 @@ FIXME: actually change the command buffer to do less copying
 */
 void Cbuf_InsertText (char *text)
 {
-	unsigned char	*temp;
-	int		templen;
+	unsigned char	*temp = nullptr;
+	int		templen = 0;
 
 // copy off any commands still remaining in the exec buffer
 	templen = cmd_text.cursize;
@@ -141,12 +141,12 @@ void Cbuf_InsertText (char *text)
 Cbuf_Execute
 ============
 */
-void Cbuf_Execute (void)
+void Cbuf_Execute ()
 {
-	int		i;
-	char	*text;
+	int		i = 0;
+	char	*text = nullptr;
 	char	line[1024];
-	int		quotes;
+	int		quotes = 0;
 	
 	while (cmd_text.cursize)
 	{
@@ -211,9 +211,9 @@ quake +prog jctest.qp +cmd amlev1
 quake -nosound +cmd amlev1
 ===============
 */
-void Cmd_StuffCmds_f (void)
+void Cmd_StuffCmds_f ()
 {
-	char	*text, *build, c;
+	char	*text = nullptr, *build = nullptr, c = 0;
 
 	if (Cmd_Argc () != 1)
 	{
@@ -281,10 +281,10 @@ void Cmd_StuffCmds_f (void)
 Cmd_Exec_f
 ===============
 */
-void Cmd_Exec_f (void)
+void Cmd_Exec_f ()
 {
-	char	*f;
-	int		mark;
+	char	*f = nullptr;
+	int		mark = 0;
 
 	if (Cmd_Argc () != 2)
 	{
@@ -313,9 +313,9 @@ Cmd_Echo_f
 Just prints the rest of the line to the console
 ===============
 */
-void Cmd_Echo_f (void)
+void Cmd_Echo_f ()
 {
-	int		i;
+	int		i = 0;
 	
 	for (i=1 ; i<Cmd_Argc() ; i++)
 		Con_Printf ("%s ",Cmd_Argv(i));
@@ -330,21 +330,21 @@ Creates a new command that executes a command string (possibly ; seperated)
 ===============
 */
 
-char *CopyString (char *in)
+auto CopyString (char *in) -> char *
 {
-	char	*out;
+	char	*out = nullptr;
 	
 	out = zmalloc<decltype(out)> (strlen(in)+1);
 	strcpy (out, in);
 	return out;
 }
 
-void Cmd_Alias_f (void)
+void Cmd_Alias_f ()
 {
-	cmdalias_t	*a;
+	cmdalias_t	*a = nullptr;
 	char		cmd[1024];
-	int			i, c;
-	char		*s;
+	int			i = 0, c = 0;
+	char		*s = nullptr;
 
 	if (Cmd_Argc() == 1)
 	{
@@ -401,12 +401,12 @@ void Cmd_Alias_f (void)
 =============================================================================
 */
 
-typedef struct cmd_function_s
+using cmd_function_t = struct cmd_function_s
 {
 	struct cmd_function_s	*next;
 	char					*name;
 	xcommand_t				function;
-} cmd_function_t;
+};
 
 
 #define	MAX_ARGS		80
@@ -414,7 +414,7 @@ typedef struct cmd_function_s
 static	int			cmd_argc;
 static	char		*cmd_argv[MAX_ARGS];
 static	char		*cmd_null_string = "";
-static	char		*cmd_args = NULL;
+static	char		*cmd_args = nullptr;
 
 cmd_source_t	cmd_source;
 
@@ -426,7 +426,7 @@ static	cmd_function_t	*cmd_functions;		// possible commands to execute
 Cmd_Init
 ============
 */
-void Cmd_Init (void)
+void Cmd_Init ()
 {
 //
 // register our commands
@@ -444,7 +444,7 @@ void Cmd_Init (void)
 Cmd_Argc
 ============
 */
-int		Cmd_Argc (void)
+auto		Cmd_Argc () -> int
 {
 	return cmd_argc;
 }
@@ -454,7 +454,7 @@ int		Cmd_Argc (void)
 Cmd_Argv
 ============
 */
-char	*Cmd_Argv (int arg)
+auto Cmd_Argv (int arg) -> char	*
 {
 	if ( (unsigned)arg >= cmd_argc )
 		return cmd_null_string;
@@ -466,7 +466,7 @@ char	*Cmd_Argv (int arg)
 Cmd_Args
 ============
 */
-char		*Cmd_Args (void)
+auto Cmd_Args () -> char		*
 {
 	return cmd_args;
 }
@@ -481,16 +481,16 @@ Parses the given string into command line tokens.
 */
 void Cmd_TokenizeString (char *text)
 {
-	int		i;
+	int		i = 0;
 	
 // clear the args from the last string
 	for (i=0 ; i<cmd_argc ; i++)
 		Z_Free (cmd_argv[i]);
 		
 	cmd_argc = 0;
-	cmd_args = NULL;
+	cmd_args = nullptr;
 	
-	while (1)
+	while (true)
 	{
 // skip whitespace up to a /n
 		while (*text && *text <= ' ' && *text != '\n')
@@ -532,7 +532,7 @@ Cmd_AddCommand
 */
 void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 {
-	cmd_function_t	*cmd;
+	cmd_function_t	*cmd = nullptr;
 	
 	if (host_initialized)	// because hunk allocation would get stomped
 		Sys_Error ("Cmd_AddCommand after host_initialized");
@@ -566,9 +566,9 @@ void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 Cmd_Exists
 ============
 */
-qboolean	Cmd_Exists (const char *cmd_name)
+auto	Cmd_Exists (const char *cmd_name) -> qboolean
 {
-	cmd_function_t	*cmd;
+	cmd_function_t	*cmd = nullptr;
 
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
 	{
@@ -586,22 +586,22 @@ qboolean	Cmd_Exists (const char *cmd_name)
 Cmd_CompleteCommand
 ============
 */
-char *Cmd_CompleteCommand (char *partial)
+auto Cmd_CompleteCommand (char *partial) -> char *
 {
-	cmd_function_t	*cmd;
-	int				len;
+	cmd_function_t	*cmd = nullptr;
+	int				len = 0;
 	
 	len = Q_strlen(partial);
 	
 	if (!len)
-		return NULL;
+		return nullptr;
 		
 // check functions
 	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
 		if (!Q_strncmp (partial,cmd->name, len))
 			return cmd->name;
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -614,8 +614,8 @@ FIXME: lookupnoadd the token to speed search?
 */
 void	Cmd_ExecuteString (char *text, cmd_source_t src)
 {	
-	cmd_function_t	*cmd;
-	cmdalias_t		*a;
+	cmd_function_t	*cmd = nullptr;
+	cmdalias_t		*a = nullptr;
 
 	cmd_source = src;
 	Cmd_TokenizeString (text);
@@ -658,7 +658,7 @@ Cmd_ForwardToServer
 Sends the entire command line over to the server
 ===================
 */
-void Cmd_ForwardToServer (void)
+void Cmd_ForwardToServer ()
 {
 	if (cls.state != ca_connected)
 	{
@@ -691,9 +691,9 @@ where the given parameter apears, or 0 if not present
 ================
 */
 
-int Cmd_CheckParm (char *parm)
+auto Cmd_CheckParm (char *parm) -> int
 {
-	int i;
+	int i = 0;
 	
 	if (!parm)
 		Sys_Error ("Cmd_CheckParm: NULL");

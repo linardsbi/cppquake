@@ -22,15 +22,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef __SOUND__
 #define __SOUND__
 
+#include "zone.hpp"
+
 #define DEFAULT_SOUND_PACKET_VOLUME 255
 #define DEFAULT_SOUND_PACKET_ATTENUATION 1.0
 
 // !!! if this is changed, it much be changed in asm_i386.h too !!!
-typedef struct
+struct portable_samplepair_t
 {
 	int left;
 	int right;
-} portable_samplepair_t;
+};
 
 typedef struct sfx_s
 {

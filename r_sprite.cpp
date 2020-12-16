@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_sprite.c
 
-#include "quakedef.h"
-#include "r_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
 
 static int				clip_current;
 static vec5_t			clip_verts[2][MAXWORKINGVERTS];
@@ -55,12 +56,12 @@ Clips the winding at clip_verts[clip_current] and changes clip_current
 Throws out the back side
 ==============
 */
-int R_ClipSpriteFace (int nump, clipplane_t *pclipplane)
+auto R_ClipSpriteFace (int nump, clipplane_t *pclipplane) -> int
 {
-	int		i, outcount;
+	int		i = 0, outcount = 0;
 	float	dists[MAXWORKINGVERTS+1];
-	float	frac, clipdist, *pclipnormal;
-	float	*in, *instep, *outstep, *vert2;
+	float	frac = NAN, clipdist = NAN, *pclipnormal = nullptr;
+	float	*in = nullptr, *instep = nullptr, *outstep = nullptr, *vert2 = nullptr;
 
 	clipdist = pclipplane->dist;
 	pclipnormal = pclipplane->normal;
@@ -135,11 +136,11 @@ R_SetupAndDrawSprite
 */
 void R_SetupAndDrawSprite ()
 {
-	int			i, nump;
-	float		dot, scale, *pv;
-	vec5_t		*pverts;
+	int			i = 0, nump = 0;
+	float		dot = NAN, scale = NAN, *pv = nullptr;
+	vec5_t		*pverts = nullptr;
 	vec3_t		left, up, right, down, transformed, local;
-	emitpoint_t	outverts[MAXWORKINGVERTS+1], *pout;
+	emitpoint_t	outverts[MAXWORKINGVERTS+1], *pout = nullptr;
 
 	dot = DotProduct (r_spritedesc.vpn, modelorg);
 
@@ -233,12 +234,12 @@ void R_SetupAndDrawSprite ()
 R_GetSpriteframe
 ================
 */
-mspriteframe_t *R_GetSpriteframe (msprite_t *psprite)
+auto R_GetSpriteframe (msprite_t *psprite) -> mspriteframe_t *
 {
-	mspritegroup_t	*pspritegroup;
-	mspriteframe_t	*pspriteframe;
-	int				i, numframes, frame;
-	float			*pintervals, fullinterval, targettime, time;
+	mspritegroup_t	*pspritegroup = nullptr;
+	mspriteframe_t	*pspriteframe = nullptr;
+	int				i = 0, numframes = 0, frame = 0;
+	float			*pintervals = nullptr, fullinterval = NAN, targettime = NAN, time = NAN;
 
 	frame = currententity->frame;
 
@@ -283,14 +284,14 @@ mspriteframe_t *R_GetSpriteframe (msprite_t *psprite)
 R_DrawSprite
 ================
 */
-void R_DrawSprite (void)
+void R_DrawSprite ()
 {
-	int				i;
+	int				i = 0;
 
 	vec3_t			tvec;
-	float			dot, angle, sr, cr;
+	float			dot = NAN, angle = NAN, sr = NAN, cr = NAN;
 
-    msprite_t		*psprite = static_cast<msprite_t*>(currententity->model->cache.data);
+    auto		*psprite = static_cast<msprite_t*>(currententity->model->cache.data);
 
 	r_spritedesc.pspriteframe = R_GetSpriteframe (psprite);
 

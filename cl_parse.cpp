@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // cl_parse.c  -- parse a message received from the server
 
-#include "quakedef.h"
-#include "util.hpp"
+#include <cmath>
+#include "quakedef.hpp"
+
 constexpr char *svc_strings[] =
 {
 	"svc_bad",
@@ -76,7 +77,7 @@ CL_EntityNum
 This error checks and tracks the total number of entities
 ===============
 */
-entity_t	*CL_EntityNum (int num)
+auto CL_EntityNum (int num) -> entity_t	*
 {
 	if (num >= cl.num_entities)
 	{
@@ -98,15 +99,15 @@ entity_t	*CL_EntityNum (int num)
 CL_ParseStartSoundPacket
 ==================
 */
-void CL_ParseStartSoundPacket(void)
+void CL_ParseStartSoundPacket()
 {
     vec3_t  pos;
-    int 	channel, ent;
-    int 	sound_num;
-    int 	volume;
-    int 	field_mask;
-    float 	attenuation;  
- 	int		i;
+    int 	channel = 0, ent = 0;
+    int 	sound_num = 0;
+    int 	volume = 0;
+    int 	field_mask = 0;
+    float 	attenuation = NAN;  
+ 	int		i = 0;
 	           
     field_mask = MSG_ReadByte(); 
 
@@ -143,11 +144,11 @@ When the client is taking a long time to load stuff, send keepalive messages
 so the server doesn't disconnect.
 ==================
 */
-void CL_KeepaliveMessage (void)
+void CL_KeepaliveMessage ()
 {
-	float	time;
+	float	time = NAN;
 	static float lastmsg;
-	int		ret;
+	int		ret = 0;
 	sizebuf_t	old;
 	byte		olddata[8192];
 	
@@ -201,11 +202,11 @@ void CL_KeepaliveMessage (void)
 CL_ParseServerInfo
 ==================
 */
-void CL_ParseServerInfo (void)
+void CL_ParseServerInfo ()
 {
-	char	*str;
-	int		i;
-	int		nummodels, numsounds;
+	char	*str = nullptr;
+	int		i = 0;
+	int		nummodels = 0, numsounds = 0;
 	char	model_precache[MAX_MODELS][MAX_QPATH];
 	char	sound_precache[MAX_SOUNDS][MAX_QPATH];
 	
@@ -288,7 +289,7 @@ void CL_ParseServerInfo (void)
 	for (i=1 ; i<nummodels ; i++)
 	{
 		cl.model_precache[i] = Mod_ForName (model_precache[i], false);
-		if (cl.model_precache[i] == NULL)
+		if (cl.model_precache[i] == nullptr)
 		{
 			Con_Printf("Model %s not found\n", model_precache[i]);
 			return;
@@ -329,13 +330,13 @@ int	bitcounts[16];
 
 void CL_ParseUpdate (int bits)
 {
-	int			i;
-	model_t		*model;
-	int			modnum;
-	qboolean	forcelink;
-	entity_t	*ent;
-	int			num;
-	int			skin;
+	int			i = 0;
+	model_t		*model = nullptr;
+	int			modnum = 0;
+	qboolean	forcelink = 0;
+	entity_t	*ent = nullptr;
+	int			num = 0;
+	int			skin = 0;
 
 	if (cls.signon == SIGNONS - 1)
 	{	// first update is the final signon stage
@@ -490,7 +491,7 @@ CL_ParseBaseline
 */
 void CL_ParseBaseline (entity_t *ent)
 {
-	int			i;
+	int			i = 0;
 	
 	ent->baseline.modelindex = MSG_ReadByte ();
 	ent->baseline.frame = MSG_ReadByte ();
@@ -513,7 +514,7 @@ Server information pertaining to this client only
 */
 void CL_ParseClientdata (int bits)
 {
-	int		i, j;
+	int		i = 0, j = 0;
 	
 	if (bits & SU_VIEWHEIGHT)
 		cl.viewheight = MSG_ReadChar ();
@@ -629,9 +630,9 @@ CL_NewTranslation
 */
 void CL_NewTranslation (int slot)
 {
-	int		i, j;
-	int		top, bottom;
-	byte	*dest, *source;
+	int		i = 0, j = 0;
+	int		top = 0, bottom = 0;
+	byte	*dest = nullptr, *source = nullptr;
 	
 	if (slot > cl.maxclients)
 		Sys_Error ("CL_NewTranslation: slot > cl.maxclients");
@@ -665,10 +666,10 @@ void CL_NewTranslation (int slot)
 CL_ParseStatic
 =====================
 */
-void CL_ParseStatic (void)
+void CL_ParseStatic ()
 {
-	entity_t *ent;
-	int		i;
+	entity_t *ent = nullptr;
+	int		i = 0;
 		
 	i = cl.num_statics;
 	if (i >= MAX_STATIC_ENTITIES)
@@ -694,11 +695,11 @@ void CL_ParseStatic (void)
 CL_ParseStaticSound
 ===================
 */
-void CL_ParseStaticSound (void)
+void CL_ParseStaticSound ()
 {
 	vec3_t		org;
-	int			sound_num, vol, atten;
-	int			i;
+	int			sound_num = 0, vol = 0, atten = 0;
+	int			i = 0;
 	
 	for (i=0 ; i<3 ; i++)
 		org[i] = MSG_ReadCoord ();
@@ -717,10 +718,10 @@ void CL_ParseStaticSound (void)
 CL_ParseServerMessage
 =====================
 */
-void CL_ParseServerMessage (void)
+void CL_ParseServerMessage ()
 {
-	int			cmd;
-	int			i;
+	int			cmd = 0;
+	int			i = 0;
 	
 //
 // if recording demos, copy the message out
@@ -736,7 +737,7 @@ void CL_ParseServerMessage (void)
 //
 	MSG_BeginReading ();
 	
-	while (1)
+	while (true)
 	{
 		if (msg_badread)
 			Host_Error ("CL_ParseServerMessage: Bad server message");

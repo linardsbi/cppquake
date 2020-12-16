@@ -18,6 +18,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // client.h
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
+
+#include "common.hpp"
 
 typedef struct
 {
@@ -373,3 +377,5 @@ void V_SetContentsColor (int contents);
 //
 void CL_InitTEnts (void);
 void CL_SignonReply (void);
+
+#endif

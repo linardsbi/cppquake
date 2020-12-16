@@ -211,12 +211,12 @@ void	VID_UnlockBuffer ();
 // Use for multiplayer testing only - VERY dangerous!!!
 // #define IDGODS
 
-#include "common.h"
-#include "bspfile.h"
-#include "vid.h"
-#include "sys.h"
-#include "zone.h"
-#include "mathlib.h"
+#include "common.hpp"
+#include "bspfile.hpp"
+#include "vid.hpp"
+#include "sys.hpp"
+#include "zone.hpp"
+#include "mathlib.hpp"
 
 struct entity_state_t
 {
@@ -230,38 +230,38 @@ struct entity_state_t
 };
 
 
-#include "wad.h"
-#include "draw.h"
-#include "cvar.h"
-#include "screen.h"
-#include "net.h"
-#include "protocol.h"
-#include "cmd.h"
-#include "sbar.h"
-#include "sound.h"
-#include "render.h"
-#include "client.h"
-#include "progs.h"
-#include "server.h"
+#include "wad.hpp"
+#include "draw.hpp"
+#include "cvar.hpp"
+#include "screen.hpp"
+#include "net.hpp"
+#include "protocol.hpp"
+#include "cmd.hpp"
+#include "sbar.hpp"
+#include "sound.hpp"
+#include "render.hpp"
+#include "client.hpp"
+#include "progs.hpp"
+#include "server.hpp"
 
 #ifdef GLQUAKE
-#include "gl_model.h"
+#include "gl_model.hpp"
 #else
-#include "model.h"
-#include "d_iface.h"
+#include "model.hpp"
+#include "d_iface.hpp"
 #endif
 
-#include "input.h"
-#include "world.h"
-#include "keys.h"
-#include "console.h"
-#include "view.h"
-#include "menu.h"
-#include "crc.h"
-#include "cdaudio.h"
+#include "input.hpp"
+#include "world.hpp"
+#include "keys.hpp"
+#include "console.hpp"
+#include "view.hpp"
+#include "menu.hpp"
+#include "crc.hpp"
+#include "cdaudio.hpp"
 
 #ifdef GLQUAKE
-#include "glquake.h"
+#include "glquake.hpp"
 #endif
 
 //=============================================================================

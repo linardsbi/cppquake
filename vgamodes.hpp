@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // vgamodes.h: VGA mode set tables
 //
 
-#include "vregset.h"
+#include "vregset.hpp"
 
 int		VGA_InitMode (viddef_t *vid, vmode_t *pcurrentmode);
 void	VGA_SwapBuffers (viddef_t *vid, vmode_t *pcurrentmode, vrect_t *rects);

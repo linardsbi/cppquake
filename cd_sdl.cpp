@@ -7,7 +7,7 @@
 
 #include <SDL.h>
 
-#include "quakedef.h"
+#include "quakedef.hpp"
 
 static qboolean cdValid = false;
 static qboolean initialized = false;
@@ -28,7 +28,7 @@ static void CDAudio_Eject()
 
 void CDAudio_Play(byte track, qboolean looping)
 {
-	CDstatus cd_stat;
+	CDstatus cd_stat{};
 	if(!cd_id || !enabled) return;
 	
 	if(!cdValid)
@@ -61,7 +61,7 @@ void CDAudio_Play(byte track, qboolean looping)
 
 void CDAudio_Stop()
 {
-	int cdstate;
+	int cdstate = 0;
 	if(!cd_id || !enabled) return;
 	cdstate = SDL_CDStatus(cd_id);
 	if((cdstate != CD_PLAYING) && (cdstate != CD_PAUSED)) return;
@@ -112,7 +112,7 @@ void CDAudio_Update()
 		CDAudio_Play(cd_id->cur_track+1,true);
 }
 
-int CDAudio_Init()
+auto CDAudio_Init() -> int
 {
 	if((cls.state == ca_dedicated) || COM_CheckParm("-nocdaudio"))
 		return -1;
@@ -150,13 +150,13 @@ void CDAudio_Shutdown()
 	if(!cd_id) return;
 	CDAudio_Stop();
 	SDL_CDClose(cd_id);
-	cd_id = NULL;
+	cd_id = nullptr;
 }
 
 static void CD_f()
 {
-	char *command;
-	int cdstate;
+	char *command = nullptr;
+	int cdstate = 0;
 	if(Cmd_Argc() < 2) return;
 
 	command = Cmd_Argv(1);

@@ -1,6 +1,6 @@
-surf16.o: surf16.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h \
- asm_draw.h
+surf16.o: surf16.S /usr/include/stdc-predef.h asm_i386.hpp quakeasm.hpp \
+ asm_draw.hpp
 /usr/include/stdc-predef.h:
-asm_i386.h:
-quakeasm.h:
-asm_draw.h:
+asm_i386.hpp:
+quakeasm.hpp:
+asm_draw.hpp:

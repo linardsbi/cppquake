@@ -1,7 +1,7 @@
-d_parta.o: d_parta.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h \
- d_ifacea.h asm_draw.h
+d_parta.o: d_parta.S /usr/include/stdc-predef.h asm_i386.hpp quakeasm.hpp \
+ d_ifacea.hpp asm_draw.hpp
 /usr/include/stdc-predef.h:
-asm_i386.h:
-quakeasm.h:
-d_ifacea.h:
-asm_draw.h:
+asm_i386.hpp:
+quakeasm.hpp:
+d_ifacea.hpp:
+asm_draw.hpp:

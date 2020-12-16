@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // d_edge.c
 
-#include "quakedef.h"
-#include "d_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "d_local.hpp"
 
 static int	miplevel;
 
@@ -30,8 +31,8 @@ int			ubasestep, errorterm, erroradjustup, erroradjustdown;
 int			vstartscan;
 
 // FIXME: should go away
-extern void			R_RotateBmodel (void);
-extern void			R_TransformFrustum (void);
+extern void			R_RotateBmodel ();
+extern void			R_TransformFrustum ();
 
 vec3_t		transformed_modelorg;
 
@@ -41,7 +42,7 @@ D_DrawPoly
 
 ==============
 */
-void D_DrawPoly (void)
+void D_DrawPoly ()
 {
 // this driver takes spans, not polygons
 }
@@ -52,9 +53,9 @@ void D_DrawPoly (void)
 D_MipLevelForScale
 =============
 */
-int D_MipLevelForScale (float scale)
+auto D_MipLevelForScale (float scale) -> int
 {
-	int		lmiplevel;
+	int		lmiplevel = 0;
 
 	if (scale >= d_scalemip[0] )
 		lmiplevel = 0;
@@ -82,9 +83,9 @@ D_DrawSolidSurface
 
 void D_DrawSolidSurface (surf_t *surf, int color)
 {
-	espan_t	*span;
-	byte	*pdest;
-	int		u, u2, pix;
+	espan_t	*span = nullptr;
+	byte	*pdest = nullptr;
+	int		u = 0, u2 = 0, pix = 0;
 	
 	pix = (color<<24) | (color<<16) | (color<<8) | color;
 	for (span=surf->spans ; span ; span=span->pnext)
@@ -122,11 +123,11 @@ D_CalcGradients
 */
 void D_CalcGradients (msurface_t *pface)
 {
-	mplane_t	*pplane;
-	float		mipscale;
+	mplane_t	*pplane = nullptr;
+	float		mipscale = NAN;
 	vec3_t		p_temp1;
 	vec3_t		p_saxis, p_taxis;
-	float		t;
+	float		t = NAN;
 
 	pplane = pface->plane;
 
@@ -171,11 +172,11 @@ void D_CalcGradients (msurface_t *pface)
 D_DrawSurfaces
 ==============
 */
-void D_DrawSurfaces (void)
+void D_DrawSurfaces ()
 {
-	surf_t			*s;
-	msurface_t		*pface;
-	surfcache_t		*pcurrentcache;
+	surf_t			*s = nullptr;
+	msurface_t		*pface = nullptr;
+	surfcache_t		*pcurrentcache = nullptr;
 	vec3_t			world_transformed_modelorg;
 	vec3_t			local_modelorg;
 
@@ -195,7 +196,7 @@ void D_DrawSurfaces (void)
 			d_zistepv = s->d_zistepv;
 			d_ziorigin = s->d_ziorigin;
 
-			D_DrawSolidSurface (s, (int)s->data & 0xFF);
+			D_DrawSolidSurface (s, *static_cast<int*>(s->data) & 0xFF);
 			D_DrawZSpans (s->spans);
 		}
 	}

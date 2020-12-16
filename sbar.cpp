@@ -19,7 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sbar.c -- status bar code
 
-#include "quakedef.h"
+#include <cmath>
+#include "quakedef.hpp"
 
 
 int			sb_updates;		// if >= vid.numpages, no update needed
@@ -61,8 +62,8 @@ int         hipweapons[4] = {HIT_LASER_CANNON_BIT,HIT_MJOLNIR_BIT,4,HIT_PROXIMIT
 //MED 01/04/97 added hipnotic items array
 qpic_t      *hsb_items[2];
 
-void Sbar_MiniDeathmatchOverlay (void);
-void Sbar_DeathmatchOverlay (void);
+void Sbar_MiniDeathmatchOverlay ();
+void Sbar_DeathmatchOverlay ();
 void M_DrawPic (int x, int y, qpic_t *pic);
 
 /*
@@ -72,7 +73,7 @@ Sbar_ShowScores
 Tab key down
 ===============
 */
-void Sbar_ShowScores (void)
+void Sbar_ShowScores ()
 {
 	if (sb_showscores)
 		return;
@@ -87,7 +88,7 @@ Sbar_DontShowScores
 Tab key up
 ===============
 */
-void Sbar_DontShowScores (void)
+void Sbar_DontShowScores ()
 {
 	sb_showscores = false;
 	sb_updates = 0;
@@ -98,7 +99,7 @@ void Sbar_DontShowScores (void)
 Sbar_Changed
 ===============
 */
-void Sbar_Changed (void)
+void Sbar_Changed ()
 {
 	sb_updates = 0;	// update next frame
 }
@@ -108,9 +109,9 @@ void Sbar_Changed (void)
 Sbar_Init
 ===============
 */
-void Sbar_Init (void)
+void Sbar_Init ()
 {
-	int		i;
+	int		i = 0;
 
 	for (i=0 ; i<10 ; i++)
 	{
@@ -311,11 +312,11 @@ void Sbar_DrawString (int x, int y, char *str)
 Sbar_itoa
 =============
 */
-int Sbar_itoa (int num, char *buf)
+auto Sbar_itoa (int num, char *buf) -> int
 {
-	char	*str;
-	int		pow10;
-	int		dig;
+	char	*str = nullptr;
+	int		pow10 = 0;
+	int		dig = 0;
 
 	str = buf;
 
@@ -350,8 +351,8 @@ Sbar_DrawNum
 void Sbar_DrawNum (int x, int y, int num, int digits, int color)
 {
 	char			str[12];
-	char			*ptr;
-	int				l, frame;
+	char			*ptr = nullptr;
+	int				l = 0, frame = 0;
 
 	l = Sbar_itoa (num, str);
 	ptr = str;
@@ -388,9 +389,9 @@ int		scoreboardlines;
 Sbar_SortFrags
 ===============
 */
-void Sbar_SortFrags (void)
+void Sbar_SortFrags ()
 {
-	int		i, j, k;
+	int		i = 0, j = 0, k = 0;
 
 // sort by frags
 	scoreboardlines = 0;
@@ -413,7 +414,7 @@ void Sbar_SortFrags (void)
 			}
 }
 
-int	Sbar_ColorForMap (int m)
+auto	Sbar_ColorForMap (int m) -> int
 {
 	return m < 128 ? m + 8 : m + 8;
 }
@@ -423,11 +424,11 @@ int	Sbar_ColorForMap (int m)
 Sbar_UpdateScoreboard
 ===============
 */
-void Sbar_UpdateScoreboard (void)
+void Sbar_UpdateScoreboard ()
 {
-	int		i, k;
-	int		top, bottom;
-	scoreboard_t	*s;
+	int		i = 0, k = 0;
+	int		top = 0, bottom = 0;
+	scoreboard_t	*s = nullptr;
 
 	Sbar_SortFrags ();
 
@@ -454,11 +455,11 @@ void Sbar_UpdateScoreboard (void)
 Sbar_SoloScoreboard
 ===============
 */
-void Sbar_SoloScoreboard (void)
+void Sbar_SoloScoreboard ()
 {
 	char	str[80];
-	int		minutes, seconds, tens, units;
-	int		l;
+	int		minutes = 0, seconds = 0, tens = 0, units = 0;
+	int		l = 0;
 
 	sprintf (str,"Monsters:%3i /%3i", cl.stats[STAT_MONSTERS], cl.stats[STAT_TOTALMONSTERS]);
 	Sbar_DrawString (8, 4, str);
@@ -484,7 +485,7 @@ void Sbar_SoloScoreboard (void)
 Sbar_DrawScoreboard
 ===============
 */
-void Sbar_DrawScoreboard (void)
+void Sbar_DrawScoreboard ()
 {
 	Sbar_SoloScoreboard ();
 	if (cl.gametype == GAME_DEATHMATCH)
@@ -543,12 +544,12 @@ void Sbar_DrawScoreboard (void)
 Sbar_DrawInventory
 ===============
 */
-void Sbar_DrawInventory (void)
+void Sbar_DrawInventory ()
 {
-	int		i;
+	int		i = 0;
 	char	num[6];
-	float	time;
-	int		flashon;
+	float	time = NAN;
+	int		flashon = 0;
 
 	if (rogue)
 	{
@@ -763,14 +764,14 @@ void Sbar_DrawInventory (void)
 Sbar_DrawFrags
 ===============
 */
-void Sbar_DrawFrags (void)
+void Sbar_DrawFrags ()
 {
-	int				i, k, l;
-	int				top, bottom;
-	int				x, y, f;
-	int				xofs;
+	int				i = 0, k = 0, l = 0;
+	int				top = 0, bottom = 0;
+	int				x = 0, y = 0, f = 0;
+	int				xofs = 0;
 	char			num[12];
-	scoreboard_t	*s;
+	scoreboard_t	*s = nullptr;
 
 	Sbar_SortFrags ();
 
@@ -825,9 +826,9 @@ void Sbar_DrawFrags (void)
 Sbar_DrawFace
 ===============
 */
-void Sbar_DrawFace (void)
+void Sbar_DrawFace ()
 {
-	int		f, anim;
+	int		f = 0, anim = 0;
 
 // PGM 01/19/97 - team color drawing
 // PGM 03/02/97 - fixed so color swatch only appears in CTF modes
@@ -836,10 +837,10 @@ void Sbar_DrawFace (void)
         (teamplay.value>3) &&
         (teamplay.value<7))
 	{
-		int				top, bottom;
-		int				xofs;
+		int				top = 0, bottom = 0;
+		int				xofs = 0;
 		char			num[12];
-		scoreboard_t	*s;
+		scoreboard_t	*s = nullptr;
 		
 		s = &cl.scores[cl.viewentity - 1];
 		// draw background
@@ -923,7 +924,7 @@ void Sbar_DrawFace (void)
 Sbar_Draw
 ===============
 */
-void Sbar_Draw (void)
+void Sbar_Draw ()
 {
 	if (scr_con_current == vid.height)
 		return;		// console is full screen
@@ -1054,8 +1055,8 @@ Sbar_IntermissionNumber
 void Sbar_IntermissionNumber (int x, int y, int num, int digits, int color)
 {
 	char			str[12];
-	char			*ptr;
-	int				l, frame;
+	char			*ptr = nullptr;
+	int				l = 0, frame = 0;
 
 	l = Sbar_itoa (num, str);
 	ptr = str;
@@ -1083,14 +1084,14 @@ Sbar_DeathmatchOverlay
 
 ==================
 */
-void Sbar_DeathmatchOverlay (void)
+void Sbar_DeathmatchOverlay ()
 {
-	qpic_t			*pic;
-	int				i, k, l;
-	int				top, bottom;
-	int				x, y, f;
+	qpic_t			*pic = nullptr;
+	int				i = 0, k = 0, l = 0;
+	int				top = 0, bottom = 0;
+	int				x = 0, y = 0, f = 0;
 	char			num[12];
-	scoreboard_t	*s;
+	scoreboard_t	*s = nullptr;
 
 	scr_copyeverything = 1;
 	scr_fullupdate = 0;
@@ -1164,15 +1165,15 @@ Sbar_DeathmatchOverlay
 
 ==================
 */
-void Sbar_MiniDeathmatchOverlay (void)
+void Sbar_MiniDeathmatchOverlay ()
 {
-	qpic_t			*pic;
-	int				i, k, l;
-	int				top, bottom;
-	int				x, y, f;
+	qpic_t			*pic = nullptr;
+	int				i = 0, k = 0, l = 0;
+	int				top = 0, bottom = 0;
+	int				x = 0, y = 0, f = 0;
 	char			num[12];
-	scoreboard_t	*s;
-	int				numlines;
+	scoreboard_t	*s = nullptr;
+	int				numlines = 0;
 
 	if (vid.width < 512 || !sb_lines)
 		return;
@@ -1266,11 +1267,11 @@ Sbar_IntermissionOverlay
 
 ==================
 */
-void Sbar_IntermissionOverlay (void)
+void Sbar_IntermissionOverlay ()
 {
-	qpic_t	*pic;
-	int		dig;
-	int		num;
+	qpic_t	*pic = nullptr;
+	int		dig = 0;
+	int		num = 0;
 
 	scr_copyeverything = 1;
 	scr_fullupdate = 0;
@@ -1312,9 +1313,9 @@ Sbar_FinaleOverlay
 
 ==================
 */
-void Sbar_FinaleOverlay (void)
+void Sbar_FinaleOverlay ()
 {
-	qpic_t	*pic;
+	qpic_t	*pic = nullptr;
 
 	scr_copyeverything = 1;
 

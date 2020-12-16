@@ -225,7 +225,7 @@ am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
 am__v_CC_0 = @echo "  CC      " $@;
 am__v_CC_1 = 
 CCLD = $(CC)
-LINK = $(CCLD) -m32 $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_CCLD = $(am__v_CCLD_$(V))
 am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
@@ -288,13 +288,13 @@ AWK = gawk
 CC = gcc
 CCAS = gcc
 CCASDEPMODE = depmode=gcc3
-CCASFLAGS = -g -O2 -m32 -DSDL
+CCASFLAGS = -g -O2 -m32
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2 -m32 -DSDL -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF
+CFLAGS = -g -O2 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF -m32
 CPPFLAGS = 
 CXX = g++
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -g -O2 -Wall -std=c++2a -m32 -DSDL -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT
+CXXFLAGS = -g -O2 -DSDL -m32 -std=c++2a -I/usr/include/SDL
 CYGPATH_W = echo
 DEFS = -DPACKAGE_NAME=\"sdlquake\" -DPACKAGE_TARNAME=\"sdlquake\" -DPACKAGE_VERSION=\"1.0.9\" -DPACKAGE_STRING=\"sdlquake\ 1.0.9\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DPACKAGE=\"sdlquake\" -DVERSION=\"1.0.9\"
 DEPDIR = .deps
@@ -309,7 +309,7 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-LDFLAGS = 
+LDFLAGS =  -m32
 LIBOBJS = 
 LIBS =  -L/usr/lib -lSDL -lpthread
 LTLIBOBJS = 
@@ -389,16 +389,16 @@ top_builddir = .
 top_srcdir = .
 sdlquake_LDADD = -lm 
 sdlquake_SOURCES = \
-	adivtab.h		\
-	anorm_dots.h		\
-	anorms.h		\
-	asm_draw.h		\
-	asm_i386.h		\
-	block16.h		\
-	block8.h		\
-	bspfile.h		\
+	adivtab.hpp		\
+	anorm_dots.hpp		\
+	anorms.hpp		\
+	asm_draw.hpp		\
+	asm_i386.hpp		\
+	block16.hpp		\
+	block8.hpp		\
+	bspfile.hpp		\
 	cd_sdl.cpp		\
-	cdaudio.h		\
+	cdaudio.hpp		\
 	chase.cpp			\
 	cl_demo.cpp		\
 	cl_input.cpp		\
@@ -406,25 +406,25 @@ sdlquake_SOURCES = \
 	cl_parse.cpp		\
 	cl_tent.cpp		\
 	clean.bat		\
-	client.h		\
+	client.hpp		\
 	cmd.cpp			\
-	cmd.h			\
+	cmd.hpp			\
 	common.cpp		\
-	common.h		\
-	conproc.h		\
+	common.hpp		\
+	conproc.hpp		\
 	console.cpp		\
-	console.h		\
+	console.hpp		\
 	crc.cpp			\
-	crc.h			\
+	crc.hpp			\
 	cvar.cpp			\
-	cvar.h			\
+	cvar.hpp			\
 	d_copy.S		\
 	d_edge.cpp		\
 	d_fill.cpp		\
-	d_iface.h		\
-	d_ifacea.h		\
+	d_iface.hpp		\
+	d_ifacea.hpp		\
 	d_init.cpp		\
-	d_local.h		\
+	d_local.hpp		\
 	d_modech.cpp		\
 	d_part.cpp		\
 	d_polyse.cpp		\
@@ -434,44 +434,44 @@ sdlquake_SOURCES = \
 	d_surf.cpp		\
 	d_zpoint.cpp		\
 	dosasm.S		\
-	dosisms.h		\
+	dosisms.hpp		\
 	draw.cpp			\
-	draw.h			\
+	draw.hpp			\
 	host.cpp			\
 	host_cmd.cpp		\
-	input.h			\
+	input.hpp			\
 	keys.cpp			\
-	keys.h			\
+	keys.hpp			\
 	mathlib.cpp		\
-	mathlib.h		\
+	mathlib.hpp		\
 	menu.cpp			\
-	menu.h			\
+	menu.hpp			\
 	model.cpp			\
-	model.h			\
-	modelgen.h		\
-	mpdosock.h		\
-	net.h			\
+	model.hpp			\
+	modelgen.hpp		\
+	mpdosock.hpp		\
+	net.hpp			\
 	net_bsd.cpp		\
-	net_bw.h		\
+	net_bw.hpp		\
 	net_dgrm.cpp		\
-	net_dgrm.h		\
+	net_dgrm.hpp		\
 	net_loop.cpp		\
-	net_loop.h		\
+	net_loop.hpp		\
 	net_main.cpp		\
 	net_udp.cpp		\
-	net_udp.h		\
+	net_udp.hpp		\
 	net_vcr.cpp		\
-	net_vcr.h		\
+	net_vcr.hpp		\
 	net_wso.cpp		\
 	pr_cmds.cpp		\
-	pr_comp.h		\
+	pr_comp.hpp		\
 	pr_edict.cpp		\
 	pr_exec.cpp		\
-	progdefs.h		\
-	progs.h			\
-	protocol.h		\
-	quakeasm.h		\
-	quakedef.h		\
+	progdefs.hpp		\
+	progs.hpp			\
+	protocol.hpp		\
+	quakeasm.hpp		\
+	quakedef.hpp		\
 	r_aclip.cpp		\
 	r_alias.cpp		\
 	r_bsp.cpp			\
@@ -479,48 +479,48 @@ sdlquake_SOURCES = \
 	r_edge.cpp		\
 	r_efrag.cpp		\
 	r_light.cpp		\
-	r_local.h		\
+	r_local.hpp		\
 	r_main.cpp		\
 	r_misc.cpp		\
 	r_part.cpp		\
-	r_shared.h		\
+	r_shared.hpp		\
 	r_sky.cpp			\
 	r_sprite.cpp		\
 	r_surf.cpp		\
 	r_vars.cpp		\
 	r_varsa.S		\
-	render.h		\
-	resource.h		\
+	render.hpp		\
+	resource.hpp		\
 	sbar.cpp			\
-	sbar.h			\
+	sbar.hpp			\
 	scitech			\
 	screen.cpp		\
-	screen.h		\
-	server.h		\
+	screen.hpp		\
+	server.hpp		\
 	snd_dma.cpp		\
 	snd_mem.cpp		\
 	snd_mix.cpp		\
 	snd_sdl.cpp		\
-	sound.h			\
-	spritegn.h		\
+	sound.hpp			\
+	spritegn.hpp		\
 	sv_main.cpp		\
 	sv_move.cpp		\
 	sv_phys.cpp		\
 	sv_user.cpp		\
-	sys.h			\
+	sys.hpp			\
 	sys_sdl.cpp		\
-	vgamodes.h		\
-	vid.h			\
+	vgamodes.hpp		\
+	vid.hpp			\
 	vid_sdl.cpp		\
 	view.cpp			\
-	view.h			\
+	view.hpp			\
 	wad.cpp			\
-	wad.h			\
-	winquake.h		\
+	wad.hpp			\
+	winquake.hpp		\
 	world.cpp			\
-	world.h			\
+	world.hpp			\
 	zone.cpp			\
-	zone.h			\
+	zone.hpp			\
 	$(X86_SRCS) $(NONX86_SRCS)
 
 X86_SRCS = \

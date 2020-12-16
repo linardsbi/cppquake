@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#ifndef BSPFILE_HPP
+#define BSPFILE_HPP
 
 // upper design bounds
 
@@ -322,3 +324,5 @@ void 	GetVectorForKey (entity_t *ent, char *key, vec3_t vec);
 epair_t *ParseEpair (void);
 
 #endif
+
+#endif // BSPFILE_HPP

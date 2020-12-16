@@ -19,7 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sv_move.c -- monster movement
 
-#include "quakedef.h"
+#include <cmath>
+#include "quakedef.hpp"
 
 #define	STEPSIZE	18
 
@@ -34,12 +35,12 @@ is not a staircase.
 */
 int c_yes, c_no;
 
-qboolean SV_CheckBottom (edict_t *ent)
+auto SV_CheckBottom (edict_t *ent) -> qboolean
 {
 	vec3_t	mins, maxs, start, stop;
 	trace_t	trace;
-	int		x, y;
-	float	mid, bottom;
+	int		x = 0, y = 0;
+	float	mid = NAN, bottom = NAN;
 	
 	VectorAdd (ent->v.origin, ent->v.mins, mins);
 	VectorAdd (ent->v.origin, ent->v.maxs, maxs);
@@ -107,13 +108,13 @@ possible, no move is done, false is returned, and
 pr_global_struct->trace_normal is set to the normal of the blocking wall
 =============
 */
-qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
+auto SV_movestep (edict_t *ent, vec3_t move, qboolean relink) -> qboolean
 {
-	float		dz;
+	float		dz = NAN;
 	vec3_t		oldorg, neworg, end;
 	trace_t		trace;
-	int			i;
-	edict_t		*enemy;
+	int			i = 0;
+	edict_t		*enemy = nullptr;
 
 // try the move	
 	VectorCopy (ent->v.origin, oldorg);
@@ -229,11 +230,11 @@ facing it.
 
 ======================
 */
-void PF_changeyaw (void);
-qboolean SV_StepDirection (edict_t *ent, float yaw, float dist)
+void PF_changeyaw ();
+auto SV_StepDirection (edict_t *ent, float yaw, float dist) -> qboolean
 {
 	vec3_t		move, oldorigin;
-	float		delta;
+	float		delta = NAN;
 	
 	ent->v.ideal_yaw = yaw;
 	PF_changeyaw();
@@ -280,12 +281,12 @@ SV_NewChaseDir
 
 ================
 */
-#define	DI_NODIR	-1
+#define	DI_NODIR	(-1)
 void SV_NewChaseDir (edict_t *actor, edict_t *enemy, float dist)
 {
-	float		deltax,deltay;
+	float		deltax = NAN,deltay = NAN;
 	float			d[3];
-	float		tdir, olddir, turnaround;
+	float		tdir = NAN, olddir = NAN, turnaround = NAN;
 
 	olddir = anglemod( (int)(actor->v.ideal_yaw/45)*45 );
 	turnaround = anglemod(olddir - 180);
@@ -370,9 +371,9 @@ SV_CloseEnough
 
 ======================
 */
-qboolean SV_CloseEnough (edict_t *ent, edict_t *goal, float dist)
+auto SV_CloseEnough (edict_t *ent, edict_t *goal, float dist) -> qboolean
 {
-	int		i;
+	int		i = 0;
 	
 	for (i=0 ; i<3 ; i++)
 	{
@@ -390,10 +391,10 @@ SV_MoveToGoal
 
 ======================
 */
-void SV_MoveToGoal (void)
+void SV_MoveToGoal ()
 {
-	edict_t		*ent, *goal;
-	float		dist;
+	edict_t		*ent = nullptr, *goal = nullptr;
+	float		dist = NAN;
 #ifdef QUAKE2
 	edict_t		*enemy;
 #endif

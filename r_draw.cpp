@@ -20,9 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // r_draw.c
 
-#include "quakedef.h"
-#include "r_local.h"
-#include "d_local.h"	// FIXME: shouldn't need to include this
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
+#include "d_local.hpp"	// FIXME: shouldn't need to include this
 
 #define MAXLEFTCLIPEDGES		100
 
@@ -56,11 +57,11 @@ int		intsintable[SIN_BUFFER_SIZE];
 mvertex_t	r_leftenter, r_leftexit;
 mvertex_t	r_rightenter, r_rightexit;
 
-typedef struct
+using evert_t = struct
 {
 	float	u,v;
 	int		ceilv;
-} evert_t;
+};
 
 int				r_emitted;
 float			r_nearzi;
@@ -79,14 +80,14 @@ R_EmitEdge
 */
 void R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1)
 {
-	edge_t	*edge, *pcheck;
-	int		u_check;
-	float	u, u_step;
+	edge_t	*edge = nullptr, *pcheck = nullptr;
+	int		u_check = 0;
+	float	u = NAN, u_step = NAN;
 	vec3_t	local, transformed;
-	float	*world;
-	int		v, v2, ceilv0;
-	float	scale, lzi0, u0, v0;
-	int		side;
+	float	*world = nullptr;
+	int		v = 0, v2 = 0, ceilv0 = 0;
+	float	scale = NAN, lzi0 = NAN, u0 = NAN, v0 = NAN;
+	int		side = 0;
 
 	if (r_lastvertvalid)
 	{
@@ -258,7 +259,7 @@ R_ClipEdge
 */
 void R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
 {
-	float		d0, d1, f;
+	float		d0 = NAN, d1 = NAN, f = NAN;
 	mvertex_t	clipvert;
 
 	if (clip)
@@ -345,7 +346,7 @@ void R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
 				R_ClipEdge (&clipvert, pv1, clip->next);
 				return;
 			}
-		} while ((clip = clip->next) != NULL);
+		} while ((clip = clip->next) != nullptr);
 	}
 
 // add the edge
@@ -360,9 +361,9 @@ void R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip)
 R_EmitCachedEdge
 ================
 */
-void R_EmitCachedEdge (void)
+void R_EmitCachedEdge ()
 {
-	edge_t		*pedge_t;
+	edge_t		*pedge_t = nullptr;
 
 	pedge_t = (edge_t *)((unsigned long)r_edges + r_pedge->cachededgeoffset);
 
@@ -385,13 +386,13 @@ R_RenderFace
 */
 void R_RenderFace (msurface_t *fa, int clipflags)
 {
-	int			i, lindex;
-	unsigned	mask;
-	mplane_t	*pplane;
-	float		distinv;
+	int			i = 0, lindex = 0;
+	unsigned	mask = 0;
+	mplane_t	*pplane = nullptr;
+	float		distinv = NAN;
 	vec3_t		p_normal;
-	medge_t		*pedges, tedge;
-	clipplane_t	*pclip;
+	medge_t		*pedges = nullptr, tedge;
+	clipplane_t	*pclip = nullptr;
 
 // skip out if no more surfs
 	if ((surface_p) >= surf_max)
@@ -410,7 +411,7 @@ void R_RenderFace (msurface_t *fa, int clipflags)
 	c_faceclip++;
 
 // set up clip planes
-	pclip = NULL;
+	pclip = nullptr;
 
 	for (i=3, mask = 0x08 ; i>=0 ; i--, mask >>= 1)
 	{
@@ -557,7 +558,7 @@ void R_RenderFace (msurface_t *fa, int clipflags)
 	surface_p->spanstate = 0;
 	surface_p->entity = currententity;
 	surface_p->key = r_currentkey++;
-	surface_p->spans = NULL;
+	surface_p->spans = nullptr;
 
 	pplane = fa->plane;
 // FIXME: cache this?
@@ -583,13 +584,13 @@ R_RenderBmodelFace
 */
 void R_RenderBmodelFace (bedge_t *pedges, msurface_t *psurf)
 {
-	int			i;
-	unsigned	mask;
-	mplane_t	*pplane;
-	float		distinv;
+	int			i = 0;
+	unsigned	mask = 0;
+	mplane_t	*pplane = nullptr;
+	float		distinv = NAN;
 	vec3_t		p_normal;
 	medge_t		tedge;
-	clipplane_t	*pclip;
+	clipplane_t	*pclip = nullptr;
 
 // skip out if no more surfs
 	if (surface_p >= surf_max)
@@ -611,7 +612,7 @@ void R_RenderBmodelFace (bedge_t *pedges, msurface_t *psurf)
 	r_pedge = &tedge;
 
 // set up clip planes
-	pclip = NULL;
+	pclip = nullptr;
 
 	for (i=3, mask = 0x08 ; i>=0 ; i--, mask >>= 1)
 	{
@@ -672,7 +673,7 @@ void R_RenderBmodelFace (bedge_t *pedges, msurface_t *psurf)
 	surface_p->spanstate = 0;
 	surface_p->entity = currententity;
 	surface_p->key = r_currentbkey;
-	surface_p->spans = NULL;
+	surface_p->spans = nullptr;
 
 	pplane = psurf->plane;
 // FIXME: cache this?
@@ -698,25 +699,20 @@ R_RenderPoly
 */
 void R_RenderPoly (msurface_t *fa, int clipflags)
 {
-	int			i, lindex, lnumverts, s_axis, t_axis;
-	float		dist, lastdist, lzi, scale, u, v, frac;
-	unsigned	mask;
+	int			i = 0, lindex = 0, lnumverts = 0, s_axis = 0, t_axis = 0;
+	float		dist = NAN, lastdist = NAN, lzi = NAN, scale = NAN, u = NAN, v = NAN, frac = NAN;
+	unsigned	mask = 0;
 	vec3_t		local, transformed;
-	clipplane_t	*pclip;
-	medge_t		*pedges;
-	mplane_t	*pplane;
+	clipplane_t	*pclip = nullptr;
+	medge_t		*pedges = nullptr;
+	mplane_t	*pplane = nullptr;
 	mvertex_t	verts[2][100];	//FIXME: do real number
 	polyvert_t	pverts[100];	//FIXME: do real number, safely
-	int			vertpage, newverts, newpage, lastvert;
-	qboolean	visible;
+	int			vertpage = 0, newverts = 0, newpage = 0, lastvert = 0;
+	qboolean	visible = false;
 
 // FIXME: clean this up and make it faster
 // FIXME: guard against running out of vertices
-
-	s_axis = t_axis = 0;	// keep compiler happy
-
-// set up clip planes
-	pclip = NULL;
 
 	for (i=3, mask = 0x08 ; i>=0 ; i--, mask >>= 1)
 	{
@@ -881,10 +877,10 @@ R_ZDrawSubmodelPolys
 */
 void R_ZDrawSubmodelPolys (model_t *pmodel)
 {
-	int			i, numsurfaces;
-	msurface_t	*psurf;
-	float		dot;
-	mplane_t	*pplane;
+	int			i = 0, numsurfaces = 0;
+	msurface_t	*psurf = nullptr;
+	float		dot = NAN;
+	mplane_t	*pplane = nullptr;
 
 	psurf = &pmodel->surfaces[pmodel->firstmodelsurface];
 	numsurfaces = pmodel->nummodelsurfaces;

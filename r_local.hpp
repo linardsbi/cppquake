@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_local.h -- private refresh defs
 
 #ifndef GLQUAKE
-#include "r_shared.h"
+#include "r_shared.hpp"
 
 #define ALIAS_BASE_SIZE_RATIO		(1.0 / 11.0)
 					// normalizing factor so player model works out to about

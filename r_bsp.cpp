@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_bsp.c
 
-#include "quakedef.h"
-#include "r_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
 
 //
 // current entity info
@@ -39,7 +40,7 @@ vec3_t			r_worldmodelorg;
 
 int				r_currentbkey;
 
-typedef enum {touchessolid, drawnode, nodrawnode} solidstate_t;
+using solidstate_t = enum {touchessolid, drawnode, nodrawnode};
 
 #define MAX_BMODEL_VERTS	500			// 6K
 #define MAX_BMODEL_EDGES	1000		// 12K
@@ -76,9 +77,9 @@ void R_EntityRotate (vec3_t vec)
 R_RotateBmodel
 ================
 */
-void R_RotateBmodel (void)
+void R_RotateBmodel ()
 {
-	float	angle, s, c, temp1[3][3], temp2[3][3], temp3[3][3];
+	float	angle = NAN, s = NAN, c = NAN, temp1[3][3], temp2[3][3], temp3[3][3];
 
 // TODO: should use a look-up table
 // TODO: should really be stored with the entity instead of being reconstructed
@@ -157,14 +158,14 @@ R_RecursiveClipBPoly
 */
 void R_RecursiveClipBPoly (bedge_t *pedges, mnode_t *pnode, msurface_t *psurf)
 {
-	bedge_t		*psideedges[2], *pnextedge, *ptedge;
-	int			i, side, lastside;
-	float		dist, frac, lastdist;
-	mplane_t	*splitplane, tplane;
-	mvertex_t	*pvert, *plastvert, *ptvert;
-	mnode_t		*pn;
+	bedge_t		*psideedges[2], *pnextedge = nullptr, *ptedge = nullptr;
+	int			i = 0, side = 0, lastside = 0;
+	float		dist = NAN, frac = NAN, lastdist = NAN;
+	mplane_t	*splitplane = nullptr, tplane;
+	mvertex_t	*pvert = nullptr, *plastvert = nullptr, *ptvert = nullptr;
+	mnode_t		*pn = nullptr;
 
-	psideedges[0] = psideedges[1] = NULL;
+	psideedges[0] = psideedges[1] = nullptr;
 
 	makeclippededge = false;
 
@@ -327,14 +328,14 @@ R_DrawSolidClippedSubmodelPolygons
 */
 void R_DrawSolidClippedSubmodelPolygons (model_t *pmodel)
 {
-	int			i, j, lindex;
-	vec_t		dot;
-	msurface_t	*psurf;
-	int			numsurfaces;
-	mplane_t	*pplane;
+	int			i = 0, j = 0, lindex = 0;
+	vec_t		dot = NAN;
+	msurface_t	*psurf = nullptr;
+	int			numsurfaces = 0;
+	mplane_t	*pplane = nullptr;
 	mvertex_t	bverts[MAX_BMODEL_VERTS];
-	bedge_t		bedges[MAX_BMODEL_EDGES], *pbedge;
-	medge_t		*pedge, *pedges;
+	bedge_t		bedges[MAX_BMODEL_EDGES], *pbedge = nullptr;
+	medge_t		*pedge = nullptr, *pedges = nullptr;
 
 // FIXME: use bounding-box-based frustum clipping info?
 
@@ -389,7 +390,7 @@ void R_DrawSolidClippedSubmodelPolygons (model_t *pmodel)
 					pbedge[j].pnext = &pbedge[j+1];
 				}
 
-				pbedge[j-1].pnext = NULL;	// mark end of edges
+				pbedge[j-1].pnext = nullptr;	// mark end of edges
 
 				R_RecursiveClipBPoly (pbedge, currententity->topnode, psurf);
 			}
@@ -409,11 +410,11 @@ R_DrawSubmodelPolygons
 */
 void R_DrawSubmodelPolygons (model_t *pmodel, int clipflags)
 {
-	int			i;
-	vec_t		dot;
-	msurface_t	*psurf;
-	int			numsurfaces;
-	mplane_t	*pplane;
+	int			i = 0;
+	vec_t		dot = NAN;
+	msurface_t	*psurf = nullptr;
+	int			numsurfaces = 0;
+	mplane_t	*pplane = nullptr;
 
 // FIXME: use bounding-box-based frustum clipping info?
 
@@ -447,12 +448,12 @@ R_RecursiveWorldNode
 */
 void R_RecursiveWorldNode (mnode_t *node, int clipflags)
 {
-	int			i, c, side, *pindex;
+	int			i = 0, c = 0, side = 0, *pindex = nullptr;
 	vec3_t		acceptpt, rejectpt;
-	mplane_t	*plane;
-	msurface_t	*surf, **mark;
-	mleaf_t		*pleaf;
-	double		d, dot;
+	mplane_t	*plane = nullptr;
+	msurface_t	*surf = nullptr, **mark = nullptr;
+	mleaf_t		*pleaf = nullptr;
+	double		d = NAN, dot = NAN;
 
 	if (node->contents == CONTENTS_SOLID)
 		return;		// solid
@@ -645,10 +646,10 @@ void R_RecursiveWorldNode (mnode_t *node, int clipflags)
 R_RenderWorld
 ================
 */
-void R_RenderWorld (void)
+void R_RenderWorld ()
 {
-	int			i;
-	model_t		*clmodel;
+	int			i = 0;
+	model_t		*clmodel = nullptr;
 	btofpoly_t	btofpolys[MAX_BTOFPOLYS];
 
 	pbtofpolys = btofpolys;

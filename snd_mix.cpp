@@ -19,10 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // snd_mix.c -- portable code to mix sounds for snd_dma.c
 
-#include "quakedef.h"
+#include "quakedef.hpp"
 
 #ifdef _WIN32
-#include "winquake.h"
+#include "winquake.hpp"
 #else
 #define DWORD	unsigned long
 #endif
@@ -33,13 +33,13 @@ int		snd_scaletable[32][256];
 int 	*snd_p, snd_linear_count, snd_vol;
 short	*snd_out;
 
-void Snd_WriteLinearBlastStereo16 (void);
+void Snd_WriteLinearBlastStereo16 ();
 
 #if	!id386
-void Snd_WriteLinearBlastStereo16 (void)
+void Snd_WriteLinearBlastStereo16 ()
 {
-	int		i;
-	int		val;
+	int		i = 0;
+	int		val = 0;
 
 	for (i=0 ; i<snd_linear_count ; i+=2)
 	{
@@ -64,9 +64,9 @@ void Snd_WriteLinearBlastStereo16 (void)
 
 void S_TransferStereo16 (int endtime)
 {
-	int		lpos;
-	int		lpaintedtime;
-	DWORD	*pbuf;
+	int		lpos = 0;
+	int		lpaintedtime = 0;
+	DWORD	*pbuf = nullptr;
 #ifdef _WIN32
 	int		reps;
 	DWORD	dwSize,dwSize2;
@@ -138,14 +138,14 @@ void S_TransferStereo16 (int endtime)
 
 void S_TransferPaintBuffer(int endtime)
 {
-	int 	out_idx;
-	int 	count;
-	int 	out_mask;
-	int 	*p;
-	int 	step;
-	int		val;
-	int		snd_vol;
-	DWORD	*pbuf;
+	int 	out_idx = 0;
+	int 	count = 0;
+	int 	out_mask = 0;
+	int 	*p = nullptr;
+	int 	step = 0;
+	int		val = 0;
+	int		snd_vol = 0;
+	DWORD	*pbuf = nullptr;
 #ifdef _WIN32
 	int		reps;
 	DWORD	dwSize,dwSize2;
@@ -199,7 +199,7 @@ void S_TransferPaintBuffer(int endtime)
 
 	if (shm->samplebits == 16)
 	{
-		short *out = (short *) pbuf;
+		auto *out = (short *) pbuf;
 		while (count--)
 		{
 			val = (*p * snd_vol) >> 8;
@@ -214,7 +214,7 @@ void S_TransferPaintBuffer(int endtime)
 	}
 	else if (shm->samplebits == 8)
 	{
-		unsigned char *out = (unsigned char *) pbuf;
+		auto *out = (unsigned char *) pbuf;
 		while (count--)
 		{
 			val = (*p * snd_vol) >> 8;
@@ -260,11 +260,11 @@ void SND_PaintChannelFrom16 (channel_t *ch, sfxcache_t *sc, int endtime);
 
 void S_PaintChannels(int endtime)
 {
-	int 	i;
-	int 	end;
-	channel_t *ch;
-	sfxcache_t	*sc;
-	int		ltime, count;
+	int 	i = 0;
+	int 	end = 0;
+	channel_t *ch = nullptr;
+	sfxcache_t	*sc = nullptr;
+	int		ltime = 0, count = 0;
 
 	while (paintedtime < endtime)
 	{
@@ -317,7 +317,7 @@ void S_PaintChannels(int endtime)
 					}
 					else				
 					{	// channel just stopped
-						ch->sfx = NULL;
+						ch->sfx = nullptr;
 						break;
 					}
 				}
@@ -343,7 +343,7 @@ void SND_InitScaletable ()
 
 void SND_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int count)
 {
-	int 	data;
+	int 	data = 0;
 
 	if (ch->leftvol > 255)
 		ch->leftvol = 255;
@@ -369,11 +369,11 @@ void SND_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int count)
 
 void SND_PaintChannelFrom16 (channel_t *ch, sfxcache_t *sc, int count)
 {
-	int data;
-	int left, right;
-	int leftvol, rightvol;
-	signed short *sfx;
-	int	i;
+	int data = 0;
+	int left = 0, right = 0;
+	int leftvol = 0, rightvol = 0;
+	signed short *sfx = nullptr;
+	int	i = 0;
 
 	leftvol = ch->leftvol;
 	rightvol = ch->rightvol;

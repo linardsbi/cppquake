@@ -19,9 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // d_surf.c: rasterization driver surface heap manager
 
-#include "quakedef.h"
-#include "d_local.h"
-#include "r_local.h"
+#include "quakedef.hpp"
+#include "d_local.hpp"
+#include "r_local.hpp"
 
 float           surfscale;
 qboolean        r_cache_thrash;         // set if surface cache is thrashing
@@ -32,9 +32,9 @@ surfcache_t                     *sc_rover, *sc_base;
 #define GUARDSIZE       4
 
 
-int     D_SurfaceCacheForRes (int width, int height)
+auto     D_SurfaceCacheForRes (int width, int height) -> int
 {
-	int             size, pix;
+	int             size = 0, pix = 0;
 
 	if (COM_CheckParm ("-surfcachesize"))
 	{
@@ -52,10 +52,10 @@ int     D_SurfaceCacheForRes (int width, int height)
 	return size;
 }
 
-void D_CheckCacheGuard (void)
+void D_CheckCacheGuard ()
 {
-	byte    *s;
-	int             i;
+	byte    *s = nullptr;
+	int             i = 0;
 
 	s = (byte *)sc_base + sc_size;
 	for (i=0 ; i<GUARDSIZE ; i++)
@@ -63,10 +63,10 @@ void D_CheckCacheGuard (void)
 			Sys_Error ("D_CheckCacheGuard: failed");
 }
 
-void D_ClearCacheGuard (void)
+void D_ClearCacheGuard ()
 {
-	byte    *s;
-	int             i;
+	byte    *s = nullptr;
+	int             i = 0;
 	
 	s = (byte *)sc_base + sc_size;
 	for (i=0 ; i<GUARDSIZE ; i++)
@@ -90,8 +90,8 @@ void D_InitCaches (void *buffer, int size)
 	sc_base = (surfcache_t *)buffer;
 	sc_rover = sc_base;
 	
-	sc_base->next = NULL;
-	sc_base->owner = NULL;
+	sc_base->next = nullptr;
+	sc_base->owner = nullptr;
 	sc_base->size = sc_size;
 	
 	D_ClearCacheGuard ();
@@ -103,9 +103,9 @@ void D_InitCaches (void *buffer, int size)
 D_FlushCaches
 ==================
 */
-void D_FlushCaches (void)
+void D_FlushCaches ()
 {
-	surfcache_t     *c;
+	surfcache_t     *c = nullptr;
 	
 	if (!sc_base)
 		return;
@@ -113,12 +113,12 @@ void D_FlushCaches (void)
 	for (c = sc_base ; c ; c = c->next)
 	{
 		if (c->owner)
-			*c->owner = NULL;
+			*c->owner = nullptr;
 	}
 	
 	sc_rover = sc_base;
-	sc_base->next = NULL;
-	sc_base->owner = NULL;
+	sc_base->next = nullptr;
+	sc_base->owner = nullptr;
 	sc_base->size = sc_size;
 }
 
@@ -127,10 +127,10 @@ void D_FlushCaches (void)
 D_SCAlloc
 =================
 */
-surfcache_t     *D_SCAlloc (int width, int size)
+auto D_SCAlloc (int width, long size) -> surfcache_t     *
 {
-	surfcache_t             *newCache;
-	qboolean                wrapped_this_time;
+	surfcache_t             *newCache = nullptr;
+	qboolean                wrapped_this_time = false;
 
 	if ((width < 0) || (width > 256))
 		Sys_Error ("D_SCAlloc: bad cache width %d\n", width);
@@ -138,8 +138,9 @@ surfcache_t     *D_SCAlloc (int width, int size)
 	if ((size <= 0) || (size > 0x10000))
 		Sys_Error ("D_SCAlloc: bad cache size %d\n", size);
 	
-	size = (int)&((surfcache_t *)0)->data[size];
+	size = reinterpret_cast<long>(&((surfcache_t *) nullptr)->data[size]);
 	size = (size + 3) & ~3;
+
 	if (size > sc_size)
 		Sys_Error ("D_SCAlloc: %i > cache size",size);
 
@@ -158,7 +159,7 @@ surfcache_t     *D_SCAlloc (int width, int size)
 // colect and free surfcache_t blocks until the rover block is large enough
 	newCache = sc_rover;
 	if (sc_rover->owner)
-		*sc_rover->owner = NULL;
+		*sc_rover->owner = nullptr;
 	
 	while (newCache->size < size)
 	{
@@ -167,7 +168,7 @@ surfcache_t     *D_SCAlloc (int width, int size)
 		if (!sc_rover)
 			Sys_Error ("D_SCAlloc: hit the end of memory");
 		if (sc_rover->owner)
-			*sc_rover->owner = NULL;
+			*sc_rover->owner = nullptr;
 			
 		newCache->size += sc_rover->size;
 		newCache->next = sc_rover->next;
@@ -180,7 +181,7 @@ surfcache_t     *D_SCAlloc (int width, int size)
 		sc_rover->size = newCache->size - size;
 		sc_rover->next = newCache->next;
 		sc_rover->width = 0;
-		sc_rover->owner = NULL;
+		sc_rover->owner = nullptr;
 		newCache->next = sc_rover;
 		newCache->size = size;
 	}
@@ -192,7 +193,7 @@ surfcache_t     *D_SCAlloc (int width, int size)
 	if (width > 0)
 		newCache->height = (size - sizeof(*newCache) + sizeof(newCache->data)) / width;
 
-	newCache->owner = NULL;              // should be set properly after return
+	newCache->owner = nullptr;              // should be set properly after return
 
 	if (d_roverwrapped)
 	{
@@ -214,9 +215,9 @@ D_CheckCacheGuard ();   // DEBUG
 D_SCDump
 =================
 */
-void D_SCDump (void)
+void D_SCDump ()
 {
-	surfcache_t             *test;
+	surfcache_t             *test = nullptr;
 
 	for (test = sc_base ; test ; test = test->next)
 	{
@@ -230,7 +231,7 @@ void D_SCDump (void)
 
 // if the num is not a power of 2, assume it will not repeat
 
-int     MaskForNum (int num)
+auto     MaskForNum (int num) -> int
 {
 	if (num==128)
 		return 127;
@@ -243,9 +244,9 @@ int     MaskForNum (int num)
 	return 255;
 }
 
-int D_log2 (int num)
+auto D_log2 (int num) -> int
 {
-	int     c;
+	int     c = 0;
 	
 	c = 0;
 	
@@ -261,9 +262,9 @@ int D_log2 (int num)
 D_CacheSurface
 ================
 */
-surfcache_t *D_CacheSurface (msurface_t *surface, int miplevel)
+auto D_CacheSurface (msurface_t *surface, int miplevel) -> surfcache_t *
 {
-	surfcache_t     *cache;
+	surfcache_t     *cache = nullptr;
 
 //
 // if the surface is animating or flashing, flush the cache

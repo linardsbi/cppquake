@@ -1,7 +1,7 @@
-d_scana.o: d_scana.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h \
- asm_draw.h d_ifacea.h
+d_scana.o: d_scana.S /usr/include/stdc-predef.h asm_i386.hpp quakeasm.hpp \
+ asm_draw.hpp d_ifacea.hpp
 /usr/include/stdc-predef.h:
-asm_i386.h:
-quakeasm.h:
-asm_draw.h:
-d_ifacea.h:
+asm_i386.hpp:
+quakeasm.hpp:
+asm_draw.hpp:
+d_ifacea.hpp:

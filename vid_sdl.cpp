@@ -1,9 +1,9 @@
 // vid_sdl.h -- sdl video driver 
 
 #include "SDL.h"
-#include "quakedef.h"
-#include "d_local.h"
-#include "util.hpp"
+#include "quakedef.hpp"
+#include "d_local.hpp"
+
 
 viddef_t    vid;                // global video state
 unsigned short  d_8to16table[256];
@@ -30,7 +30,7 @@ void (*vid_menukeyfn)(int key) = nullptr;
 
 void    VID_SetPalette (unsigned char *palette)
 {
-    int i;
+    int i = 0;
     SDL_Color colors[256];
 
     for ( i=0; i<256; ++i )
@@ -49,12 +49,12 @@ void    VID_ShiftPalette (unsigned char *palette)
 
 void    VID_Init (unsigned char *palette)
 {
-    int pnum, chunk;
-    byte *cache;
-    int cachesize;
-    Uint8 video_bpp;
-    Uint16 video_w, video_h;
-    Uint32 flags;
+    int pnum = 0, chunk = 0;
+    byte *cache = nullptr;
+    int cachesize = 0;
+    Uint8 video_bpp = 0;
+    Uint16 video_w = 0, video_h = 0;
+    Uint32 flags = 0;
 
     // Load the SDL library
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_CDROM) < 0)
@@ -122,9 +122,9 @@ void    VID_Shutdown ()
 
 void    VID_Update (vrect_t *rects)
 {
-    SDL_Rect *sdlrects;
-    int n, i;
-    vrect_t *rect;
+    SDL_Rect *sdlrects = nullptr;
+    int n = 0, i = 0;
+    vrect_t *rect = nullptr;
 
     // Two-pass system, since Quake doesn't do it the SDL way...
 
@@ -155,7 +155,7 @@ D_BeginDirectRect
 */
 void D_BeginDirectRect (int x, int y, byte *pbitmap, int width, int height)
 {
-    Uint8 *offset;
+    Uint8 *offset = nullptr;
 
 
     if (!screen) return;
@@ -192,8 +192,8 @@ Sys_SendKeyEvents
 void Sys_SendKeyEvents()
 {
     SDL_Event event;
-    int sym, state;
-     int modstate;
+    int sym = 0, state = 0;
+     int modstate = 0;
 
     while (SDL_PollEvent(&event))
     {
@@ -331,8 +331,8 @@ void IN_Shutdown ()
 
 void IN_Commands ()
 {
-    int i;
-    int mouse_buttonstate;
+    int i = 0;
+    int mouse_buttonstate = 0;
    
     if (!mouse_avail) return;
    
@@ -384,7 +384,7 @@ void IN_Move (usercmd_t *cmd)
 Sys_ConsoleInput
 ================
 */
-char *Sys_ConsoleInput ()
+auto Sys_ConsoleInput () -> char *
 {
-    return 0;
+    return nullptr;
 }

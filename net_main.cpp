@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // net_main.c
 
-#include "quakedef.h"
-#include "net_vcr.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "net_vcr.hpp"
 
-qsocket_t	*net_activeSockets = NULL;
-qsocket_t	*net_freeSockets = NULL;
+qsocket_t	*net_activeSockets = nullptr;
+qsocket_t	*net_freeSockets = nullptr;
 int			net_numsockets = 0;
 
 qboolean	serialAvailable = false;
@@ -51,8 +52,8 @@ static int		slistLastShown;
 
 static void Slist_Send(void*);
 static void Slist_Poll(void*);
-PollProcedure	slistSendProcedure = {NULL, 0.0, Slist_Send};
-PollProcedure	slistPollProcedure = {NULL, 0.0, Slist_Poll};
+PollProcedure	slistSendProcedure = {nullptr, 0.0, Slist_Send};
+PollProcedure	slistPollProcedure = {nullptr, 0.0, Slist_Poll};
 
 
 sizebuf_t		net_message;
@@ -92,7 +93,7 @@ int	net_driverlevel;
 
 double			net_time;
 
-double SetNetTime(void)
+auto SetNetTime() -> double
 {
 	net_time = Sys_FloatTime();
 	return net_time;
@@ -107,15 +108,15 @@ Called by drivers when a new communications endpoint is required
 The sequence and buffer fields will be filled in properly
 ===================
 */
-qsocket_t *NET_NewQSocket (void)
+auto NET_NewQSocket () -> qsocket_t *
 {
-	qsocket_t	*sock;
+	qsocket_t	*sock = nullptr;
 
-	if (net_freeSockets == NULL)
-		return NULL;
+	if (net_freeSockets == nullptr)
+		return nullptr;
 
 	if (net_activeconnections >= svs.maxclients)
-		return NULL;
+		return nullptr;
 
 	// get one from free list
 	sock = net_freeSockets;
@@ -130,7 +131,7 @@ qsocket_t *NET_NewQSocket (void)
 	Q_strcpy (sock->address,"UNSET ADDRESS");
 	sock->driver = net_driverlevel;
 	sock->socket = 0;
-	sock->driverdata = NULL;
+	sock->driverdata = nullptr;
 	sock->canSend = true;
 	sock->sendNext = false;
 	sock->lastMessageTime = net_time;
@@ -148,7 +149,7 @@ qsocket_t *NET_NewQSocket (void)
 
 void NET_FreeQSocket(qsocket_t *sock)
 {
-	qsocket_t	*s;
+	qsocket_t	*s = nullptr;
 
 	// remove it from active list
 	if (sock == net_activeSockets)
@@ -172,7 +173,7 @@ void NET_FreeQSocket(qsocket_t *sock)
 }
 
 
-static void NET_Listen_f (void)
+static void NET_Listen_f ()
 {
 	if (Cmd_Argc () != 2)
 	{
@@ -191,9 +192,9 @@ static void NET_Listen_f (void)
 }
 
 
-static void MaxPlayers_f (void)
+static void MaxPlayers_f ()
 {
-	int 	n;
+	int 	n = 0;
 
 	if (Cmd_Argc () != 2)
 	{
@@ -230,9 +231,9 @@ static void MaxPlayers_f (void)
 }
 
 
-static void NET_Port_f (void)
+static void NET_Port_f ()
 {
-	int 	n;
+	int 	n = 0;
 
 	if (Cmd_Argc () != 2)
 	{
@@ -259,7 +260,7 @@ static void NET_Port_f (void)
 }
 
 
-static void PrintSlistHeader(void)
+static void PrintSlistHeader()
 {
 	Con_Printf("Server          Map             Users\n");
 	Con_Printf("--------------- --------------- -----\n");
@@ -267,9 +268,9 @@ static void PrintSlistHeader(void)
 }
 
 
-static void PrintSlist(void)
+static void PrintSlist()
 {
-	int n;
+	int n = 0;
 
 	for (n = slistLastShown; n < hostCacheCount; n++)
 	{
@@ -282,7 +283,7 @@ static void PrintSlist(void)
 }
 
 
-static void PrintSlistTrailer(void)
+static void PrintSlistTrailer()
 {
 	if (hostCacheCount)
 		Con_Printf("== end list ==\n\n");
@@ -291,7 +292,7 @@ static void PrintSlistTrailer(void)
 }
 
 
-void NET_Slist_f (void)
+void NET_Slist_f ()
 {
 	if (slistInProgress)
 		return;
@@ -365,16 +366,16 @@ NET_Connect
 int hostCacheCount = 0;
 hostcache_t hostcache[HOSTCACHESIZE];
 
-qsocket_t *NET_Connect (char *host)
+auto NET_Connect (char *host) -> qsocket_t *
 {
-	qsocket_t		*ret;
-	int				n;
+	qsocket_t		*ret = nullptr;
+	int				n = 0;
 	int				numdrivers = net_numdrivers;
 
 	SetNetTime();
 
 	if (host && *host == 0)
-		host = NULL;
+		host = nullptr;
 
 	if (host)
 	{
@@ -403,10 +404,10 @@ qsocket_t *NET_Connect (char *host)
 	while(slistInProgress)
 		NET_Poll();
 
-	if (host == NULL)
+	if (host == nullptr)
 	{
 		if (hostCacheCount != 1)
-			return NULL;
+			return nullptr;
 		host = hostcache[0].cname;
 		Con_Printf("Connecting to...\n%s @ %s\n\n", hostcache[0].name, host);
 	}
@@ -437,7 +438,7 @@ JustDoIt:
 		PrintSlistTrailer();
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 
@@ -454,9 +455,9 @@ struct
 	long	session;
 } vcrConnect;
 
-qsocket_t *NET_CheckNewConnections (void)
+auto NET_CheckNewConnections () -> qsocket_t *
 {
-	qsocket_t	*ret;
+	qsocket_t	*ret = nullptr;
 
 	SetNetTime();
 
@@ -489,7 +490,7 @@ qsocket_t *NET_CheckNewConnections (void)
 		Sys_FileWrite (vcrFile, &vcrConnect, sizeof(vcrConnect));
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -537,9 +538,9 @@ struct
 
 extern void PrintStats(qsocket_t *s);
 
-int	NET_GetMessage (qsocket_t *sock)
+auto	NET_GetMessage (qsocket_t *sock) -> int
 {
-	int ret;
+	int ret = 0;
 
 	if (!sock)
 		return -1;
@@ -622,9 +623,9 @@ struct
 	int		r;
 } vcrSendMessage;
 
-int NET_SendMessage (qsocket_t *sock, sizebuf_t *data)
+auto NET_SendMessage (qsocket_t *sock, sizebuf_t *data) -> int
 {
-	int		r;
+	int		r = 0;
 	
 	if (!sock)
 		return -1;
@@ -653,9 +654,9 @@ int NET_SendMessage (qsocket_t *sock, sizebuf_t *data)
 }
 
 
-int NET_SendUnreliableMessage (qsocket_t *sock, sizebuf_t *data)
+auto NET_SendUnreliableMessage (qsocket_t *sock, sizebuf_t *data) -> int
 {
-	int		r;
+	int		r = 0;
 	
 	if (!sock)
 		return -1;
@@ -692,9 +693,9 @@ Returns true or false if the given qsocket can currently accept a
 message to be transmitted.
 ==================
 */
-qboolean NET_CanSendMessage (qsocket_t *sock)
+auto NET_CanSendMessage (qsocket_t *sock) -> qboolean
 {
-	int		r;
+	int		r = 0;
 	
 	if (!sock)
 		return false;
@@ -719,10 +720,10 @@ qboolean NET_CanSendMessage (qsocket_t *sock)
 }
 
 
-int NET_SendToAll(sizebuf_t *data, int blocktime)
+auto NET_SendToAll(sizebuf_t *data, int blocktime) -> int
 {
-	double		start;
-	int			i;
+	double		start = NAN;
+	int			i = 0;
 	int			count = 0;
 	qboolean	state1 [MAX_SCOREBOARD];
 	qboolean	state2 [MAX_SCOREBOARD];
@@ -801,11 +802,11 @@ NET_Init
 ====================
 */
 
-void NET_Init (void)
+void NET_Init ()
 {
-	int			i;
-	int			controlSocket;
-	qsocket_t	*s;
+	int			i = 0;
+	int			controlSocket = 0;
+	qsocket_t	*s = nullptr;
 
 	if (COM_CheckParm("-playback"))
 	{
@@ -893,9 +894,9 @@ NET_Shutdown
 ====================
 */
 
-void		NET_Shutdown (void)
+void		NET_Shutdown ()
 {
-	qsocket_t	*sock;
+	qsocket_t	*sock = nullptr;
 
 	SetNetTime();
 
@@ -922,12 +923,12 @@ void		NET_Shutdown (void)
 }
 
 
-static PollProcedure *pollProcedureList = NULL;
+static PollProcedure *pollProcedureList = nullptr;
 
-void NET_Poll(void)
+void NET_Poll()
 {
-	PollProcedure *pp;
-	qboolean	useModem;
+	PollProcedure *pp = nullptr;
+	qboolean	useModem = 0;
 
 	if (!configRestored)
 	{
@@ -957,17 +958,17 @@ void NET_Poll(void)
 
 void SchedulePollProcedure(PollProcedure *proc, double timeOffset)
 {
-	PollProcedure *pp, *prev;
+	PollProcedure *pp = nullptr, *prev = nullptr;
 
 	proc->nextTime = Sys_FloatTime() + timeOffset;
-	for (pp = pollProcedureList, prev = NULL; pp; pp = pp->next)
+	for (pp = pollProcedureList, prev = nullptr; pp; pp = pp->next)
 	{
 		if (pp->nextTime >= proc->nextTime)
 			break;
 		prev = pp;
 	}
 
-	if (prev == NULL)
+	if (prev == nullptr)
 	{
 		proc->next = pollProcedureList;
 		pollProcedureList = proc;

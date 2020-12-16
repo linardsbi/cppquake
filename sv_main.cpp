@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sv_main.c -- server main program
 
-#include "quakedef.h"
-#include "util.hpp"
+#include <cmath>
+#include "quakedef.hpp"
+
 
 server_t		sv;
 server_static_t	svs;
@@ -34,9 +35,9 @@ char	localmodels[MAX_MODELS][5];			// inline model names for precache
 SV_Init
 ===============
 */
-void SV_Init (void)
+void SV_Init ()
 {
-	int		i;
+	int		i = 0;
 	extern	cvar_t	sv_maxvelocity;
 	extern	cvar_t	sv_gravity;
 	extern	cvar_t	sv_nostep;
@@ -80,7 +81,7 @@ Make sure the event gets sent to all clients
 */
 void SV_StartParticle (vec3_t org, vec3_t dir, int color, int count)
 {
-	int		i, v;
+	int		i = 0, v = 0;
 
 	if (sv.datagram.cursize > MAX_DATAGRAM-16)
 		return;	
@@ -119,10 +120,10 @@ Larger attenuations will drop off.  (max 4 attenuation)
 void SV_StartSound (edict_t *entity, int channel, char *sample, int volume,
     float attenuation)
 {       
-    int         sound_num;
-    int field_mask;
-    int			i;
-	int			ent;
+    int         sound_num = 0;
+    int field_mask = 0;
+    int			i = 0;
+	int			ent = 0;
 	
 	if (volume < 0 || volume > 255)
 		Sys_Error ("SV_StartSound: volume = %i", volume);
@@ -189,7 +190,7 @@ This will be sent on the initial connection and upon each server load.
 */
 void SV_SendServerinfo (client_t *client)
 {
-	char			**s;
+	char			**s = nullptr;
 	char			message[2048];
 
 	MSG_WriteByte (&client->message, svc_print);
@@ -205,7 +206,7 @@ void SV_SendServerinfo (client_t *client)
 	else
 		MSG_WriteByte (&client->message, GAME_COOP);
 
-	sprintf (message, pr_strings+sv.edicts->v.message);
+	sprintf (message, "%s", pr_strings+sv.edicts->v.message);
 
 	MSG_WriteString (&client->message,message);
 
@@ -243,11 +244,11 @@ once for a player each game, not once for each level change.
 */
 void SV_ConnectClient (int clientnum)
 {
-	edict_t			*ent;
-	client_t		*client;
-	int				edictnum;
-	struct qsocket_s *netconnection;
-	int				i;
+	edict_t			*ent = nullptr;
+	client_t		*client = nullptr;
+	int				edictnum = 0;
+	struct qsocket_s *netconnection = nullptr;
+	int				i = 0;
 	float			spawn_parms[NUM_SPAWN_PARMS];
 
 	client = svs.clients + clientnum;
@@ -300,15 +301,15 @@ SV_CheckForNewClients
 
 ===================
 */
-void SV_CheckForNewClients (void)
+void SV_CheckForNewClients ()
 {
-	struct qsocket_s	*ret;
-	int				i;
+	struct qsocket_s	*ret = nullptr;
+	int				i = 0;
 		
 //
 // check for new connections
 //
-	while (1)
+	while (true)
 	{
 		ret = NET_CheckNewConnections ();
 		if (!ret)
@@ -346,7 +347,7 @@ SV_ClearDatagram
 
 ==================
 */
-void SV_ClearDatagram (void)
+void SV_ClearDatagram ()
 {
 	SZ_Clear (&sv.datagram);
 }
@@ -367,12 +368,12 @@ byte	fatpvs[MAX_MAP_LEAFS/8];
 
 void SV_AddToFatPVS (vec3_t org, mnode_t *node)
 {
-	int		i;
-	byte	*pvs;
-	mplane_t	*plane;
-	float	d;
+	int		i = 0;
+	byte	*pvs = nullptr;
+	mplane_t	*plane = nullptr;
+	float	d = NAN;
 
-	while (1)
+	while (true)
 	{
 	// if this is a leaf, accumulate the pvs bits
 		if (node->contents < 0)
@@ -408,7 +409,7 @@ Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 given point.
 =============
 */
-byte *SV_FatPVS (vec3_t org)
+auto SV_FatPVS (vec3_t org) -> byte *
 {
 	fatbytes = (sv.worldmodel->numleafs+31)>>3;
 	Q_memset (fatpvs, 0, fatbytes);
@@ -427,12 +428,12 @@ SV_WriteEntitiesToClient
 */
 void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 {
-	int		e, i;
-	int		bits;
-	byte	*pvs;
+	int		e = 0, i = 0;
+	int		bits = 0;
+	byte	*pvs = nullptr;
 	vec3_t	org;
-	float	miss;
-	edict_t	*ent;
+	float	miss = NAN;
+	edict_t	*ent = nullptr;
 
 // find the client's PVS
 	VectorAdd (clent->v.origin, clent->v.view_ofs, org);
@@ -555,10 +556,10 @@ SV_CleanupEnts
 
 =============
 */
-void SV_CleanupEnts (void)
+void SV_CleanupEnts ()
 {
-	int		e;
-	edict_t	*ent;
+	int		e = 0;
+	edict_t	*ent = nullptr;
 	
 	ent = NEXT_EDICT(sv.edicts);
 	for (e=1 ; e<sv.num_edicts ; e++, ent = NEXT_EDICT(ent))
@@ -576,12 +577,12 @@ SV_WriteClientdataToMessage
 */
 void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 {
-	int		bits;
-	int		i;
-	edict_t	*other;
-	int		items;
+	int		bits = 0;
+	int		i = 0;
+	edict_t	*other = nullptr;
+	int		items = 0;
 #ifndef QUAKE2
-	eval_t	*val;
+	eval_t	*val = nullptr;
 #endif
 
 //
@@ -718,7 +719,7 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 SV_SendClientDatagram
 =======================
 */
-qboolean SV_SendClientDatagram (client_t *client)
+auto SV_SendClientDatagram (client_t *client) -> qboolean
 {
 	byte		buf[MAX_DATAGRAM];
 	sizebuf_t	msg;
@@ -754,10 +755,10 @@ qboolean SV_SendClientDatagram (client_t *client)
 SV_UpdateToReliableMessages
 =======================
 */
-void SV_UpdateToReliableMessages (void)
+void SV_UpdateToReliableMessages ()
 {
-	int			i, j;
-	client_t *client;
+	int			i = 0, j = 0;
+	client_t *client = nullptr;
 
 // check for changes to be sent over the reliable streams
 	for (i=0, host_client = svs.clients ; i<svs.maxclients ; i++, host_client++)
@@ -817,9 +818,9 @@ void SV_SendNop (client_t *client)
 SV_SendClientMessages
 =======================
 */
-void SV_SendClientMessages (void)
+void SV_SendClientMessages ()
 {
-	int			i;
+	int			i = 0;
 	
 // update frags, names, etc
 	SV_UpdateToReliableMessages ();
@@ -902,9 +903,9 @@ SV_ModelIndex
 
 ================
 */
-int SV_ModelIndex (char *name)
+auto SV_ModelIndex (char *name) -> int
 {
-	int		i;
+	int		i = 0;
 	
 	if (!name || !name[0])
 		return 0;
@@ -923,11 +924,11 @@ SV_CreateBaseline
 
 ================
 */
-void SV_CreateBaseline (void)
+void SV_CreateBaseline ()
 {
-	int			i;
-	edict_t			*svent;
-	int				entnum;	
+	int			i = 0;
+	edict_t			*svent = nullptr;
+	int				entnum = 0;	
 		
 	for (entnum = 0; entnum < sv.num_edicts ; entnum++)
 	{
@@ -983,7 +984,7 @@ SV_SendReconnect
 Tell all the clients that the server is changing levels
 ================
 */
-void SV_SendReconnect (void)
+void SV_SendReconnect ()
 {
 	unsigned char	data[128];
 	sizebuf_t	msg;
@@ -1013,9 +1014,9 @@ Grabs the current state of each client for saving across the
 transition to another level
 ================
 */
-void SV_SaveSpawnparms (void)
+void SV_SaveSpawnparms ()
 {
-	int		i, j;
+	int		i = 0, j = 0;
 
 	svs.serverflags = pr_global_struct->serverflags;
 
@@ -1048,8 +1049,8 @@ void SV_SpawnServer (char *server, char *startspot)
 void SV_SpawnServer (char *server)
 #endif
 {
-	edict_t		*ent;
-	int			i;
+	edict_t		*ent = nullptr;
+	int			i = 0;
 
 	// let's not have any servers with no name
 	if (hostname.string[0] == 0)

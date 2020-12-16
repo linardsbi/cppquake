@@ -18,8 +18,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include "quakedef.h"
-#include "r_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
 
 #define MAX_PARTICLES			2048	// default max # of particles at one
 										//  time
@@ -43,9 +44,9 @@ vec3_t			r_pright, r_pup, r_ppn;
 R_InitParticles
 ===============
 */
-void R_InitParticles (void)
+void R_InitParticles ()
 {
-	int		i;
+	int		i = 0;
 
 	i = COM_CheckParm ("-particles");
 
@@ -123,13 +124,13 @@ float	timescale = 0.01;
 
 void R_EntityParticles (entity_t *ent)
 {
-	int			count;
-	int			i;
-	particle_t	*p;
-	float		angle;
-	float		sr, sp, sy, cr, cp, cy;
+	int			count = 0;
+	int			i = 0;
+	particle_t	*p = nullptr;
+	float		angle = NAN;
+	float		sr = NAN, sp = NAN, sy = NAN, cr = NAN, cp = NAN, cy = NAN;
 	vec3_t		forward;
-	float		dist;
+	float		dist = NAN;
 	
 	dist = 64;
 	count = 50;
@@ -180,26 +181,26 @@ avelocities[0][i] = (rand()&255) * 0.01;
 R_ClearParticles
 ===============
 */
-void R_ClearParticles (void)
+void R_ClearParticles ()
 {
-	int		i;
+	int		i = 0;
 	
 	free_particles = &particles[0];
-	active_particles = NULL;
+	active_particles = nullptr;
 
 	for (i=0 ;i<r_numparticles ; i++)
 		particles[i].next = &particles[i+1];
-	particles[r_numparticles-1].next = NULL;
+	particles[r_numparticles-1].next = nullptr;
 }
 
 
-void R_ReadPointFile_f (void)
+void R_ReadPointFile_f ()
 {
-	FILE	*f;
+	FILE	*f = nullptr;
 	vec3_t	org;
-	int		r;
-	int		c;
-	particle_t	*p;
+	int		r = 0;
+	int		c = 0;
+	particle_t	*p = nullptr;
 	char	name[MAX_OSPATH];
 	
 	sprintf (name,"maps/%s.pts", sv.name);
@@ -248,10 +249,10 @@ R_ParseParticleEffect
 Parse an effect out of the server message
 ===============
 */
-void R_ParseParticleEffect (void)
+void R_ParseParticleEffect ()
 {
 	vec3_t		org, dir;
-	int			i, count, msgcount, color;
+	int			i = 0, count = 0, msgcount = 0, color = 0;
 	
 	for (i=0 ; i<3 ; i++)
 		org[i] = MSG_ReadCoord ();
@@ -276,8 +277,8 @@ R_ParticleExplosion
 */
 void R_ParticleExplosion (vec3_t org)
 {
-	int			i, j;
-	particle_t	*p;
+	int			i = 0, j = 0;
+	particle_t	*p = nullptr;
 	
 	for (i=0 ; i<1024 ; i++)
 	{
@@ -320,8 +321,8 @@ R_ParticleExplosion2
 */
 void R_ParticleExplosion2 (vec3_t org, int colorStart, int colorLength)
 {
-	int			i, j;
-	particle_t	*p;
+	int			i = 0, j = 0;
+	particle_t	*p = nullptr;
 	int			colorMod = 0;
 
 	for (i=0; i<512; i++)
@@ -354,8 +355,8 @@ R_BlobExplosion
 */
 void R_BlobExplosion (vec3_t org)
 {
-	int			i, j;
-	particle_t	*p;
+	int			i = 0, j = 0;
+	particle_t	*p = nullptr;
 	
 	for (i=0 ; i<1024 ; i++)
 	{
@@ -399,8 +400,8 @@ R_RunParticleEffect
 */
 void R_RunParticleEffect (vec3_t org, vec3_t dir, int color, int count)
 {
-	int			i, j;
-	particle_t	*p;
+	int			i = 0, j = 0;
+	particle_t	*p = nullptr;
 	
 	for (i=0 ; i<count ; i++)
 	{
@@ -458,9 +459,9 @@ R_LavaSplash
 */
 void R_LavaSplash (vec3_t org)
 {
-	int			i, j, k;
-	particle_t	*p;
-	float		vel;
+	int			i = 0, j = 0, k = 0;
+	particle_t	*p = nullptr;
+	float		vel = NAN;
 	vec3_t		dir;
 
 	for (i=-16 ; i<16 ; i++)
@@ -500,9 +501,9 @@ R_TeleportSplash
 */
 void R_TeleportSplash (vec3_t org)
 {
-	int			i, j, k;
-	particle_t	*p;
-	float		vel;
+	int			i = 0, j = 0, k = 0;
+	particle_t	*p = nullptr;
+	float		vel = NAN;
 	vec3_t		dir;
 
 	for (i=-16 ; i<16 ; i+=4)
@@ -537,10 +538,10 @@ void R_TeleportSplash (vec3_t org)
 void R_RocketTrail (vec3_t start, vec3_t end, int type)
 {
 	vec3_t		vec;
-	float		len;
-	int			j;
-	particle_t	*p;
-	int			dec;
+	float		len = NAN;
+	int			j = 0;
+	particle_t	*p = nullptr;
+	int			dec = 0;
 	static int	tracercount;
 
 	VectorSubtract (end, start, vec);
@@ -646,15 +647,15 @@ R_DrawParticles
 */
 extern	cvar_t	sv_gravity;
 
-void R_DrawParticles (void)
+void R_DrawParticles ()
 {
-	particle_t		*p, *kill;
-	float			grav;
-	int				i;
-	float			time2, time3;
-	float			time1;
-	float			dvel;
-	float			frametime;
+	particle_t		*p = nullptr, *kill = nullptr;
+	float			grav = NAN;
+	int				i = 0;
+	float			time2 = NAN, time3 = NAN;
+	float			time1 = NAN;
+	float			dvel = NAN;
+	float			frametime = NAN;
 	
 #ifdef GLQUAKE
 	vec3_t			up, right;

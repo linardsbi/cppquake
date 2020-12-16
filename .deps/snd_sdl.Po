@@ -1,8 +1,13 @@
-snd_sdl.o: snd_sdl.cpp /usr/include/stdc-predef.h /usr/include/stdio.h \
- /usr/include/bits/libc-header-start.h /usr/include/features.h \
- /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
- /usr/include/bits/long-double.h /usr/include/gnu/stubs.h \
- /usr/include/gnu/stubs-32.h \
+snd_sdl.o: snd_sdl.cpp /usr/include/stdc-predef.h \
+ /usr/include/c++/10.2.0/cstdio \
+ /usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/c++config.h \
+ /usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/os_defines.h \
+ /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/bits/long-double.h \
+ /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h \
+ /usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/cpu_defines.h \
+ /usr/include/c++/10.2.0/pstl/pstl_config.h /usr/include/stdio.h \
+ /usr/include/bits/libc-header-start.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include/stddef.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include/stdarg.h \
  /usr/include/bits/types.h /usr/include/bits/timesize.h \
@@ -28,11 +33,7 @@ snd_sdl.o: snd_sdl.cpp /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/bits/pthreadtypes.h /usr/include/bits/thread-shared-types.h \
  /usr/include/bits/pthreadtypes-arch.h /usr/include/bits/struct_mutex.h \
  /usr/include/bits/struct_rwlock.h /usr/include/c++/10.2.0/stdlib.h \
- /usr/include/c++/10.2.0/cstdlib \
- /usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/c++config.h \
- /usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/os_defines.h \
- /usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/cpu_defines.h \
- /usr/include/c++/10.2.0/pstl/pstl_config.h /usr/include/stdlib.h \
+ /usr/include/c++/10.2.0/cstdlib /usr/include/stdlib.h \
  /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
  /usr/include/bits/types/locale_t.h /usr/include/bits/types/__locale_t.h \
  /usr/include/alloca.h /usr/include/bits/stdlib-bsearch.h \
@@ -45,7 +46,7 @@ snd_sdl.o: snd_sdl.cpp /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/SDL/close_code.h /usr/include/SDL/SDL_error.h \
  /usr/include/SDL/SDL_endian.h /usr/include/SDL/SDL_mutex.h \
  /usr/include/SDL/SDL_thread.h /usr/include/SDL/SDL_rwops.h \
- /usr/include/SDL/SDL_byteorder.h quakedef.h \
+ /usr/include/SDL/SDL_byteorder.h quakedef.hpp \
  /usr/include/c++/10.2.0/math.h /usr/include/c++/10.2.0/cmath \
  /usr/include/c++/10.2.0/bits/cpp_type_traits.h \
  /usr/include/c++/10.2.0/ext/type_traits.h /usr/include/math.h \
@@ -91,8 +92,9 @@ snd_sdl.o: snd_sdl.cpp /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/c++/10.2.0/tr1/poly_hermite.tcc \
  /usr/include/c++/10.2.0/tr1/poly_laguerre.tcc \
  /usr/include/c++/10.2.0/tr1/riemann_zeta.tcc /usr/include/setjmp.h \
- /usr/include/bits/setjmp.h common.h /usr/include/c++/10.2.0/string_view \
- /usr/include/c++/10.2.0/iosfwd /usr/include/c++/10.2.0/bits/stringfwd.h \
+ /usr/include/bits/setjmp.h common.hpp sys.hpp console.hpp \
+ /usr/include/c++/10.2.0/string_view /usr/include/c++/10.2.0/iosfwd \
+ /usr/include/c++/10.2.0/bits/stringfwd.h \
  /usr/include/c++/10.2.0/bits/memoryfwd.h \
  /usr/include/c++/10.2.0/bits/postypes.h /usr/include/c++/10.2.0/cwchar \
  /usr/include/wchar.h /usr/include/bits/types/wint_t.h \
@@ -105,20 +107,26 @@ snd_sdl.o: snd_sdl.cpp /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/c++/10.2.0/initializer_list \
  /usr/include/c++/10.2.0/bits/ostream_insert.h \
  /usr/include/c++/10.2.0/bits/cxxabi_forced.h \
- /usr/include/c++/10.2.0/bits/string_view.tcc sys.h console.h bspfile.h \
- vid.h zone.h mathlib.h wad.h draw.h cvar.h screen.h net.h protocol.h \
- cmd.h sbar.h sound.h render.h client.h progs.h pr_comp.h progdefs.h \
- progdefs.q1 server.h model.h modelgen.h spritegn.h d_iface.h input.h \
- world.h keys.h view.h menu.h crc.h cdaudio.h
+ /usr/include/c++/10.2.0/bits/string_view.tcc bspfile.hpp vid.hpp \
+ zone.hpp /usr/include/c++/10.2.0/cstring mathlib.hpp wad.hpp draw.hpp \
+ cvar.hpp screen.hpp net.hpp protocol.hpp cmd.hpp sbar.hpp sound.hpp \
+ render.hpp client.hpp progs.hpp pr_comp.hpp progdefs.hpp progdefs.q1 \
+ server.hpp model.hpp modelgen.hpp spritegn.hpp d_iface.hpp input.hpp \
+ world.hpp keys.hpp view.hpp menu.hpp crc.hpp cdaudio.hpp
 /usr/include/stdc-predef.h:
-/usr/include/stdio.h:
-/usr/include/bits/libc-header-start.h:
+/usr/include/c++/10.2.0/cstdio:
+/usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/c++config.h:
+/usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/os_defines.h:
 /usr/include/features.h:
 /usr/include/sys/cdefs.h:
 /usr/include/bits/wordsize.h:
 /usr/include/bits/long-double.h:
 /usr/include/gnu/stubs.h:
 /usr/include/gnu/stubs-32.h:
+/usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/cpu_defines.h:
+/usr/include/c++/10.2.0/pstl/pstl_config.h:
+/usr/include/stdio.h:
+/usr/include/bits/libc-header-start.h:
 /usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include/stddef.h:
 /usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/include/stdarg.h:
 /usr/include/bits/types.h:
@@ -164,10 +172,6 @@ snd_sdl.o: snd_sdl.cpp /usr/include/stdc-predef.h /usr/include/stdio.h \
 /usr/include/bits/struct_rwlock.h:
 /usr/include/c++/10.2.0/stdlib.h:
 /usr/include/c++/10.2.0/cstdlib:
-/usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/c++config.h:
-/usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/os_defines.h:
-/usr/include/c++/10.2.0/x86_64-pc-linux-gnu/32/bits/cpu_defines.h:
-/usr/include/c++/10.2.0/pstl/pstl_config.h:
 /usr/include/stdlib.h:
 /usr/include/bits/waitflags.h:
 /usr/include/bits/waitstatus.h:
@@ -194,7 +198,7 @@ snd_sdl.o: snd_sdl.cpp /usr/include/stdc-predef.h /usr/include/stdio.h \
 /usr/include/SDL/SDL_thread.h:
 /usr/include/SDL/SDL_rwops.h:
 /usr/include/SDL/SDL_byteorder.h:
-quakedef.h:
+quakedef.hpp:
 /usr/include/c++/10.2.0/math.h:
 /usr/include/c++/10.2.0/cmath:
 /usr/include/c++/10.2.0/bits/cpp_type_traits.h:
@@ -252,7 +256,9 @@ quakedef.h:
 /usr/include/c++/10.2.0/tr1/riemann_zeta.tcc:
 /usr/include/setjmp.h:
 /usr/include/bits/setjmp.h:
-common.h:
+common.hpp:
+sys.hpp:
+console.hpp:
 /usr/include/c++/10.2.0/string_view:
 /usr/include/c++/10.2.0/iosfwd:
 /usr/include/c++/10.2.0/bits/stringfwd.h:
@@ -271,36 +277,35 @@ common.h:
 /usr/include/c++/10.2.0/bits/ostream_insert.h:
 /usr/include/c++/10.2.0/bits/cxxabi_forced.h:
 /usr/include/c++/10.2.0/bits/string_view.tcc:
-sys.h:
-console.h:
-bspfile.h:
-vid.h:
-zone.h:
-mathlib.h:
-wad.h:
-draw.h:
-cvar.h:
-screen.h:
-net.h:
-protocol.h:
-cmd.h:
-sbar.h:
-sound.h:
-render.h:
-client.h:
-progs.h:
-pr_comp.h:
-progdefs.h:
+bspfile.hpp:
+vid.hpp:
+zone.hpp:
+/usr/include/c++/10.2.0/cstring:
+mathlib.hpp:
+wad.hpp:
+draw.hpp:
+cvar.hpp:
+screen.hpp:
+net.hpp:
+protocol.hpp:
+cmd.hpp:
+sbar.hpp:
+sound.hpp:
+render.hpp:
+client.hpp:
+progs.hpp:
+pr_comp.hpp:
+progdefs.hpp:
 progdefs.q1:
-server.h:
-model.h:
-modelgen.h:
-spritegn.h:
-d_iface.h:
-input.h:
-world.h:
-keys.h:
-view.h:
-menu.h:
-crc.h:
-cdaudio.h:
+server.hpp:
+model.hpp:
+modelgen.hpp:
+spritegn.hpp:
+d_iface.hpp:
+input.hpp:
+world.hpp:
+keys.hpp:
+view.hpp:
+menu.hpp:
+crc.hpp:
+cdaudio.hpp:

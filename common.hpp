@@ -21,9 +21,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define COMMON_H
 
 // comndef.h  -- general definitions
+
+#include "sys.hpp"
+#include "console.hpp"
+#include "quakedef.hpp"
+
 #include <string_view>
-#include "sys.h"
-#include "console.h"
 
 #if !defined BYTE_DEFINED
 typedef unsigned char 		byte;
@@ -66,7 +69,7 @@ void InsertLinkAfter (link_t *l, link_t *after);
 // (type *)STRUCT_FROM_LINK(link_t *link, type, member)
 // ent = STRUCT_FROM_LINK(link,entity_t,order)
 // FIXME: remove this mess!
-#define	STRUCT_FROM_LINK(l,t,m) ((t *)((byte *)l - (int)&(((t *)0)->m)))
+#define	STRUCT_FROM_LINK(l,t,m) ((t *)((byte *)l - (long)&(((t *)0)->m)))
 
 //============================================================================
 

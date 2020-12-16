@@ -19,9 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_aclip.c: clip routines for drawing Alias models directly to the screen
 
-#include "quakedef.h"
-#include "r_local.h"
-#include "d_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
+#include "d_local.hpp"
 
 static finalvert_t		fv[2][8];
 static auxvert_t		av[8];
@@ -46,8 +47,8 @@ pfv0 is the unclipped vertex, pfv1 is the z-clipped vertex
 */
 void R_Alias_clip_z (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 {
-	float		scale;
-	auxvert_t	*pav0, *pav1, avout;
+	float		scale = NAN;
+	auxvert_t	*pav0 = nullptr, *pav1 = nullptr, avout;
 
 	pav0 = &av[pfv0 - &fv[0][0]];
 	pav1 = &av[pfv1 - &fv[0][0]];
@@ -96,8 +97,8 @@ void R_Alias_clip_z (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 
 void R_Alias_clip_left (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 {
-	float		scale;
-	int			i;
+	float		scale = NAN;
+	int			i = 0;
 
 	if (pfv0->v[1] >= pfv1->v[1])
 	{
@@ -119,8 +120,8 @@ void R_Alias_clip_left (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 void R_Alias_clip_right (finalvert_t *pfv0, finalvert_t *pfv1,
 	finalvert_t *out)
 {
-	float		scale;
-	int			i;
+	float		scale = NAN;
+	int			i = 0;
 
 	if (pfv0->v[1] >= pfv1->v[1])
 	{
@@ -141,8 +142,8 @@ void R_Alias_clip_right (finalvert_t *pfv0, finalvert_t *pfv1,
 
 void R_Alias_clip_top (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 {
-	float		scale;
-	int			i;
+	float		scale = NAN;
+	int			i = 0;
 
 	if (pfv0->v[1] >= pfv1->v[1])
 	{
@@ -164,8 +165,8 @@ void R_Alias_clip_top (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 void R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1,
 	finalvert_t *out)
 {
-	float		scale;
-	int			i;
+	float		scale = NAN;
+	int			i = 0;
 
 	if (pfv0->v[1] >= pfv1->v[1])
 	{
@@ -188,11 +189,11 @@ void R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1,
 #endif
 
 
-int R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
-	void(*clip)(finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out) )
+auto R_AliasClip (finalvert_t *in, finalvert_t *out, int flag, int count,
+	void(*clip)(finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out) ) -> int
 {
-	int			i,j,k;
-	int			flags, oldflags;
+	int			i = 0,j = 0,k = 0;
+	int			flags = 0, oldflags = 0;
 	
 	j = count-1;
 	k = 0;
@@ -235,9 +236,9 @@ R_AliasClipTriangle
 */
 void R_AliasClipTriangle (mtriangle_t *ptri)
 {
-	int				i, k, pingpong;
+	int				i = 0, k = 0, pingpong = 0;
 	mtriangle_t		mtri;
-	unsigned		clipflags;
+	unsigned		clipflags = 0;
 
 // copy vertexes and fix seam texture coordinates
 	if (ptri->facesfront)

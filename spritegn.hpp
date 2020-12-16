@@ -49,12 +49,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <math.h>
 #include <string.h>
 
-#include "cmdlib.h"
-#include "scriplib.h"
-#include "dictlib.h"
-#include "trilib.h"
-#include "lbmlib.h"
-#include "mathlib.h"
+#include "cmdlib.hpp"
+#include "scriplib.hpp"
+#include "dictlib.hpp"
+#include "trilib.hpp"
+#include "lbmlib.hpp"
+#include "mathlib.hpp"
 
 #endif
 

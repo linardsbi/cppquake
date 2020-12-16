@@ -19,9 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // screen.c -- master for refresh, status bar, console, chat, notify, etc
 
-#include "quakedef.h"
-#include "r_local.h"
-#include "util.hpp"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
+
 
 // only the refresh window will be updated unless these variables are flagged 
 int			scr_copytop;
@@ -63,7 +64,7 @@ qboolean	scr_skipupdate;
 
 qboolean	block_drawing;
 
-void SCR_ScreenShot_f (void);
+void SCR_ScreenShot_f ();
 
 /*
 ===============================================================================
@@ -104,9 +105,9 @@ void SCR_CenterPrint (char *str)
 	}
 }
 
-void SCR_EraseCenterString (void)
+void SCR_EraseCenterString ()
 {
-	int		y;
+	int		y = 0;
 
 	if (scr_erase_center++ > vid.numpages)
 	{
@@ -123,13 +124,13 @@ void SCR_EraseCenterString (void)
 	Draw_TileClear (0, y,vid.width, 8*scr_erase_lines);
 }
 
-void SCR_DrawCenterString (void)
+void SCR_DrawCenterString ()
 {
-	char	*start;
-	int		l;
-	int		j;
-	int		x, y;
-	int		remaining;
+	char	*start = nullptr;
+	int		l = 0;
+	int		j = 0;
+	int		x = 0, y = 0;
+	int		remaining = 0;
 
 // the finale prints the characters one at a time
 	if (cl.intermission)
@@ -167,10 +168,10 @@ void SCR_DrawCenterString (void)
 		if (!*start)
 			break;
 		start++;		// skip the \n
-	} while (1);
+	} while (true);
 }
 
-void SCR_CheckDrawCenterString (void)
+void SCR_CheckDrawCenterString ()
 {
 	scr_copytop = 1;
 	if (scr_center_lines > scr_erase_lines)
@@ -193,10 +194,10 @@ void SCR_CheckDrawCenterString (void)
 CalcFov
 ====================
 */
-float CalcFov (float fov_x, float width, float height)
+auto CalcFov (float fov_x, float width, float height) -> float
 {
-        float   a;
-        float   x;
+        float   a = NAN;
+        float   x = NAN;
 
         if (fov_x < 1 || fov_x > 179)
                 Sys_Error ("Bad fov: %f", fov_x);
@@ -218,10 +219,10 @@ Must be called whenever vid changes
 Internal use only
 =================
 */
-static void SCR_CalcRefdef (void)
+static void SCR_CalcRefdef ()
 {
 	vrect_t		vrect;
-	float		size;
+	float		size = NAN;
 
 	scr_fullupdate = 0;		// force a background redraw
 	vid.recalc_refdef = 0;
@@ -285,7 +286,7 @@ SCR_SizeUp_f
 Keybinding command
 =================
 */
-void SCR_SizeUp_f (void)
+void SCR_SizeUp_f ()
 {
 	Cvar_SetValue ("viewsize",scr_viewsize.value+10);
 	vid.recalc_refdef = 1;
@@ -299,7 +300,7 @@ SCR_SizeDown_f
 Keybinding command
 =================
 */
-void SCR_SizeDown_f (void)
+void SCR_SizeDown_f ()
 {
 	Cvar_SetValue ("viewsize",scr_viewsize.value-10);
 	vid.recalc_refdef = 1;
@@ -312,7 +313,7 @@ void SCR_SizeDown_f (void)
 SCR_Init
 ==================
 */
-void SCR_Init (void)
+void SCR_Init ()
 {
 	Cvar_RegisterVariable (&scr_fov);
 	Cvar_RegisterVariable (&scr_viewsize);
@@ -344,7 +345,7 @@ void SCR_Init (void)
 SCR_DrawRam
 ==============
 */
-void SCR_DrawRam (void)
+void SCR_DrawRam ()
 {
 	if (!scr_showram.value)
 		return;
@@ -360,7 +361,7 @@ void SCR_DrawRam (void)
 SCR_DrawTurtle
 ==============
 */
-void SCR_DrawTurtle (void)
+void SCR_DrawTurtle ()
 {
 	static int	count;
 	
@@ -385,7 +386,7 @@ void SCR_DrawTurtle (void)
 SCR_DrawNet
 ==============
 */
-void SCR_DrawNet (void)
+void SCR_DrawNet ()
 {
 	if (realtime - cl.last_received_message < 0.3)
 		return;
@@ -400,9 +401,9 @@ void SCR_DrawNet (void)
 DrawPause
 ==============
 */
-void SCR_DrawPause (void)
+void SCR_DrawPause ()
 {
-	qpic_t	*pic;
+	qpic_t	*pic = nullptr;
 
 	if (!scr_showpause.value)		// turn off for screenshots
 		return;
@@ -422,9 +423,9 @@ void SCR_DrawPause (void)
 SCR_DrawLoading
 ==============
 */
-void SCR_DrawLoading (void)
+void SCR_DrawLoading ()
 {
-	qpic_t	*pic;
+	qpic_t	*pic = nullptr;
 
 	if (!scr_drawloading)
 		return;
@@ -444,7 +445,7 @@ void SCR_DrawLoading (void)
 SCR_SetUpToDrawConsole
 ==================
 */
-void SCR_SetUpToDrawConsole (void)
+void SCR_SetUpToDrawConsole ()
 {
 	Con_CheckResize ();
 	
@@ -498,7 +499,7 @@ void SCR_SetUpToDrawConsole (void)
 SCR_DrawConsole
 ==================
 */
-void SCR_DrawConsole (void)
+void SCR_DrawConsole ()
 {
 	if (scr_con_current)
 	{
@@ -523,7 +524,7 @@ void SCR_DrawConsole (void)
 */ 
  
 
-typedef struct
+using pcx_t = struct
 {
     char	manufacturer;
     char	version;
@@ -538,7 +539,7 @@ typedef struct
     unsigned short	palette_type;
     char	filler[58];
     unsigned char	data;			// unbounded
-} pcx_t;
+};
 
 /* 
 ============== 
@@ -548,12 +549,12 @@ WritePCXfile
 void WritePCXfile (char *filename, byte *data, int width, int height,
 	int rowbytes, byte *palette) 
 {
-	int		i, j, length;
-	pcx_t	*pcx;
-	byte		*pack;
+	int		i = 0, j = 0, length = 0;
+	pcx_t	*pcx = nullptr;
+	byte		*pack = nullptr;
 	  
 	pcx = hunkTempAlloc<decltype(pcx)> (width*height*2+1000);
-	if (pcx == NULL)
+	if (pcx == nullptr)
 	{
 		Con_Printf("SCR_ScreenShot_f: not enough memory\n");
 		return;
@@ -611,9 +612,9 @@ void WritePCXfile (char *filename, byte *data, int width, int height,
 SCR_ScreenShot_f
 ================== 
 */  
-void SCR_ScreenShot_f (void) 
+void SCR_ScreenShot_f () 
 { 
-	int     i; 
+	int     i = 0; 
 	char		pcxname[80]; 
 	char		checkname[MAX_OSPATH];
 
@@ -661,7 +662,7 @@ SCR_BeginLoadingPlaque
 
 ================
 */
-void SCR_BeginLoadingPlaque (void)
+void SCR_BeginLoadingPlaque ()
 {
 	S_StopAllSounds (true);
 
@@ -692,7 +693,7 @@ SCR_EndLoadingPlaque
 
 ================
 */
-void SCR_EndLoadingPlaque (void)
+void SCR_EndLoadingPlaque ()
 {
 	scr_disabled_for_loading = false;
 	scr_fullupdate = 0;
@@ -704,12 +705,12 @@ void SCR_EndLoadingPlaque (void)
 char	*scr_notifystring;
 qboolean	scr_drawdialog;
 
-void SCR_DrawNotifyString (void)
+void SCR_DrawNotifyString ()
 {
-	char	*start;
-	int		l;
-	int		j;
-	int		x, y;
+	char	*start = nullptr;
+	int		l = 0;
+	int		j = 0;
+	int		x = 0, y = 0;
 
 	start = scr_notifystring;
 
@@ -733,7 +734,7 @@ void SCR_DrawNotifyString (void)
 		if (!*start)
 			break;
 		start++;		// skip the \n
-	} while (1);
+	} while (true);
 }
 
 /*
@@ -744,7 +745,7 @@ Displays a text string in the center of the screen and waits for a Y or N
 keypress.  
 ==================
 */
-int SCR_ModalMessage (char *text)
+auto SCR_ModalMessage (char *text) -> int
 {
 	if (cls.state == ca_dedicated)
 		return true;
@@ -781,9 +782,9 @@ SCR_BringDownConsole
 Brings the console down and fades the palettes back to normal
 ================
 */
-void SCR_BringDownConsole (void)
+void SCR_BringDownConsole ()
 {
-	int		i;
+	int		i = 0;
 	
 	scr_centertime_off = 0;
 	
@@ -806,7 +807,7 @@ WARNING: be very careful calling this from elsewhere, because the refresh
 needs almost the entire 256k of stack space!
 ==================
 */
-void SCR_UpdateScreen (void)
+void SCR_UpdateScreen ()
 {
 	static float	oldscr_viewsize;
 	static float	oldlcd_x;
@@ -880,7 +881,7 @@ void SCR_UpdateScreen (void)
 		Sbar_Changed ();
 	}
 
-	pconupdate = NULL;
+	pconupdate = nullptr;
 
 
 	SCR_SetUpToDrawConsole ();
@@ -953,7 +954,7 @@ void SCR_UpdateScreen (void)
 		vrect.y = 0;
 		vrect.width = vid.width;
 		vrect.height = vid.height;
-		vrect.pnext = 0;
+		vrect.pnext = nullptr;
 	
 		VID_Update (&vrect);
 	}
@@ -963,7 +964,7 @@ void SCR_UpdateScreen (void)
 		vrect.y = 0;
 		vrect.width = vid.width;
 		vrect.height = vid.height - sb_lines;
-		vrect.pnext = 0;
+		vrect.pnext = nullptr;
 	
 		VID_Update (&vrect);
 	}	
@@ -973,7 +974,7 @@ void SCR_UpdateScreen (void)
 		vrect.y = scr_vrect.y;
 		vrect.width = scr_vrect.width;
 		vrect.height = scr_vrect.height;
-		vrect.pnext = 0;
+		vrect.pnext = nullptr;
 	
 		VID_Update (&vrect);
 	}
@@ -985,7 +986,7 @@ void SCR_UpdateScreen (void)
 SCR_UpdateWholeScreen
 ==================
 */
-void SCR_UpdateWholeScreen (void)
+void SCR_UpdateWholeScreen ()
 {
 	scr_fullupdate = 0;
 	SCR_UpdateScreen ();

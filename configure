@@ -3318,7 +3318,7 @@ if test "$ac_test_CFLAGS" = set; then
   CFLAGS=$ac_save_CFLAGS
 elif test $ac_cv_prog_cc_g = yes; then
   if test "$GCC" = yes; then
-    CFLAGS="-g -O2 -m32 -DSDL"
+    CFLAGS="-g -O2"
   else
     CFLAGS="-g"
   fi
@@ -5130,7 +5130,6 @@ $as_echo_n "checking for SDL - version >= $min_sdl_version... " >&6; }
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
       CFLAGS="$CFLAGS $SDL_CFLAGS"
-      CXXFLAGS="$CXXFLAGS -Wall -std=c++2a -m32 -DSDL $SDL_CFLAGS"
       LIBS="$LIBS $SDL_LIBS"
       rm -f conf.sdltest
       if test "$cross_compiling" = yes; then :
@@ -5296,7 +5295,10 @@ if test x$enable_asm = xyes; then
     CFLAGS="$CFLAGS -DUSE_ASM"
 fi
 
-CFLAGS="$CFLAGS -DELF"
+CFLAGS="$CFLAGS -DELF -m32"
+CXXFLAGS="$CXXFLAGS -DSDL -m32 -std=c++2a -I/usr/include/SDL"
+LDFLAGS="$LDFLAGS -m32"
+CCASFLAGS="$CCASFLAGS -m32"
 
 # Finally create all the generated files
 ac_config_files="$ac_config_files Makefile"

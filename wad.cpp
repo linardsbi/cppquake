@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // wad.c
 
-#include "quakedef.h"
+#include "quakedef.hpp"
 
 int			wad_numlumps;
 lumpinfo_t	*wad_lumps;
@@ -40,8 +40,8 @@ Can safely be performed in place.
 */
 void W_CleanupName (char *in, char *out)
 {
-	int		i;
-	int		c;
+	int		i = 0;
+	int		c = 0;
 	
 	for (i=0 ; i<16 ; i++ )
 	{
@@ -67,10 +67,10 @@ W_LoadWadFile
 */
 void W_LoadWadFile (char *filename)
 {
-	lumpinfo_t		*lump_p;
-	wadinfo_t		*header;
-	unsigned		i;
-	int				infotableofs;
+	lumpinfo_t		*lump_p = nullptr;
+	wadinfo_t		*header = nullptr;
+	unsigned		i = 0;
+	int				infotableofs = 0;
 	
 	wad_base = COM_LoadHunkFile (filename);
 	if (!wad_base)
@@ -104,10 +104,10 @@ void W_LoadWadFile (char *filename)
 W_GetLumpinfo
 =============
 */
-lumpinfo_t	*W_GetLumpinfo (char *name)
+auto W_GetLumpinfo (char *name) -> lumpinfo_t	*
 {
-	int		i;
-	lumpinfo_t	*lump_p;
+	int		i = 0;
+	lumpinfo_t	*lump_p = nullptr;
 	char	clean[16];
 	
 	W_CleanupName (name, clean);
@@ -119,21 +119,21 @@ lumpinfo_t	*W_GetLumpinfo (char *name)
 	}
 	
 	Sys_Error ("W_GetLumpinfo: %s not found", name);
-	return NULL;
+	return nullptr;
 }
 
-void *W_GetLumpName (char *name)
+auto W_GetLumpName (char *name) -> void *
 {
-	lumpinfo_t	*lump;
+	lumpinfo_t	*lump = nullptr;
 	
 	lump = W_GetLumpinfo (name);
 	
 	return (void *)(wad_base + lump->filepos);
 }
 
-void *W_GetLumpNum (int num)
+auto W_GetLumpNum (int num) -> void *
 {
-	lumpinfo_t	*lump;
+	lumpinfo_t	*lump = nullptr;
 	
 	if (num < 0 || num > wad_numlumps)
 		Sys_Error ("W_GetLumpNum: bad number: %i", num);

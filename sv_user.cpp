@@ -19,7 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sv_user.c -- server code for moving users
 
-#include "quakedef.h"
+#include <cmath>
+#include "quakedef.hpp"
 
 edict_t	*sv_player;
 
@@ -50,14 +51,14 @@ SV_SetIdealPitch
 ===============
 */
 #define	MAX_FORWARD	6
-void SV_SetIdealPitch (void)
+void SV_SetIdealPitch ()
 {
-	float	angleval, sinval, cosval;
+	float	angleval = NAN, sinval = NAN, cosval = NAN;
 	trace_t	tr;
 	vec3_t	top, bottom;
 	float	z[MAX_FORWARD];
-	int		i, j;
-	int		step, dir, steps;
+	int		i = 0, j = 0;
+	int		step = 0, dir = 0, steps = 0;
 
 	if (!((int)sv_player->v.flags & FL_ONGROUND))
 		return;
@@ -119,12 +120,12 @@ SV_UserFriction
 
 ==================
 */
-void SV_UserFriction (void)
+void SV_UserFriction ()
 {
-	float	*vel;
-	float	speed, newspeed, control;
+	float	*vel = nullptr;
+	float	speed = NAN, newspeed = NAN, control = NAN;
 	vec3_t	start, stop;
-	float	friction;
+	float	friction = NAN;
 	trace_t	trace;
 	
 	vel = velocity;
@@ -187,10 +188,10 @@ void SV_Accelerate (vec3_t wishvel)
 		velocity[i] += accelspeed*pushvec[i];	
 }
 #endif
-void SV_Accelerate (void)
+void SV_Accelerate ()
 {
-	int			i;
-	float		addspeed, accelspeed, currentspeed;
+	int			i = 0;
+	float		addspeed = NAN, accelspeed = NAN, currentspeed = NAN;
 
 	currentspeed = DotProduct (velocity, wishdir);
 	addspeed = wishspeed - currentspeed;
@@ -206,8 +207,8 @@ void SV_Accelerate (void)
 
 void SV_AirAccelerate (vec3_t wishveloc)
 {
-	int			i;
-	float		addspeed, wishspd, accelspeed, currentspeed;
+	int			i = 0;
+	float		addspeed = NAN, wishspd = NAN, accelspeed = NAN, currentspeed = NAN;
 		
 	wishspd = VectorNormalize (wishveloc);
 	if (wishspd > 30)
@@ -226,9 +227,9 @@ void SV_AirAccelerate (vec3_t wishveloc)
 }
 
 
-void DropPunchAngle (void)
+void DropPunchAngle ()
 {
-	float	len;
+	float	len = NAN;
 	
 	len = VectorNormalize (sv_player->v.punchangle);
 	
@@ -244,11 +245,11 @@ SV_WaterMove
 
 ===================
 */
-void SV_WaterMove (void)
+void SV_WaterMove ()
 {
-	int		i;
+	int		i = 0;
 	vec3_t	wishvel;
-	float	speed, newspeed, wishspeed, addspeed, accelspeed;
+	float	speed = NAN, newspeed = NAN, wishspeed = NAN, addspeed = NAN, accelspeed = NAN;
 
 //
 // user intentions
@@ -304,7 +305,7 @@ void SV_WaterMove (void)
 		velocity[i] += accelspeed * wishvel[i];
 }
 
-void SV_WaterJump (void)
+void SV_WaterJump ()
 {
 	if (sv.time > sv_player->v.teleport_time
 	|| !sv_player->v.waterlevel)
@@ -323,11 +324,11 @@ SV_AirMove
 
 ===================
 */
-void SV_AirMove (void)
+void SV_AirMove ()
 {
-	int			i;
+	int			i = 0;
 	vec3_t		wishvel;
-	float		fmove, smove;
+	float		fmove = NAN, smove = NAN;
 
 	AngleVectors (sv_player->v.angles, forward, right, up);
 
@@ -377,7 +378,7 @@ the move fields specify an intended velocity in pix/sec
 the angle fields specify an exact angular motion in degrees
 ===================
 */
-void SV_ClientThink (void)
+void SV_ClientThink ()
 {
 	vec3_t		v_angle;
 
@@ -437,9 +438,9 @@ SV_ReadClientMove
 */
 void SV_ReadClientMove (usercmd_t *move)
 {
-	int		i;
+	int		i = 0;
 	vec3_t	angle;
-	int		bits;
+	int		bits = 0;
 	
 // read ping time
 	host_client->ping_times[host_client->num_pings%NUM_PING_TIMES]
@@ -479,11 +480,11 @@ SV_ReadClientMessage
 Returns false if the client should be killed
 ===================
 */
-qboolean SV_ReadClientMessage (void)
+auto SV_ReadClientMessage () -> qboolean
 {
-	int		ret;
-	int		cmd;
-	char		*s;
+	int		ret = 0;
+	int		cmd = 0;
+	char		*s = nullptr;
 	
 	do
 	{
@@ -499,7 +500,7 @@ nextmsg:
 					
 		MSG_BeginReading ();
 		
-		while (1)
+		while (true)
 		{
 			if (!host_client->active)
 				return false;	// a command caused an error
@@ -597,9 +598,9 @@ nextmsg:
 SV_RunClients
 ==================
 */
-void SV_RunClients (void)
+void SV_RunClients ()
 {
-	int				i;
+	int				i = 0;
 	
 	for (i=0, host_client = svs.clients ; i<svs.maxclients ; i++, host_client++)
 	{

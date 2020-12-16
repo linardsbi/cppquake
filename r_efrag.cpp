@@ -19,8 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_efrag.c
 
-#include "quakedef.h"
-#include "r_local.h"
+#include "quakedef.hpp"
+#include "r_local.hpp"
 
 mnode_t	*r_pefragtopnode;
 
@@ -51,14 +51,14 @@ Call when removing an object from the world or moving it to another position
 */
 void R_RemoveEfrags (entity_t *ent)
 {
-	efrag_t		*ef, *old, *walk, **prev;
+	efrag_t		*ef = nullptr, *old = nullptr, *walk = nullptr, **prev = nullptr;
 	
 	ef = ent->efrag;
 	
 	while (ef)
 	{
 		prev = &ef->leaf->efrags;
-		while (1)
+		while (true)
 		{
 			walk = *prev;
 			if (!walk)
@@ -80,7 +80,7 @@ void R_RemoveEfrags (entity_t *ent)
 		cl.free_efrags = old;
 	}
 	
-	ent->efrag = NULL; 
+	ent->efrag = nullptr; 
 }
 
 /*
@@ -90,10 +90,10 @@ R_SplitEntityOnNode
 */
 void R_SplitEntityOnNode (mnode_t *node)
 {
-	efrag_t		*ef;
-	mplane_t	*splitplane;
-	mleaf_t		*leaf;
-	int			sides;
+	efrag_t		*ef = nullptr;
+	mplane_t	*splitplane = nullptr;
+	mleaf_t		*leaf = nullptr;
+	int			sides = 0;
 	
 	if (node->contents == CONTENTS_SOLID)
 	{
@@ -123,7 +123,7 @@ void R_SplitEntityOnNode (mnode_t *node)
 // add the entity link	
 		*lastlink = ef;
 		lastlink = &ef->entnext;
-		ef->entnext = NULL;
+		ef->entnext = nullptr;
 		
 // set the leaf links
 		ef->leaf = leaf;
@@ -162,8 +162,8 @@ R_SplitEntityOnNode2
 */
 void R_SplitEntityOnNode2 (mnode_t *node)
 {
-	mplane_t	*splitplane;
-	int			sides;
+	mplane_t	*splitplane = nullptr;
+	int			sides = 0;
 
 	if (node->visframe != r_visframecount)
 		return;
@@ -201,8 +201,8 @@ R_AddEfrags
 */
 void R_AddEfrags (entity_t *ent)
 {
-	model_t		*entmodel;
-	int			i;
+	model_t		*entmodel = nullptr;
+	int			i = 0;
 		
 	if (!ent->model)
 		return;
@@ -213,7 +213,7 @@ void R_AddEfrags (entity_t *ent)
 	r_addent = ent;
 			
 	lastlink = &ent->efrag;
-	r_pefragtopnode = NULL;
+	r_pefragtopnode = nullptr;
 	
 	entmodel = ent->model;
 
@@ -238,12 +238,12 @@ R_StoreEfrags
 */
 void R_StoreEfrags (efrag_t **ppefrag)
 {
-	entity_t	*pent;
-	model_t		*clmodel;
-	efrag_t		*pefrag;
+	entity_t	*pent = nullptr;
+	model_t		*clmodel = nullptr;
+	efrag_t		*pefrag = nullptr;
 
 
-	while ((pefrag = *ppefrag) != NULL)
+	while ((pefrag = *ppefrag) != nullptr)
 	{
 		pent = pefrag->entity;
 		clmodel = pent->model;

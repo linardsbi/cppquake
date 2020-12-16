@@ -1,6 +1,6 @@
-worlda.o: worlda.S /usr/include/stdc-predef.h asm_i386.h quakeasm.h \
- d_ifacea.h
+worlda.o: worlda.S /usr/include/stdc-predef.h asm_i386.hpp quakeasm.hpp \
+ d_ifacea.hpp
 /usr/include/stdc-predef.h:
-asm_i386.h:
-quakeasm.h:
-d_ifacea.h:
+asm_i386.hpp:
+quakeasm.hpp:
+d_ifacea.hpp:

@@ -19,8 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // net_vcr.c
 
-#include "quakedef.h"
-#include "net_vcr.h"
+#include "quakedef.hpp"
+#include "net_vcr.hpp"
 
 extern int vcrFile;
 
@@ -36,7 +36,7 @@ static struct
 	long	session;
 }	next;
 
-int VCR_Init (void)
+auto VCR_Init () -> int
 {
 	net_drivers[0].Init = VCR_Init;
 
@@ -53,7 +53,7 @@ int VCR_Init (void)
 	return 0;
 }
 
-void VCR_ReadNext (void)
+void VCR_ReadNext ()
 {
 	if (Sys_FileRead(vcrFile, &next, sizeof(next)) == 0)
 	{
@@ -70,14 +70,14 @@ void VCR_Listen (qboolean state)
 }
 
 
-void VCR_Shutdown (void)
+void VCR_Shutdown ()
 {
 }
 
 
-int VCR_GetMessage (qsocket_t *sock)
+auto VCR_GetMessage (qsocket_t *sock) -> int
 {
-	int	ret;
+	int	ret = 0;
 	
 	if (host_time != next.time || next.op != VCR_OP_GETMESSAGE || next.session != *(long *)(&sock->driverdata))
 		Sys_Error ("VCR missmatch");
@@ -98,9 +98,9 @@ int VCR_GetMessage (qsocket_t *sock)
 }
 
 
-int VCR_SendMessage (qsocket_t *sock, sizebuf_t *data)
+auto VCR_SendMessage (qsocket_t *sock, sizebuf_t *data) -> int
 {
-	int	ret;
+	int	ret = 0;
 
 	if (host_time != next.time || next.op != VCR_OP_SENDMESSAGE || next.session != *(long *)(&sock->driverdata))
 		Sys_Error ("VCR missmatch");
@@ -113,9 +113,9 @@ int VCR_SendMessage (qsocket_t *sock, sizebuf_t *data)
 }
 
 
-qboolean VCR_CanSendMessage (qsocket_t *sock)
+auto VCR_CanSendMessage (qsocket_t *sock) -> qboolean
 {
-	qboolean	ret;
+	qboolean	ret = 0;
 
 	if (host_time != next.time || next.op != VCR_OP_CANSENDMESSAGE || next.session != *(long *)(&sock->driverdata))
 		Sys_Error ("VCR missmatch");
@@ -138,15 +138,15 @@ void VCR_SearchForHosts (qboolean xmit)
 }
 
 
-qsocket_t *VCR_Connect (char *host)
+auto VCR_Connect (char *host) -> qsocket_t *
 {
-	return NULL;
+	return nullptr;
 }
 
 
-qsocket_t *VCR_CheckNewConnections (void)
+auto VCR_CheckNewConnections () -> qsocket_t *
 {
-	qsocket_t	*sock;
+	qsocket_t	*sock = nullptr;
 
 	if (host_time != next.time || next.op != VCR_OP_CONNECT)
 		Sys_Error ("VCR missmatch");
@@ -154,7 +154,7 @@ qsocket_t *VCR_CheckNewConnections (void)
 	if (!next.session)
 	{
 		VCR_ReadNext ();
-		return NULL;
+		return nullptr;
 	}
 
 	sock = NET_NewQSocket ();

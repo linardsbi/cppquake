@@ -1,8 +1,8 @@
 
-#include <stdio.h>
+#include <cstdio>
 #include "SDL_audio.h"
 #include "SDL_byteorder.h"
-#include "quakedef.h"
+#include "quakedef.hpp"
 
 static dma_t the_shm;
 static int snd_inited;
@@ -20,7 +20,7 @@ static void paint_audio(void *unused, Uint8 *stream, int len)
 	}
 }
 
-qboolean SNDDMA_Init(void)
+auto SNDDMA_Init() -> qboolean
 {
 	SDL_AudioSpec desired, obtained;
 
@@ -41,7 +41,7 @@ qboolean SNDDMA_Init(void)
 		default:
         		Con_Printf("Unknown number of audio bits: %d\n",
 								desired_bits);
-			return 0;
+			return false;
 	}
 	desired.channels = 2;
 	desired.samples = 512;
@@ -50,7 +50,7 @@ qboolean SNDDMA_Init(void)
 	/* Open the audio device */
 	if ( SDL_OpenAudio(&desired, &obtained) < 0 ) {
         	Con_Printf("Couldn't open SDL audio: %s\n", SDL_GetError());
-		return 0;
+		return false;
 	}
 
 	/* Make sure we can support the audio format */
@@ -71,10 +71,10 @@ qboolean SNDDMA_Init(void)
 		default:
 			/* Not supported -- force SDL to do our bidding */
 			SDL_CloseAudio();
-			if ( SDL_OpenAudio(&desired, NULL) < 0 ) {
+			if ( SDL_OpenAudio(&desired, nullptr) < 0 ) {
         			Con_Printf("Couldn't open SDL audio: %s\n",
 							SDL_GetError());
-				return 0;
+				return false;
 			}
 			memcpy(&obtained, &desired, sizeof(desired));
 			break;
@@ -83,25 +83,25 @@ qboolean SNDDMA_Init(void)
 
 	/* Fill the audio DMA information block */
 	shm = &the_shm;
-	shm->splitbuffer = 0;
+	shm->splitbuffer = false;
 	shm->samplebits = (obtained.format & 0xFF);
 	shm->speed = obtained.freq;
 	shm->channels = obtained.channels;
 	shm->samples = obtained.samples*shm->channels;
 	shm->samplepos = 0;
 	shm->submission_chunk = 1;
-	shm->buffer = NULL;
+	shm->buffer = nullptr;
 
 	snd_inited = 1;
-	return 1;
+	return true;
 }
 
-int SNDDMA_GetDMAPos(void)
+auto SNDDMA_GetDMAPos() -> int
 {
 	return shm->samplepos;
 }
 
-void SNDDMA_Shutdown(void)
+void SNDDMA_Shutdown()
 {
 	if (snd_inited)
 	{

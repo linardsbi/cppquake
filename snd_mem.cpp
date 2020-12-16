@@ -19,12 +19,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // snd_mem.c: sound caching
 
-#include "quakedef.h"
-#include "util.hpp"
+#include <cmath>
+#include "quakedef.hpp"
+
 
 int			cache_full_cycle;
 
-byte *S_Alloc (int size);
+auto S_Alloc (int size) -> byte *;
 
 /*
 ================
@@ -33,12 +34,12 @@ ResampleSfx
 */
 void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 {
-	int		outcount;
-	int		srcsample;
-	float	stepscale;
-	int		i;
-	int		sample, samplefrac, fracstep;
-	sfxcache_t	*sc;
+	int		outcount = 0;
+	int		srcsample = 0;
+	float	stepscale = NAN;
+	int		i = 0;
+	int		sample = 0, samplefrac = 0, fracstep = 0;
+	sfxcache_t	*sc = nullptr;
 	
 	sc = cacheCheck<decltype(sc)> (&sfx->cache);
 	if (!sc)
@@ -95,14 +96,14 @@ void ResampleSfx (sfx_t *sfx, int inrate, int inwidth, byte *data)
 S_LoadSound
 ==============
 */
-sfxcache_t *S_LoadSound (sfx_t *s)
+auto S_LoadSound (sfx_t *s) -> sfxcache_t *
 {
     char	namebuffer[256];
-	byte	*data;
+	byte	*data = nullptr;
 	wavinfo_t	info;
-	int		len;
-	float	stepscale;
-	sfxcache_t	*sc;
+	int		len = 0;
+	float	stepscale = NAN;
+	sfxcache_t	*sc = nullptr;
 	byte	stackbuf[1*1024];		// avoid dirtying the cache heap
 
 // see if still in memory
@@ -122,14 +123,14 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 	if (!data)
 	{
 		Con_Printf ("Couldn't load %s\n", namebuffer);
-		return NULL;
+		return nullptr;
 	}
 
 	info = GetWavinfo (s->name, data, com_filesize);
 	if (info.channels != 1)
 	{
 		Con_Printf ("%s is a stereo sample\n",s->name);
-		return NULL;
+		return nullptr;
 	}
 
 	stepscale = (float)info.rate / shm->speed;	
@@ -139,7 +140,7 @@ sfxcache_t *S_LoadSound (sfx_t *s)
 
 	sc = cacheAlloc<decltype(sc)> ( &s->cache, len + sizeof(sfxcache_t), s->name);
 	if (!sc)
-		return NULL;
+		return nullptr;
 	
 	sc->length = info.samples;
 	sc->loopstart = info.loopstart;
@@ -170,7 +171,7 @@ byte 	*iff_data;
 int 	iff_chunk_len;
 
 
-short GetLittleShort(void)
+auto GetLittleShort() -> short
 {
 	short val = 0;
 	val = *data_p;
@@ -179,7 +180,7 @@ short GetLittleShort(void)
 	return val;
 }
 
-int GetLittleLong()
+auto GetLittleLong() -> int
 {
 	int val = 0;
 	val = *data_p;
@@ -236,7 +237,7 @@ void DumpChunks()
 		memcpy (str, data_p, 4);
 		data_p += 4;
 		iff_chunk_len = GetLittleLong();
-		Con_Printf ("0x%x : %s (%d)\n", (int)(data_p - 4), str, iff_chunk_len);
+		Con_Printf ("0x%x : %s (%ld)\n", (long)(data_p - 4), str, iff_chunk_len);
 		data_p += (iff_chunk_len + 1) & ~1;
 	} while (data_p < iff_end);
 }
@@ -246,12 +247,12 @@ void DumpChunks()
 GetWavinfo
 ============
 */
-wavinfo_t GetWavinfo (char *name, byte *wav, int wavlength)
+auto GetWavinfo (char *name, byte *wav, int wavlength) -> wavinfo_t
 {
 	wavinfo_t	info;
-	int     i;
-	int     format;
-	int		samples;
+	int     i = 0;
+	int     format = 0;
+	int		samples = 0;
 
 	memset (&info, 0, sizeof(info));
 

@@ -22,8 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // x86 assembly-language sound code
 //
 
-#include "asm_i386.h"
-#include "quakeasm.h"
+#include "asm_i386.hpp"
+#include "quakeasm.hpp"
 
 #if	id386
 

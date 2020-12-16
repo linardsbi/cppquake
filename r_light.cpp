@@ -19,8 +19,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_light.c
 
-#include "quakedef.h"
-#include "r_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
+#include "client.hpp"
+#include "r_shared.hpp"
+#include "model.hpp"
+#include "d_iface.hpp"
+#include "mathlib.hpp"
+#include "bspfile.hpp"
+#include "render.hpp"
+#include "common.hpp"
 
 int	r_dlightframecount;
 
@@ -30,9 +39,9 @@ int	r_dlightframecount;
 R_AnimateLight
 ==================
 */
-void R_AnimateLight (void)
+void R_AnimateLight ()
 {
-	int			i,j,k;
+	int			i = 0,j = 0,k = 0;
 	
 //
 // light animations
@@ -68,10 +77,10 @@ R_MarkLights
 */
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 {
-	mplane_t	*splitplane;
-	float		dist;
-	msurface_t	*surf;
-	int			i;
+	mplane_t	*splitplane = nullptr;
+	float		dist = NAN;
+	msurface_t	*surf = nullptr;
+	int			i = 0;
 	
 	if (node->contents < 0)
 		return;
@@ -112,10 +121,10 @@ void R_MarkLights (dlight_t *light, int bit, mnode_t *node)
 R_PushDlights
 =============
 */
-void R_PushDlights (void)
+void R_PushDlights ()
 {
-	int		i;
-	dlight_t	*l;
+	int		i = 0;
+	dlight_t	*l = nullptr;
 
 	r_dlightframecount = r_framecount + 1;	// because the count hasn't
 											//  advanced yet for this frame
@@ -138,20 +147,20 @@ LIGHT SAMPLING
 =============================================================================
 */
 
-int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
+auto RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end) -> int
 {
-	int			r;
-	float		front, back, frac;
-	int			side;
-	mplane_t	*plane;
+	int			r = 0;
+	float		front = NAN, back = NAN, frac = NAN;
+	int			side = 0;
+	mplane_t	*plane = nullptr;
 	vec3_t		mid;
-	msurface_t	*surf;
-	int			s, t, ds, dt;
-	int			i;
-	mtexinfo_t	*tex;
-	byte		*lightmap;
-	unsigned	scale;
-	int			maps;
+	msurface_t	*surf = nullptr;
+	int			s = 0, t = 0, ds = 0, dt = 0;
+	int			i = 0;
+	mtexinfo_t	*tex = nullptr;
+	byte		*lightmap = nullptr;
+	unsigned	scale = 0;
+	int			maps = 0;
 
 	if (node->contents < 0)
 		return -1;		// didn't hit anything
@@ -235,10 +244,10 @@ int RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end)
 	return RecursiveLightPoint (node->children[!side], mid, end);
 }
 
-int R_LightPoint (vec3_t p)
+auto R_LightPoint (vec3_t p) -> int
 {
 	vec3_t		end;
-	int			r;
+	int			r = 0;
 	
 	if (!cl.worldmodel->lightdata)
 		return 255;

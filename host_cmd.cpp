@@ -18,13 +18,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include "quakedef.h"
-#include "util.hpp"
+#include <cmath>
+#include "quakedef.hpp"
+
 extern cvar_t	pausable;
 
 int	current_skill;
 
-void Mod_Print (void);
+void Mod_Print ();
 
 /*
 ==================
@@ -32,9 +33,9 @@ Host_Quit_f
 ==================
 */
 
-extern void M_Menu_Quit_f (void);
+extern void M_Menu_Quit_f ();
 
-void Host_Quit_f (void)
+void Host_Quit_f ()
 {
 	if (key_dest != key_console && cls.state != ca_dedicated)
 	{
@@ -53,13 +54,13 @@ void Host_Quit_f (void)
 Host_Status_f
 ==================
 */
-void Host_Status_f (void)
+void Host_Status_f ()
 {
-	client_t	*client;
-	int			seconds;
-	int			minutes;
+	client_t	*client = nullptr;
+	int			seconds = 0;
+	int			minutes = 0;
 	int			hours = 0;
-	int			j;
+	int			j = 0;
 	void		(*print) (char *fmt, ...);
 	
 	if (cmd_source == src_command)
@@ -110,7 +111,7 @@ Host_God_f
 Sets client to godmode
 ==================
 */
-void Host_God_f (void)
+void Host_God_f ()
 {
 	if (cmd_source == src_command)
 	{
@@ -128,7 +129,7 @@ void Host_God_f (void)
 		SV_ClientPrintf ("godmode ON\n");
 }
 
-void Host_Notarget_f (void)
+void Host_Notarget_f ()
 {
 	if (cmd_source == src_command)
 	{
@@ -148,7 +149,7 @@ void Host_Notarget_f (void)
 
 qboolean noclip_anglehack;
 
-void Host_Noclip_f (void)
+void Host_Noclip_f ()
 {
 	if (cmd_source == src_command)
 	{
@@ -180,7 +181,7 @@ Host_Fly_f
 Sets client to flymode
 ==================
 */
-void Host_Fly_f (void)
+void Host_Fly_f ()
 {
 	if (cmd_source == src_command)
 	{
@@ -210,11 +211,11 @@ Host_Ping_f
 
 ==================
 */
-void Host_Ping_f (void)
+void Host_Ping_f ()
 {
-	int		i, j;
-	float	total;
-	client_t	*client;
+	int		i = 0, j = 0;
+	float	total = NAN;
+	client_t	*client = nullptr;
 	
 	if (cmd_source == src_command)
 	{
@@ -253,9 +254,9 @@ map <servername>
 command from the console.  Active clients are kicked off.
 ======================
 */
-void Host_Map_f (void)
+void Host_Map_f ()
 {
-	int		i;
+	int		i = 0;
 	char	name[MAX_QPATH];
 
 	if (cmd_source != src_command)
@@ -308,7 +309,7 @@ Host_Changelevel_f
 Goes to a new map, taking all clients along
 ==================
 */
-void Host_Changelevel_f (void)
+void Host_Changelevel_f ()
 {
 #ifdef QUAKE2
 	char	level[MAX_QPATH];
@@ -363,7 +364,7 @@ Host_Restart_f
 Restarts the current server for a dead player
 ==================
 */
-void Host_Restart_f (void)
+void Host_Restart_f ()
 {
 	char	mapname[MAX_QPATH];
 #ifdef QUAKE2
@@ -393,7 +394,7 @@ This command causes the client to wait for the signon messages again.
 This is sent just before a server changes levels
 ==================
 */
-void Host_Reconnect_f (void)
+void Host_Reconnect_f ()
 {
 	SCR_BeginLoadingPlaque ();
 	cls.signon = 0;		// need new connection messages
@@ -406,7 +407,7 @@ Host_Connect_f
 User command to connect to server
 =====================
 */
-void Host_Connect_f (void)
+void Host_Connect_f ()
 {
 	char	name[MAX_QPATH];
 	
@@ -441,7 +442,7 @@ Writes a SAVEGAME_COMMENT_LENGTH character comment describing the current
 */
 void Host_SavegameComment (char *text)
 {
-	int		i;
+	int		i = 0;
 	char	kills[20];
 
 	for (i=0 ; i<SAVEGAME_COMMENT_LENGTH ; i++)
@@ -462,11 +463,11 @@ void Host_SavegameComment (char *text)
 Host_Savegame_f
 ===============
 */
-void Host_Savegame_f (void)
+void Host_Savegame_f ()
 {
 	char	name[256];
-	FILE	*f;
-	int		i;
+	FILE	*f = nullptr;
+	int		i = 0;
 	char	comment[SAVEGAME_COMMENT_LENGTH+1];
 
 	if (cmd_source != src_command)
@@ -558,17 +559,17 @@ void Host_Savegame_f (void)
 Host_Loadgame_f
 ===============
 */
-void Host_Loadgame_f (void)
+void Host_Loadgame_f ()
 {
 	char	name[MAX_OSPATH];
-	FILE	*f;
+	FILE	*f = nullptr;
 	char	mapname[MAX_QPATH];
-	float	time, tfloat;
-	char	str[32768], *start;
-	int		i, r;
-	edict_t	*ent;
-	int		entnum;
-	int		version;
+	float	time = NAN, tfloat = NAN;
+	char	str[32768], *start = nullptr;
+	int		i = 0, r = 0;
+	edict_t	*ent = nullptr;
+	int		entnum = 0;
+	int		version = 0;
 	float			spawn_parms[NUM_SPAWN_PARMS];
 
 	if (cmd_source != src_command)
@@ -668,7 +669,7 @@ void Host_Loadgame_f (void)
 		start = COM_Parse(str);
 		if (!com_token[0])
 			break;		// end of file
-		if (strcmp(com_token,"{"))
+		if (strcmp(com_token,"{") != 0)
 			Sys_Error ("First token isn't a brace");
 			
 		if (entnum == -1)
@@ -907,9 +908,9 @@ void Host_Changelevel2_f (void)
 Host_Name_f
 ======================
 */
-void Host_Name_f (void)
+void Host_Name_f ()
 {
-	char	*newName;
+	char	*newName = nullptr;
 
 	if (Cmd_Argc () == 1)
 	{
@@ -932,7 +933,7 @@ void Host_Name_f (void)
 		return;
 	}
 
-	if (host_client->name[0] && strcmp(host_client->name, "unconnected") )
+	if (host_client->name[0] && strcmp(host_client->name, "unconnected") != 0 )
 		if (Q_strcmp(host_client->name, newName) != 0)
 			Con_Printf ("%s renamed to %s\n", host_client->name, newName);
 	Q_strcpy (host_client->name, newName);
@@ -946,10 +947,10 @@ void Host_Name_f (void)
 }
 
 	
-void Host_Version_f (void)
+void Host_Version_f ()
 {
 	Con_Printf ("Version %4.2f\n", VERSION);
-	Con_Printf ("Exe: "__TIME__" "__DATE__"\n");
+	Con_Printf ("Exe: " __TIME__" " __DATE__"\n");
 }
 
 #ifdef IDGODS
@@ -1007,10 +1008,10 @@ void Host_Please_f (void)
 
 void Host_Say(qboolean teamonly)
 {
-	client_t *client;
-	client_t *save;
-	int		j;
-	char	*p;
+	client_t *client = nullptr;
+	client_t *save = nullptr;
+	int		j = 0;
+	char	*p = nullptr;
 	char	text[64]; // todo: was unsigned
 	qboolean	fromServer = false;
 
@@ -1069,24 +1070,24 @@ void Host_Say(qboolean teamonly)
 }
 
 
-void Host_Say_f(void)
+void Host_Say_f()
 {
 	Host_Say(false);
 }
 
 
-void Host_Say_Team_f(void)
+void Host_Say_Team_f()
 {
 	Host_Say(true);
 }
 
 
-void Host_Tell_f(void)
+void Host_Tell_f()
 {
-	client_t *client;
-	client_t *save;
-	int		j;
-	char	*p;
+	client_t *client = nullptr;
+	client_t *save = nullptr;
+	int		j = 0;
+	char	*p = nullptr;
 	char	text[64];
 
 	if (cmd_source == src_command)
@@ -1138,10 +1139,10 @@ void Host_Tell_f(void)
 Host_Color_f
 ==================
 */
-void Host_Color_f(void)
+void Host_Color_f()
 {
-	int		top, bottom;
-	int		playercolor;
+	int		top = 0, bottom = 0;
+	int		playercolor = 0;
 	
 	if (Cmd_Argc() == 1)
 	{
@@ -1189,7 +1190,7 @@ void Host_Color_f(void)
 Host_Kill_f
 ==================
 */
-void Host_Kill_f (void)
+void Host_Kill_f ()
 {
 	if (cmd_source == src_command)
 	{
@@ -1214,7 +1215,7 @@ void Host_Kill_f (void)
 Host_Pause_f
 ==================
 */
-void Host_Pause_f (void)
+void Host_Pause_f ()
 {
 	
 	if (cmd_source == src_command)
@@ -1251,7 +1252,7 @@ void Host_Pause_f (void)
 Host_PreSpawn_f
 ==================
 */
-void Host_PreSpawn_f (void)
+void Host_PreSpawn_f ()
 {
 	if (cmd_source == src_command)
 	{
@@ -1276,11 +1277,11 @@ void Host_PreSpawn_f (void)
 Host_Spawn_f
 ==================
 */
-void Host_Spawn_f (void)
+void Host_Spawn_f ()
 {
-	int		i;
-	client_t	*client;
-	edict_t	*ent;
+	int		i = 0;
+	client_t	*client = nullptr;
+	edict_t	*ent = nullptr;
 
 	if (cmd_source == src_command)
 	{
@@ -1403,7 +1404,7 @@ void Host_Spawn_f (void)
 Host_Begin_f
 ==================
 */
-void Host_Begin_f (void)
+void Host_Begin_f ()
 {
 	if (cmd_source == src_command)
 	{
@@ -1424,12 +1425,12 @@ Host_Kick_f
 Kicks a user off of the server
 ==================
 */
-void Host_Kick_f (void)
+void Host_Kick_f ()
 {
-	char		*who;
-	char		*message = NULL;
-	client_t	*save;
-	int			i;
+	char		*who = nullptr;
+	char		*message = nullptr;
+	client_t	*save = nullptr;
+	int			i = 0;
 	qboolean	byNumber = false;
 
 	if (cmd_source == src_command)
@@ -1516,11 +1517,11 @@ DEBUGGING TOOLS
 Host_Give_f
 ==================
 */
-void Host_Give_f (void)
+void Host_Give_f ()
 {
-	char	*t;
-	int		v, w;
-	eval_t	*val;
+	char	*t = nullptr;
+	int		v = 0, w = 0;
+	eval_t	*val = nullptr;
 
 	if (cmd_source == src_command)
 	{
@@ -1670,10 +1671,10 @@ void Host_Give_f (void)
     }
 }
 
-edict_t	*FindViewthing (void)
+auto FindViewthing () -> edict_t	*
 {
-	int		i;
-	edict_t	*e;
+	int		i = 0;
+	edict_t	*e = nullptr;
 	
 	for (i=0 ; i<sv.num_edicts ; i++)
 	{
@@ -1682,7 +1683,7 @@ edict_t	*FindViewthing (void)
 			return e;
 	}
 	Con_Printf ("No viewthing on map\n");
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -1690,10 +1691,10 @@ edict_t	*FindViewthing (void)
 Host_Viewmodel_f
 ==================
 */
-void Host_Viewmodel_f (void)
+void Host_Viewmodel_f ()
 {
-	edict_t	*e;
-	model_t	*m;
+	edict_t	*e = nullptr;
+	model_t	*m = nullptr;
 
 	e = FindViewthing ();
 	if (!e)
@@ -1715,11 +1716,11 @@ void Host_Viewmodel_f (void)
 Host_Viewframe_f
 ==================
 */
-void Host_Viewframe_f (void)
+void Host_Viewframe_f ()
 {
-	edict_t	*e;
-	int		f;
-	model_t	*m;
+	edict_t	*e = nullptr;
+	int		f = 0;
+	model_t	*m = nullptr;
 
 	e = FindViewthing ();
 	if (!e)
@@ -1736,8 +1737,8 @@ void Host_Viewframe_f (void)
 
 void PrintFrameName (model_t *m, int frame)
 {
-	aliashdr_t 			*hdr;
-	maliasframedesc_t	*pframedesc;
+	aliashdr_t 			*hdr = nullptr;
+	maliasframedesc_t	*pframedesc = nullptr;
 
 	hdr = (aliashdr_t *)Mod_Extradata (m);
 	if (!hdr)
@@ -1752,10 +1753,10 @@ void PrintFrameName (model_t *m, int frame)
 Host_Viewnext_f
 ==================
 */
-void Host_Viewnext_f (void)
+void Host_Viewnext_f ()
 {
-	edict_t	*e;
-	model_t	*m;
+	edict_t	*e = nullptr;
+	model_t	*m = nullptr;
 	
 	e = FindViewthing ();
 	if (!e)
@@ -1774,10 +1775,10 @@ void Host_Viewnext_f (void)
 Host_Viewprev_f
 ==================
 */
-void Host_Viewprev_f (void)
+void Host_Viewprev_f ()
 {
-	edict_t	*e;
-	model_t	*m;
+	edict_t	*e = nullptr;
+	model_t	*m = nullptr;
 
 	e = FindViewthing ();
 	if (!e)
@@ -1806,9 +1807,9 @@ DEMO LOOP CONTROL
 Host_Startdemos_f
 ==================
 */
-void Host_Startdemos_f (void)
+void Host_Startdemos_f ()
 {
-	int		i, c;
+	int		i = 0, c = 0;
 
 	if (cls.state == ca_dedicated)
 	{
@@ -1845,7 +1846,7 @@ Host_Demos_f
 Return to looping demos
 ==================
 */
-void Host_Demos_f (void)
+void Host_Demos_f ()
 {
 	if (cls.state == ca_dedicated)
 		return;
@@ -1862,7 +1863,7 @@ Host_Stopdemo_f
 Return to looping demos
 ==================
 */
-void Host_Stopdemo_f (void)
+void Host_Stopdemo_f ()
 {
 	if (cls.state == ca_dedicated)
 		return;
@@ -1879,7 +1880,7 @@ void Host_Stopdemo_f (void)
 Host_InitCommands
 ==================
 */
-void Host_InitCommands (void)
+void Host_InitCommands ()
 {
 	Cmd_AddCommand ("status", Host_Status_f);
 	Cmd_AddCommand ("quit", Host_Quit_f);

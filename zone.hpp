@@ -82,16 +82,23 @@ Zone block
 
 
 */
-#include "console.h"
+#ifndef ZONE_HPP
+#define ZONE_HPP
 
-typedef struct memblock_s
+#include "console.hpp"
+#include "sys.hpp"
+#include "common.hpp"
+
+#include <cstring>
+
+using memblock_t = struct memblock_s
 {
     int		size;           // including the header and possibly tiny fragments
     int     tag;            // a tag of 0 is a free block
     int     id;        		// should be ZONEID
     memblock_s       *next, *prev;
     int		pad;			// pad to 64 bit boundary
-} memblock_t;
+};
 
 struct memzone_t
 {
@@ -100,19 +107,19 @@ struct memzone_t
     memblock_t	*rover;
 };
 
-typedef struct cache_user_s
+using cache_user_t = struct cache_user_s
 {
     void	*data;
-} cache_user_t;
+};
 
-typedef struct cache_system_s
+using cache_system_t = struct cache_system_s
 {
     int						size;		// including this header
     cache_user_t			*user;
     char					name[16];
     struct cache_system_s	*prev, *next;
     struct cache_system_s	*lru_prev, *lru_next;	// for LRU flushing
-} cache_system_t;
+};
 
 struct hunk_t
 {
@@ -143,33 +150,33 @@ extern cache_system_t	cache_head;
 void Memory_Init (void *buf, int size);
 
 void Z_Free (void *ptr);
-void *Z_Malloc (int size);			// returns 0 filled memory
-void *Z_TagMalloc (int size, int tag);
+auto Z_Malloc (int size) -> void *;			// returns 0 filled memory
+auto Z_TagMalloc (int size, int tag) -> void *;
 
-void Z_DumpHeap (void);
-void Z_CheckHeap (void);
-int Z_FreeMemory (void);
+void Z_DumpHeap ();
+void Z_CheckHeap ();
+auto Z_FreeMemory () -> int;
 
-void *Hunk_Alloc (int size);		// returns 0 filled memory
-void *Hunk_AllocName (int size, char *name);
+auto Hunk_Alloc (int size) -> void *;		// returns 0 filled memory
+auto Hunk_AllocName (int size, char *name) -> void *;
 
-void *Hunk_HighAllocName (int size, char *name);
+auto Hunk_HighAllocName (int size, char *name) -> void *;
 
-int	Hunk_LowMark (void);
+auto	Hunk_LowMark () -> int;
 void Hunk_FreeToLowMark (int mark);
 
-int	Hunk_HighMark (void);
+auto	Hunk_HighMark () -> int;
 void Hunk_FreeToHighMark (int mark);
 
-void *Hunk_TempAlloc (int size);
+auto Hunk_TempAlloc (int size) -> void *;
 
-void Hunk_Check (void);
+void Hunk_Check ();
 
 
 
-void Cache_Flush (void);
+void Cache_Flush ();
 
-void *Cache_Check (cache_user_t *c);
+auto Cache_Check (cache_user_t *c) -> void *;
 // returns the cached data, and moves to the head of the LRU list
 // if present, otherwise returns NULL
 
@@ -180,21 +187,16 @@ void Cache_FreeHigh (int new_high_hunk);
 void Cache_UnlinkLRU (cache_system_t *cs);
 void Cache_MakeLRU (cache_system_t *cs);
 
-cache_system_t *Cache_TryAlloc (int size, qboolean nobottom);
+auto Cache_TryAlloc (int size, qboolean nobottom) -> cache_system_t *;
 
 
 // Returns NULL if all purgable data was tossed and there still
 // wasn't enough room.
 
-void Cache_Report (void);
+void Cache_Report ();
 
 template <typename MemType>
-MemType hunkAlloc (int size) {
-    return hunkAllocName<MemType>(size, "unknown");
-}
-
-template <typename MemType>
-MemType hunkAllocName(int size, char *name) {
+auto hunkAllocName(int size, char *name) -> MemType {
 #ifdef PARANOID
     Hunk_Check();
 #endif
@@ -207,7 +209,7 @@ MemType hunkAllocName(int size, char *name) {
     if (hunk_size - hunk_low_used - hunk_high_used < size)
         Sys_Error("Hunk_Alloc: failed on %i bytes", size);
 
-    hunk_t *h = (hunk_t *)(hunk_base + hunk_low_used);
+    auto *h = (hunk_t *)(hunk_base + hunk_low_used);
     hunk_low_used += size;
 
     Cache_FreeLow(hunk_low_used);
@@ -221,19 +223,15 @@ MemType hunkAllocName(int size, char *name) {
     return reinterpret_cast<MemType>(h + 1);
 }
 
-template <typename MemType> MemType zmalloc(int size) {
-    Z_CheckHeap(); // DEBUG
-    auto buf = tagMalloc<MemType>(size, 1);
-    if (buf == nullptr)
-        Sys_Error("zMalloc: failed on allocation of %i bytes", size);
-    Q_memset(buf, 0, size);
-
-    return buf;
-}
 template <typename MemType>
-MemType tagMalloc (int size, int tag)
+auto hunkAlloc (int size) -> MemType {
+    return hunkAllocName<MemType>(size, "unknown");
+}
+
+template <typename MemType>
+auto tagMalloc (int size, int tag) -> MemType
 {
-    memblock_t	*start, *rover, *newB, *base;
+    memblock_t	*start = nullptr, *rover = nullptr, *newB = nullptr, *base = nullptr;
 
     if (!tag)
         Sys_Error ("TagMalloc: tried to use a 0 tag");
@@ -288,9 +286,18 @@ MemType tagMalloc (int size, int tag)
     return reinterpret_cast<MemType>((byte *)base + sizeof(memblock_t));
 }
 
+template <typename MemType> auto zmalloc(int size) -> MemType {
+    Z_CheckHeap(); // DEBUG
+    auto buf = tagMalloc<MemType>(size, 1);
+    if (buf == nullptr)
+        Sys_Error("zMalloc: failed on allocation of %i bytes", size);
+    Q_memset(buf, 0, size);
+
+    return buf;
+}
 
 template <typename MemType>
-MemType hunkHighAllocName (int size, char *name) {
+auto hunkHighAllocName (int size, char *name) -> MemType {
     if (size < 0)
         Sys_Error ("Hunk_HighAllocName: bad size: %i", size);
 
@@ -315,7 +322,7 @@ MemType hunkHighAllocName (int size, char *name) {
     hunk_high_used += size;
     Cache_FreeHigh (hunk_high_used);
 
-    hunk_t *h = (hunk_t *)(hunk_base + hunk_size - hunk_high_used);
+    auto *h = (hunk_t *)(hunk_base + hunk_size - hunk_high_used);
 
     memset (h, 0, size);
     h->size = size;
@@ -326,7 +333,7 @@ MemType hunkHighAllocName (int size, char *name) {
 }
 
 template <typename MemType>
-MemType hunkTempAlloc(int size) {
+auto hunkTempAlloc(int size) -> MemType {
     size = (size+15)&~15;
 
     if (hunk_tempactive)
@@ -345,7 +352,22 @@ MemType hunkTempAlloc(int size) {
 }
 
 template <typename MemType>
-MemType cacheAlloc (cache_user_t *c, int size, char *name)
+auto cacheCheck (cache_user_t *c) -> MemType
+{
+    if (!c->data)
+        return nullptr;
+
+    cache_system_t	*cs = ((cache_system_t *)c->data) - 1;
+
+// move to head of LRU
+    Cache_UnlinkLRU (cs);
+    Cache_MakeLRU (cs);
+
+    return static_cast<MemType>(c->data);
+}
+
+template <typename MemType>
+auto cacheAlloc (cache_user_t *c, int size, char *name) -> MemType
 {
     if (c->data)
         Sys_Error ("Cache_Alloc: allready allocated");
@@ -355,9 +377,9 @@ MemType cacheAlloc (cache_user_t *c, int size, char *name)
 
     size = (size + sizeof(cache_system_t) + 15) & ~15;
 
-    cache_system_t	*cs;
+    cache_system_t	*cs = nullptr;
 // find memory for it
-    while (1)
+    while (true)
     {
         cs = Cache_TryAlloc (size, false);
         if (cs)
@@ -378,17 +400,4 @@ MemType cacheAlloc (cache_user_t *c, int size, char *name)
     return cacheCheck<MemType>(c);
 }
 
-template <typename MemType>
-MemType cacheCheck (cache_user_t *c)
-{
-    if (!c->data)
-        return NULL;
-
-    cache_system_t	*cs = ((cache_system_t *)c->data) - 1;
-
-// move to head of LRU
-    Cache_UnlinkLRU (cs);
-    Cache_MakeLRU (cs);
-
-    return static_cast<MemType>(c->data);
-}
+#endif

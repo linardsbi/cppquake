@@ -19,9 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // r_sky.c
 
-#include "quakedef.h"
-#include "r_local.h"
-#include "d_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
+#include "d_local.hpp"
 
 
 int		iskyspeed = 8;
@@ -55,8 +56,8 @@ A sky texture is 256*128, with the right side being a masked overlay
 */
 void R_InitSky (texture_t *mt)
 {
-	int			i, j;
-	byte		*src;
+	int			i = 0, j = 0;
+	byte		*src = nullptr;
 
 	src = (byte *)mt + mt->offsets[0];
 
@@ -94,12 +95,12 @@ void R_InitSky (texture_t *mt)
 R_MakeSky
 =================
 */
-void R_MakeSky (void)
+void R_MakeSky ()
 {
-	int			x, y;
-	int			ofs, baseofs;
-	int			xshift, yshift;
-	unsigned	*pnewsky;
+	int			x = 0, y = 0;
+	int			ofs = 0, baseofs = 0;
+	int			xshift = 0, yshift = 0;
+	unsigned	*pnewsky = nullptr;
 	static int	xlast = -1, ylast = -1;
 
 	xshift = skytime*skyspeed;
@@ -160,11 +161,11 @@ R_GenSkyTile
 */
 void R_GenSkyTile (void *pdest)
 {
-	int			x, y;
-	int			ofs, baseofs;
-	int			xshift, yshift;
-	unsigned	*pnewsky;
-	unsigned	*pd;
+	int			x = 0, y = 0;
+	int			ofs = 0, baseofs = 0;
+	int			xshift = 0, yshift = 0;
+	unsigned	*pnewsky = nullptr;
+	unsigned	*pd = nullptr;
 
 	xshift = skytime*skyspeed;
 	yshift = skytime*skyspeed;
@@ -219,11 +220,11 @@ R_GenSkyTile16
 */
 void R_GenSkyTile16 (void *pdest)
 {
-	int				x, y;
-	int				ofs, baseofs;
-	int				xshift, yshift;
-	byte			*pnewsky;
-	unsigned short	*pd;
+	int				x = 0, y = 0;
+	int				ofs = 0, baseofs = 0;
+	int				xshift = 0, yshift = 0;
+	byte			*pnewsky = nullptr;
+	unsigned short	*pd = nullptr;
 
 	xshift = skytime * skyspeed;
 	yshift = skytime * skyspeed;
@@ -258,10 +259,10 @@ void R_GenSkyTile16 (void *pdest)
 R_SetSkyFrame
 ==============
 */
-void R_SetSkyFrame (void)
+void R_SetSkyFrame ()
 {
-	int		g, s1, s2;
-	float	temp;
+	int		g = 0, s1 = 0, s2 = 0;
+	float	temp = NAN;
 
 	skyspeed = iskyspeed;
 	skyspeed2 = iskyspeed2;

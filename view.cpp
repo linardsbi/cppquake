@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // view.c -- player eye positioning
 
-#include "quakedef.h"
-#include "r_local.h"
+#include <cmath>
+#include "quakedef.hpp"
+#include "r_local.hpp"
 
 /*
 
@@ -78,11 +79,11 @@ Used by view and sv_user
 */
 vec3_t	forward, right, up;
 
-float V_CalcRoll (vec3_t angles, vec3_t velocity)
+auto V_CalcRoll (vec3_t angles, vec3_t velocity) -> float
 {
-	float	sign;
-	float	side;
-	float	value;
+	float	sign = NAN;
+	float	side = NAN;
+	float	value = NAN;
 	
 	AngleVectors (angles, forward, right, up);
 	side = DotProduct (velocity, right);
@@ -109,10 +110,10 @@ V_CalcBob
 
 ===============
 */
-float V_CalcBob (void)
+auto V_CalcBob () -> float
 {
-	float	bob;
-	float	cycle;
+	float	bob = NAN;
+	float	cycle = NAN;
 	
 	cycle = cl.time - (int)(cl.time/cl_bobcycle.value)*cl_bobcycle.value;
 	cycle /= cl_bobcycle.value;
@@ -143,7 +144,7 @@ cvar_t	v_centermove = {"v_centermove", "0.15", false};
 cvar_t	v_centerspeed = {"v_centerspeed","500"};
 
 
-void V_StartPitchDrift (void)
+void V_StartPitchDrift ()
 {
 #if 1
 	if (cl.laststop == cl.time)
@@ -159,7 +160,7 @@ void V_StartPitchDrift (void)
 	}
 }
 
-void V_StopPitchDrift (void)
+void V_StopPitchDrift ()
 {
 	cl.laststop = cl.time;
 	cl.nodrift = true;
@@ -179,9 +180,9 @@ Drifting is enabled when the center view key is hit, mlook is released and
 lookspring is non 0, or when 
 ===============
 */
-void V_DriftPitch (void)
+void V_DriftPitch ()
 {
-	float		delta, move;
+	float		delta = NAN, move = NAN;
 
 	if (noclip_anglehack || !cl.onground || cls.demoplayback )
 	{
@@ -267,7 +268,7 @@ float		v_blend[4];		// rgba 0.0 - 1.0
 
 void BuildGammaTable (float g)
 {
-	int		i, inf;
+	int		i = 0, inf = 0;
 	
 	if (g == 1.0)
 	{
@@ -292,7 +293,7 @@ void BuildGammaTable (float g)
 V_CheckGamma
 =================
 */
-qboolean V_CheckGamma (void)
+auto V_CheckGamma () -> qboolean
 {
 	static float oldgammavalue;
 	
@@ -313,15 +314,15 @@ qboolean V_CheckGamma (void)
 V_ParseDamage
 ===============
 */
-void V_ParseDamage (void)
+void V_ParseDamage ()
 {
-	int		armor, blood;
+	int		armor = 0, blood = 0;
 	vec3_t	from;
-	int		i;
+	int		i = 0;
 	vec3_t	forward, right, up;
-	entity_t	*ent;
-	float	side;
-	float	count;
+	entity_t	*ent = nullptr;
+	float	side = NAN;
+	float	count = NAN;
 	
 	armor = MSG_ReadByte ();
 	blood = MSG_ReadByte ();
@@ -384,7 +385,7 @@ void V_ParseDamage (void)
 V_cshift_f
 ==================
 */
-void V_cshift_f (void)
+void V_cshift_f ()
 {
 	cshift_empty.destcolor[0] = atoi(Cmd_Argv(1));
 	cshift_empty.destcolor[1] = atoi(Cmd_Argv(2));
@@ -400,7 +401,7 @@ V_BonusFlash_f
 When you run over an item, the server sends this command
 ==================
 */
-void V_BonusFlash_f (void)
+void V_BonusFlash_f ()
 {
 	cl.cshifts[CSHIFT_BONUS].destcolor[0] = 215;
 	cl.cshifts[CSHIFT_BONUS].destcolor[1] = 186;
@@ -439,7 +440,7 @@ void V_SetContentsColor (int contents)
 V_CalcPowerupCshift
 =============
 */
-void V_CalcPowerupCshift (void)
+void V_CalcPowerupCshift ()
 {
 	if (cl.items & IT_QUAD)
 	{
@@ -611,14 +612,14 @@ void V_UpdatePalette (void)
 	VID_ShiftPalette (pal);	
 }
 #else	// !GLQUAKE
-void V_UpdatePalette (void)
+void V_UpdatePalette ()
 {
-	int		i, j;
+	int		i = 0, j = 0;
 	qboolean	aNew = false;
-	byte	*basepal, *newpal;
+	byte	*basepal = nullptr, *newpal = nullptr;
 	byte	pal[768];
-	int		r,g,b;
-	qboolean force;
+	int		r = 0,g = 0,b = 0;
+	qboolean force = 0;
 
 	V_CalcPowerupCshift ();
 
@@ -687,7 +688,7 @@ void V_UpdatePalette (void)
 ============================================================================== 
 */ 
 
-float angledelta (float a)
+auto angledelta (float a) -> float
 {
 	a = anglemod(a);
 	if (a > 180)
@@ -700,9 +701,9 @@ float angledelta (float a)
 CalcGunAngle
 ==================
 */
-void CalcGunAngle (void)
+void CalcGunAngle ()
 {	
-	float	yaw, pitch, move;
+	float	yaw = NAN, pitch = NAN, move = NAN;
 	static float oldyaw = 0;
 	static float oldpitch = 0;
 	
@@ -758,9 +759,9 @@ void CalcGunAngle (void)
 V_BoundOffsets
 ==============
 */
-void V_BoundOffsets (void)
+void V_BoundOffsets ()
 {
-	entity_t	*ent;
+	entity_t	*ent = nullptr;
 	
 	ent = &cl_entities[cl.viewentity];
 
@@ -788,7 +789,7 @@ V_AddIdle
 Idle swaying
 ==============
 */
-void V_AddIdle (void)
+void V_AddIdle ()
 {
 	r_refdef.viewangles[ROLL] += v_idlescale.value * sin(cl.time*v_iroll_cycle.value) * v_iroll_level.value;
 	r_refdef.viewangles[PITCH] += v_idlescale.value * sin(cl.time*v_ipitch_cycle.value) * v_ipitch_level.value;
@@ -803,9 +804,9 @@ V_CalcViewRoll
 Roll is induced by movement and damage
 ==============
 */
-void V_CalcViewRoll (void)
+void V_CalcViewRoll ()
 {
-	float		side;
+	float		side = NAN;
 		
 	side = V_CalcRoll (cl_entities[cl.viewentity].angles, cl.velocity);
 	r_refdef.viewangles[ROLL] += side;
@@ -832,10 +833,10 @@ V_CalcIntermissionRefdef
 
 ==================
 */
-void V_CalcIntermissionRefdef (void)
+void V_CalcIntermissionRefdef ()
 {
-	entity_t	*ent, *view;
-	float		old;
+	entity_t	*ent = nullptr, *view = nullptr;
+	float		old = NAN;
 
 // ent is the player model (visible when out of body)
 	ent = &cl_entities[cl.viewentity];
@@ -844,7 +845,7 @@ void V_CalcIntermissionRefdef (void)
 
 	VectorCopy (ent->origin, r_refdef.vieworg);
 	VectorCopy (ent->angles, r_refdef.viewangles);
-	view->model = NULL;
+	view->model = nullptr;
 
 // allways idle in intermission
 	old = v_idlescale.value;
@@ -859,13 +860,13 @@ V_CalcRefdef
 
 ==================
 */
-void V_CalcRefdef (void)
+void V_CalcRefdef ()
 {
-	entity_t	*ent, *view;
-	int			i;
+	entity_t	*ent = nullptr, *view = nullptr;
+	int			i = 0;
 	vec3_t		forward, right, up;
 	vec3_t		angles;
-	float		bob;
+	float		bob = NAN;
 	static float oldz = 0;
 
 	V_DriftPitch ();
@@ -958,7 +959,7 @@ void V_CalcRefdef (void)
 // smooth out stair step ups
 if (cl.onground && ent->origin[2] - oldz > 0)
 {
-	float steptime;
+	float steptime = NAN;
 	
 	steptime = cl.time - cl.oldtime;
 	if (steptime < 0)
@@ -990,7 +991,7 @@ the entity origin, so any view position inside that will be valid
 */
 extern vrect_t	scr_vrect;
 
-void V_RenderView (void)
+void V_RenderView ()
 {
 	if (con_forcedup)
 		return;
@@ -1020,7 +1021,7 @@ void V_RenderView (void)
 		//
 		// render two interleaved views
 		//
-		int		i;
+		int		i = 0;
 
 		vid.rowbytes <<= 1;
 		vid.aspect *= 0.5;
@@ -1066,7 +1067,7 @@ void V_RenderView (void)
 V_Init
 =============
 */
-void V_Init (void)
+void V_Init ()
 {
 	Cmd_AddCommand ("v_cshift", V_cshift_f);	
 	Cmd_AddCommand ("bf", V_BonusFlash_f);
