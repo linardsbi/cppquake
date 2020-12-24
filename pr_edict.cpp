@@ -802,12 +802,10 @@ Used for initial level load and for savegames.
 auto ED_ParseEdict (char *data, edict_t *ent) -> char *
 {
 	ddef_t		*key = nullptr;
-	qboolean	anglehack = 0;
-	qboolean	init = 0;
+	qboolean	anglehack = false;
+	qboolean	init = false;
 	char		keyname[256];
 	int			n = 0;
-
-	init = false;
 
 // clear it
 	if (ent != sv.edicts)	// hack
@@ -907,9 +905,7 @@ void ED_LoadFromFile (char *data)
 	edict_t		*ent = nullptr;
 	int			inhibit = 0;
 	dfunction_t	*func = nullptr;
-	
-	ent = nullptr;
-	inhibit = 0;
+
 	pr_global_struct->time = sv.time;
 	
 // parse ents
@@ -922,6 +918,7 @@ void ED_LoadFromFile (char *data)
 		if (com_token[0] != '{')
 			Sys_Error ("ED_LoadFromFile: found %s when expecting {",com_token);
 
+		// something fishy v->model
 		if (!ent)
 			ent = EDICT_NUM(0);
 		else
@@ -1017,7 +1014,7 @@ void PR_LoadProgs ()
 
 	pr_global_struct = (globalvars_t *)((byte *)progs + progs->ofs_globals);
 	pr_globals = (float *)pr_global_struct;
-	
+
 	pr_edict_size = progs->entityfields * 4 + sizeof (edict_t) - sizeof(entvars_t);
 	
 // byte swap the lumps
@@ -1090,14 +1087,12 @@ auto EDICT_NUM(int n) -> edict_t *
 {
 	if (n < 0 || n >= sv.max_edicts)
 		Sys_Error ("EDICT_NUM: bad number %i", n);
-	return (edict_t *)((byte *)sv.edicts+ (n)*pr_edict_size);
+	return (edict_t *)((byte *)sv.edicts + n * pr_edict_size);
 }
 
 auto NUM_FOR_EDICT(edict_t *e) -> int
 {
-	int		b = 0;
-	
-	b = (byte *)e - (byte *)sv.edicts;
+	int b = (byte *)e - (byte *)sv.edicts;
 	b = b / pr_edict_size;
 	
 	if (b < 0 || b >= sv.num_edicts)

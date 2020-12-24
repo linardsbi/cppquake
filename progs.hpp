@@ -90,7 +90,7 @@ void ED_LoadFromFile (char *data);
 //define NUM_FOR_EDICT(e) (((byte *)(e) - sv.edicts)/pr_edict_size)
 
 edict_t *EDICT_NUM(int n);
-int NUM_FOR_EDICT(edict_t *e);
+auto NUM_FOR_EDICT(edict_t *e) -> int;
 
 #define	NEXT_EDICT(e) ((edict_t *)( (byte *)e + pr_edict_size))
 
@@ -101,7 +101,7 @@ int NUM_FOR_EDICT(edict_t *e);
 
 #define	G_FLOAT(o) (pr_globals[o])
 #define	G_INT(o) (*(int *)&pr_globals[o])
-#define	G_EDICT(o) ((edict_t *)((byte *)sv.edicts+ *(int *)&pr_globals[o]))
+#define	G_EDICT(o) ((edict_t *)((byte *)sv.edicts + *(int *)&pr_globals[o])) // FIXME
 #define G_EDICTNUM(o) NUM_FOR_EDICT(G_EDICT(o))
 #define	G_VECTOR(o) (&pr_globals[o])
 #define	G_STRING(o) (pr_strings + *(string_t *)&pr_globals[o])

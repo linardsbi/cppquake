@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <cmath>
+#include <string>
 #include "quakedef.hpp"
 
 #define	RETURN_EDICT(e) (((int *)pr_globals)[OFS_RETURN] = EDICT_TO_PROG(e))
@@ -34,14 +35,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 auto PF_VarString (int	first) -> char *
 {
 	int		i = 0;
-	static char out[256];
-	
+	static std::string out = "";
 	out[0] = 0;
+
 	for (i=first ; i<pr_argc ; i++)
 	{
-		strcat (out, G_STRING((OFS_PARM0+i*3)));
+	    out += G_STRING((OFS_PARM0+i*3));
 	}
-	return out;
+	return out.data();
 }
 
 
@@ -290,12 +291,9 @@ sprint(clientent, value)
 */
 void PF_sprint ()
 {
-	char		*s = nullptr;
-	client_t	*client = nullptr;
-	int			entnum = 0;
 	
-	entnum = G_EDICTNUM(OFS_PARM0);
-	s = PF_VarString(1);
+	int entnum = G_EDICTNUM(OFS_PARM0);
+	char* s = PF_VarString(1);
 	
 	if (entnum < 1 || entnum > svs.maxclients)
 	{
@@ -303,7 +301,7 @@ void PF_sprint ()
 		return;
 	}
 		
-	client = &svs.clients[entnum-1];
+	client_t* client = &svs.clients[entnum-1];
 		
 	MSG_WriteChar (&client->message,svc_print);
 	MSG_WriteString (&client->message, s );

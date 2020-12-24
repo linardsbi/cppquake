@@ -501,7 +501,8 @@ while (true)
 					(a->vector[2] == b->vector[2]);
 		break;
 	case OP_EQ_S:
-		c->_float = !strcmp(pr_strings+a->string,pr_strings+b->string);
+	    if (!pr_strings+a->string) break;
+		c->_float = !Q_strcmp(pr_strings+a->string,pr_strings+b->string);
 		break;
 	case OP_EQ_E:
 		c->_float = a->_int == b->_int;
@@ -520,7 +521,8 @@ while (true)
 					(a->vector[2] != b->vector[2]);
 		break;
 	case OP_NE_S:
-		c->_float = strcmp(pr_strings+a->string,pr_strings+b->string);
+        if (a->string < 3'000'000 && a->string > 0) // fixme: UB!
+		    c->_float = strcmp(pr_strings+a->string,pr_strings+b->string);
 		break;
 	case OP_NE_E:
 		c->_float = a->_int != b->_int;

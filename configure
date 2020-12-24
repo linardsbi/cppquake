@@ -5295,10 +5295,10 @@ if test x$enable_asm = xyes; then
     CFLAGS="$CFLAGS -DUSE_ASM"
 fi
 
-CFLAGS="$CFLAGS -DELF -m32"
-CXXFLAGS="$CXXFLAGS -DSDL -m32 -std=c++2a -I/usr/include/SDL"
-LDFLAGS="$LDFLAGS -m32"
-CCASFLAGS="$CCASFLAGS -m32"
+CFLAGS="$CFLAGS -DELF"
+CXXFLAGS="$CXXFLAGS -DSDL -std=c++2a -Og -I/usr/include/SDL"
+LDFLAGS="$LDFLAGS"
+CCASFLAGS="$CCASFLAGS -Og"
 
 # Finally create all the generated files
 ac_config_files="$ac_config_files Makefile"

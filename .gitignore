@@ -6,3 +6,4 @@ autom4te.cache
 .idea
 Makefile
 .deps/
+config.log

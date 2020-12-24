@@ -105,38 +105,31 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__objects_1 = snd_mixa.$(OBJEXT) sys_dosa.$(OBJEXT) d_draw.$(OBJEXT) \
-	d_draw16.$(OBJEXT) d_parta.$(OBJEXT) d_polysa.$(OBJEXT) \
-	d_scana.$(OBJEXT) d_spr8.$(OBJEXT) d_varsa.$(OBJEXT) \
-	math.$(OBJEXT) r_aclipa.$(OBJEXT) r_aliasa.$(OBJEXT) \
-	r_drawa.$(OBJEXT) r_edgea.$(OBJEXT) surf16.$(OBJEXT) \
-	surf8.$(OBJEXT) worlda.$(OBJEXT)
-am__objects_2 = d_vars.$(OBJEXT) nonintel.$(OBJEXT)
+am__objects_1 = d_vars.$(OBJEXT) nonintel.$(OBJEXT)
 am_sdlquake_OBJECTS = cd_sdl.$(OBJEXT) chase.$(OBJEXT) \
 	cl_demo.$(OBJEXT) cl_input.$(OBJEXT) cl_main.$(OBJEXT) \
 	cl_parse.$(OBJEXT) cl_tent.$(OBJEXT) cmd.$(OBJEXT) \
 	common.$(OBJEXT) console.$(OBJEXT) crc.$(OBJEXT) \
-	cvar.$(OBJEXT) d_copy.$(OBJEXT) d_edge.$(OBJEXT) \
-	d_fill.$(OBJEXT) d_init.$(OBJEXT) d_modech.$(OBJEXT) \
-	d_part.$(OBJEXT) d_polyse.$(OBJEXT) d_scan.$(OBJEXT) \
-	d_sky.$(OBJEXT) d_sprite.$(OBJEXT) d_surf.$(OBJEXT) \
-	d_zpoint.$(OBJEXT) dosasm.$(OBJEXT) draw.$(OBJEXT) \
-	host.$(OBJEXT) host_cmd.$(OBJEXT) keys.$(OBJEXT) \
-	mathlib.$(OBJEXT) menu.$(OBJEXT) model.$(OBJEXT) \
-	net_bsd.$(OBJEXT) net_dgrm.$(OBJEXT) net_loop.$(OBJEXT) \
-	net_main.$(OBJEXT) net_udp.$(OBJEXT) net_vcr.$(OBJEXT) \
-	net_wso.$(OBJEXT) pr_cmds.$(OBJEXT) pr_edict.$(OBJEXT) \
-	pr_exec.$(OBJEXT) r_aclip.$(OBJEXT) r_alias.$(OBJEXT) \
-	r_bsp.$(OBJEXT) r_draw.$(OBJEXT) r_edge.$(OBJEXT) \
-	r_efrag.$(OBJEXT) r_light.$(OBJEXT) r_main.$(OBJEXT) \
-	r_misc.$(OBJEXT) r_part.$(OBJEXT) r_sky.$(OBJEXT) \
-	r_sprite.$(OBJEXT) r_surf.$(OBJEXT) r_vars.$(OBJEXT) \
-	r_varsa.$(OBJEXT) sbar.$(OBJEXT) screen.$(OBJEXT) \
+	cvar.$(OBJEXT) d_edge.$(OBJEXT) d_fill.$(OBJEXT) \
+	d_init.$(OBJEXT) d_modech.$(OBJEXT) d_part.$(OBJEXT) \
+	d_polyse.$(OBJEXT) d_scan.$(OBJEXT) d_sky.$(OBJEXT) \
+	d_sprite.$(OBJEXT) d_surf.$(OBJEXT) d_zpoint.$(OBJEXT) \
+	draw.$(OBJEXT) host.$(OBJEXT) host_cmd.$(OBJEXT) \
+	keys.$(OBJEXT) mathlib.$(OBJEXT) menu.$(OBJEXT) \
+	model.$(OBJEXT) net_bsd.$(OBJEXT) net_dgrm.$(OBJEXT) \
+	net_loop.$(OBJEXT) net_main.$(OBJEXT) net_udp.$(OBJEXT) \
+	net_vcr.$(OBJEXT) net_wso.$(OBJEXT) pr_cmds.$(OBJEXT) \
+	pr_edict.$(OBJEXT) pr_exec.$(OBJEXT) r_aclip.$(OBJEXT) \
+	r_alias.$(OBJEXT) r_bsp.$(OBJEXT) r_draw.$(OBJEXT) \
+	r_edge.$(OBJEXT) r_efrag.$(OBJEXT) r_light.$(OBJEXT) \
+	r_main.$(OBJEXT) r_misc.$(OBJEXT) r_part.$(OBJEXT) \
+	r_sky.$(OBJEXT) r_sprite.$(OBJEXT) r_surf.$(OBJEXT) \
+	r_vars.$(OBJEXT) sbar.$(OBJEXT) screen.$(OBJEXT) \
 	snd_dma.$(OBJEXT) snd_mem.$(OBJEXT) snd_mix.$(OBJEXT) \
 	snd_sdl.$(OBJEXT) sv_main.$(OBJEXT) sv_move.$(OBJEXT) \
 	sv_phys.$(OBJEXT) sv_user.$(OBJEXT) sys_sdl.$(OBJEXT) \
 	vid_sdl.$(OBJEXT) view.$(OBJEXT) wad.$(OBJEXT) world.$(OBJEXT) \
-	zone.$(OBJEXT) $(am__objects_1) $(am__objects_2)
+	zone.$(OBJEXT) $(am__objects_1)
 sdlquake_OBJECTS = $(am_sdlquake_OBJECTS)
 sdlquake_DEPENDENCIES =
 AM_V_P = $(am__v_P_$(V))
@@ -159,52 +152,37 @@ am__depfiles_remade = ./$(DEPDIR)/cd_sdl.Po ./$(DEPDIR)/chase.Po \
 	./$(DEPDIR)/cl_main.Po ./$(DEPDIR)/cl_parse.Po \
 	./$(DEPDIR)/cl_tent.Po ./$(DEPDIR)/cmd.Po \
 	./$(DEPDIR)/common.Po ./$(DEPDIR)/console.Po \
-	./$(DEPDIR)/crc.Po ./$(DEPDIR)/cvar.Po ./$(DEPDIR)/d_copy.Po \
-	./$(DEPDIR)/d_draw.Po ./$(DEPDIR)/d_draw16.Po \
-	./$(DEPDIR)/d_edge.Po ./$(DEPDIR)/d_fill.Po \
-	./$(DEPDIR)/d_init.Po ./$(DEPDIR)/d_modech.Po \
-	./$(DEPDIR)/d_part.Po ./$(DEPDIR)/d_parta.Po \
-	./$(DEPDIR)/d_polysa.Po ./$(DEPDIR)/d_polyse.Po \
-	./$(DEPDIR)/d_scan.Po ./$(DEPDIR)/d_scana.Po \
-	./$(DEPDIR)/d_sky.Po ./$(DEPDIR)/d_spr8.Po \
-	./$(DEPDIR)/d_sprite.Po ./$(DEPDIR)/d_surf.Po \
-	./$(DEPDIR)/d_vars.Po ./$(DEPDIR)/d_varsa.Po \
-	./$(DEPDIR)/d_zpoint.Po ./$(DEPDIR)/dosasm.Po \
-	./$(DEPDIR)/draw.Po ./$(DEPDIR)/host.Po \
-	./$(DEPDIR)/host_cmd.Po ./$(DEPDIR)/keys.Po \
-	./$(DEPDIR)/math.Po ./$(DEPDIR)/mathlib.Po ./$(DEPDIR)/menu.Po \
+	./$(DEPDIR)/crc.Po ./$(DEPDIR)/cvar.Po ./$(DEPDIR)/d_edge.Po \
+	./$(DEPDIR)/d_fill.Po ./$(DEPDIR)/d_init.Po \
+	./$(DEPDIR)/d_modech.Po ./$(DEPDIR)/d_part.Po \
+	./$(DEPDIR)/d_polyse.Po ./$(DEPDIR)/d_scan.Po \
+	./$(DEPDIR)/d_sky.Po ./$(DEPDIR)/d_sprite.Po \
+	./$(DEPDIR)/d_surf.Po ./$(DEPDIR)/d_vars.Po \
+	./$(DEPDIR)/d_zpoint.Po ./$(DEPDIR)/draw.Po \
+	./$(DEPDIR)/host.Po ./$(DEPDIR)/host_cmd.Po \
+	./$(DEPDIR)/keys.Po ./$(DEPDIR)/mathlib.Po ./$(DEPDIR)/menu.Po \
 	./$(DEPDIR)/model.Po ./$(DEPDIR)/net_bsd.Po \
 	./$(DEPDIR)/net_dgrm.Po ./$(DEPDIR)/net_loop.Po \
 	./$(DEPDIR)/net_main.Po ./$(DEPDIR)/net_udp.Po \
 	./$(DEPDIR)/net_vcr.Po ./$(DEPDIR)/net_wso.Po \
 	./$(DEPDIR)/nonintel.Po ./$(DEPDIR)/pr_cmds.Po \
 	./$(DEPDIR)/pr_edict.Po ./$(DEPDIR)/pr_exec.Po \
-	./$(DEPDIR)/r_aclip.Po ./$(DEPDIR)/r_aclipa.Po \
-	./$(DEPDIR)/r_alias.Po ./$(DEPDIR)/r_aliasa.Po \
+	./$(DEPDIR)/r_aclip.Po ./$(DEPDIR)/r_alias.Po \
 	./$(DEPDIR)/r_bsp.Po ./$(DEPDIR)/r_draw.Po \
-	./$(DEPDIR)/r_drawa.Po ./$(DEPDIR)/r_edge.Po \
-	./$(DEPDIR)/r_edgea.Po ./$(DEPDIR)/r_efrag.Po \
+	./$(DEPDIR)/r_edge.Po ./$(DEPDIR)/r_efrag.Po \
 	./$(DEPDIR)/r_light.Po ./$(DEPDIR)/r_main.Po \
 	./$(DEPDIR)/r_misc.Po ./$(DEPDIR)/r_part.Po \
 	./$(DEPDIR)/r_sky.Po ./$(DEPDIR)/r_sprite.Po \
 	./$(DEPDIR)/r_surf.Po ./$(DEPDIR)/r_vars.Po \
-	./$(DEPDIR)/r_varsa.Po ./$(DEPDIR)/sbar.Po \
-	./$(DEPDIR)/screen.Po ./$(DEPDIR)/snd_dma.Po \
-	./$(DEPDIR)/snd_mem.Po ./$(DEPDIR)/snd_mix.Po \
-	./$(DEPDIR)/snd_mixa.Po ./$(DEPDIR)/snd_sdl.Po \
-	./$(DEPDIR)/surf16.Po ./$(DEPDIR)/surf8.Po \
+	./$(DEPDIR)/sbar.Po ./$(DEPDIR)/screen.Po \
+	./$(DEPDIR)/snd_dma.Po ./$(DEPDIR)/snd_mem.Po \
+	./$(DEPDIR)/snd_mix.Po ./$(DEPDIR)/snd_sdl.Po \
 	./$(DEPDIR)/sv_main.Po ./$(DEPDIR)/sv_move.Po \
 	./$(DEPDIR)/sv_phys.Po ./$(DEPDIR)/sv_user.Po \
-	./$(DEPDIR)/sys_dosa.Po ./$(DEPDIR)/sys_sdl.Po \
-	./$(DEPDIR)/vid_sdl.Po ./$(DEPDIR)/view.Po ./$(DEPDIR)/wad.Po \
-	./$(DEPDIR)/world.Po ./$(DEPDIR)/worlda.Po ./$(DEPDIR)/zone.Po
+	./$(DEPDIR)/sys_sdl.Po ./$(DEPDIR)/vid_sdl.Po \
+	./$(DEPDIR)/view.Po ./$(DEPDIR)/wad.Po ./$(DEPDIR)/world.Po \
+	./$(DEPDIR)/zone.Po
 am__mv = mv -f
-CPPASCOMPILE = $(CCAS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CCASFLAGS) $(CCASFLAGS)
-AM_V_CPPAS = $(am__v_CPPAS_$(V))
-am__v_CPPAS_ = $(am__v_CPPAS_$(AM_DEFAULT_VERBOSITY))
-am__v_CPPAS_0 = @echo "  CPPAS   " $@;
-am__v_CPPAS_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 AM_V_CXX = $(am__v_CXX_$(V))
@@ -288,13 +266,13 @@ AWK = gawk
 CC = gcc
 CCAS = gcc
 CCASDEPMODE = depmode=gcc3
-CCASFLAGS = -g -O2 -m32
+CCASFLAGS = -g -O2 -Og
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF -m32
+CFLAGS = -g -O2 -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DSDL -DELF
 CPPFLAGS = 
 CXX = g++
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -g -O2 -DSDL -m32 -std=c++2a -I/usr/include/SDL
+CXXFLAGS = -g -O2 -DSDL -std=c++2a -Og -I/usr/include/SDL
 CYGPATH_W = echo
 DEFS = -DPACKAGE_NAME=\"sdlquake\" -DPACKAGE_TARNAME=\"sdlquake\" -DPACKAGE_VERSION=\"1.0.9\" -DPACKAGE_STRING=\"sdlquake\ 1.0.9\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DPACKAGE=\"sdlquake\" -DVERSION=\"1.0.9\"
 DEPDIR = .deps
@@ -309,7 +287,7 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-LDFLAGS =  -m32
+LDFLAGS = 
 LIBOBJS = 
 LIBS =  -L/usr/lib -lSDL -lpthread
 LTLIBOBJS = 
@@ -418,7 +396,6 @@ sdlquake_SOURCES = \
 	crc.hpp			\
 	cvar.cpp			\
 	cvar.hpp			\
-	d_copy.S		\
 	d_edge.cpp		\
 	d_fill.cpp		\
 	d_iface.hpp		\
@@ -433,7 +410,6 @@ sdlquake_SOURCES = \
 	d_sprite.cpp		\
 	d_surf.cpp		\
 	d_zpoint.cpp		\
-	dosasm.S		\
 	dosisms.hpp		\
 	draw.cpp			\
 	draw.hpp			\
@@ -488,7 +464,6 @@ sdlquake_SOURCES = \
 	r_sprite.cpp		\
 	r_surf.cpp		\
 	r_vars.cpp		\
-	r_varsa.S		\
 	render.hpp		\
 	resource.hpp		\
 	sbar.cpp			\
@@ -521,7 +496,7 @@ sdlquake_SOURCES = \
 	world.hpp			\
 	zone.cpp			\
 	zone.hpp			\
-	$(X86_SRCS) $(NONX86_SRCS)
+	$(NONX86_SRCS)
 
 X86_SRCS = \
 	snd_mixa.S		\
@@ -575,6 +550,7 @@ DOS_SRCS = \
 	vid_ext.c		\
 	vid_vga.c		\
 	vregset.c		\
+	dosasm.S		\
 	vregset.h
 
 WIN_SRCS = \
@@ -675,7 +651,7 @@ EXTRA_DIST = \
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .S .cpp .o .obj
+.SUFFIXES: .cpp .o .obj
 am--refresh: Makefile
 	@:
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
@@ -775,32 +751,22 @@ include ./$(DEPDIR)/common.Po # am--include-marker
 include ./$(DEPDIR)/console.Po # am--include-marker
 include ./$(DEPDIR)/crc.Po # am--include-marker
 include ./$(DEPDIR)/cvar.Po # am--include-marker
-include ./$(DEPDIR)/d_copy.Po # am--include-marker
-include ./$(DEPDIR)/d_draw.Po # am--include-marker
-include ./$(DEPDIR)/d_draw16.Po # am--include-marker
 include ./$(DEPDIR)/d_edge.Po # am--include-marker
 include ./$(DEPDIR)/d_fill.Po # am--include-marker
 include ./$(DEPDIR)/d_init.Po # am--include-marker
 include ./$(DEPDIR)/d_modech.Po # am--include-marker
 include ./$(DEPDIR)/d_part.Po # am--include-marker
-include ./$(DEPDIR)/d_parta.Po # am--include-marker
-include ./$(DEPDIR)/d_polysa.Po # am--include-marker
 include ./$(DEPDIR)/d_polyse.Po # am--include-marker
 include ./$(DEPDIR)/d_scan.Po # am--include-marker
-include ./$(DEPDIR)/d_scana.Po # am--include-marker
 include ./$(DEPDIR)/d_sky.Po # am--include-marker
-include ./$(DEPDIR)/d_spr8.Po # am--include-marker
 include ./$(DEPDIR)/d_sprite.Po # am--include-marker
 include ./$(DEPDIR)/d_surf.Po # am--include-marker
 include ./$(DEPDIR)/d_vars.Po # am--include-marker
-include ./$(DEPDIR)/d_varsa.Po # am--include-marker
 include ./$(DEPDIR)/d_zpoint.Po # am--include-marker
-include ./$(DEPDIR)/dosasm.Po # am--include-marker
 include ./$(DEPDIR)/draw.Po # am--include-marker
 include ./$(DEPDIR)/host.Po # am--include-marker
 include ./$(DEPDIR)/host_cmd.Po # am--include-marker
 include ./$(DEPDIR)/keys.Po # am--include-marker
-include ./$(DEPDIR)/math.Po # am--include-marker
 include ./$(DEPDIR)/mathlib.Po # am--include-marker
 include ./$(DEPDIR)/menu.Po # am--include-marker
 include ./$(DEPDIR)/model.Po # am--include-marker
@@ -816,14 +782,10 @@ include ./$(DEPDIR)/pr_cmds.Po # am--include-marker
 include ./$(DEPDIR)/pr_edict.Po # am--include-marker
 include ./$(DEPDIR)/pr_exec.Po # am--include-marker
 include ./$(DEPDIR)/r_aclip.Po # am--include-marker
-include ./$(DEPDIR)/r_aclipa.Po # am--include-marker
 include ./$(DEPDIR)/r_alias.Po # am--include-marker
-include ./$(DEPDIR)/r_aliasa.Po # am--include-marker
 include ./$(DEPDIR)/r_bsp.Po # am--include-marker
 include ./$(DEPDIR)/r_draw.Po # am--include-marker
-include ./$(DEPDIR)/r_drawa.Po # am--include-marker
 include ./$(DEPDIR)/r_edge.Po # am--include-marker
-include ./$(DEPDIR)/r_edgea.Po # am--include-marker
 include ./$(DEPDIR)/r_efrag.Po # am--include-marker
 include ./$(DEPDIR)/r_light.Po # am--include-marker
 include ./$(DEPDIR)/r_main.Po # am--include-marker
@@ -833,27 +795,21 @@ include ./$(DEPDIR)/r_sky.Po # am--include-marker
 include ./$(DEPDIR)/r_sprite.Po # am--include-marker
 include ./$(DEPDIR)/r_surf.Po # am--include-marker
 include ./$(DEPDIR)/r_vars.Po # am--include-marker
-include ./$(DEPDIR)/r_varsa.Po # am--include-marker
 include ./$(DEPDIR)/sbar.Po # am--include-marker
 include ./$(DEPDIR)/screen.Po # am--include-marker
 include ./$(DEPDIR)/snd_dma.Po # am--include-marker
 include ./$(DEPDIR)/snd_mem.Po # am--include-marker
 include ./$(DEPDIR)/snd_mix.Po # am--include-marker
-include ./$(DEPDIR)/snd_mixa.Po # am--include-marker
 include ./$(DEPDIR)/snd_sdl.Po # am--include-marker
-include ./$(DEPDIR)/surf16.Po # am--include-marker
-include ./$(DEPDIR)/surf8.Po # am--include-marker
 include ./$(DEPDIR)/sv_main.Po # am--include-marker
 include ./$(DEPDIR)/sv_move.Po # am--include-marker
 include ./$(DEPDIR)/sv_phys.Po # am--include-marker
 include ./$(DEPDIR)/sv_user.Po # am--include-marker
-include ./$(DEPDIR)/sys_dosa.Po # am--include-marker
 include ./$(DEPDIR)/sys_sdl.Po # am--include-marker
 include ./$(DEPDIR)/vid_sdl.Po # am--include-marker
 include ./$(DEPDIR)/view.Po # am--include-marker
 include ./$(DEPDIR)/wad.Po # am--include-marker
 include ./$(DEPDIR)/world.Po # am--include-marker
-include ./$(DEPDIR)/worlda.Po # am--include-marker
 include ./$(DEPDIR)/zone.Po # am--include-marker
 
 $(am__depfiles_remade):
@@ -861,20 +817,6 @@ $(am__depfiles_remade):
 	@echo '# dummy' >$@-t && $(am__mv) $@-t $@
 
 am--depfiles: $(am__depfiles_remade)
-
-.S.o:
-	$(AM_V_CPPAS)$(CPPASCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-#	$(AM_V_CPPAS)source='$<' object='$@' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) \
-#	$(AM_V_CPPAS_no)$(CPPASCOMPILE) -c -o $@ $<
-
-.S.obj:
-	$(AM_V_CPPAS)$(CPPASCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-#	$(AM_V_CPPAS)source='$<' object='$@' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CCASDEPMODE) $(depcomp) \
-#	$(AM_V_CPPAS_no)$(CPPASCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .cpp.o:
 	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1179,32 +1121,22 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/console.Po
 	-rm -f ./$(DEPDIR)/crc.Po
 	-rm -f ./$(DEPDIR)/cvar.Po
-	-rm -f ./$(DEPDIR)/d_copy.Po
-	-rm -f ./$(DEPDIR)/d_draw.Po
-	-rm -f ./$(DEPDIR)/d_draw16.Po
 	-rm -f ./$(DEPDIR)/d_edge.Po
 	-rm -f ./$(DEPDIR)/d_fill.Po
 	-rm -f ./$(DEPDIR)/d_init.Po
 	-rm -f ./$(DEPDIR)/d_modech.Po
 	-rm -f ./$(DEPDIR)/d_part.Po
-	-rm -f ./$(DEPDIR)/d_parta.Po
-	-rm -f ./$(DEPDIR)/d_polysa.Po
 	-rm -f ./$(DEPDIR)/d_polyse.Po
 	-rm -f ./$(DEPDIR)/d_scan.Po
-	-rm -f ./$(DEPDIR)/d_scana.Po
 	-rm -f ./$(DEPDIR)/d_sky.Po
-	-rm -f ./$(DEPDIR)/d_spr8.Po
 	-rm -f ./$(DEPDIR)/d_sprite.Po
 	-rm -f ./$(DEPDIR)/d_surf.Po
 	-rm -f ./$(DEPDIR)/d_vars.Po
-	-rm -f ./$(DEPDIR)/d_varsa.Po
 	-rm -f ./$(DEPDIR)/d_zpoint.Po
-	-rm -f ./$(DEPDIR)/dosasm.Po
 	-rm -f ./$(DEPDIR)/draw.Po
 	-rm -f ./$(DEPDIR)/host.Po
 	-rm -f ./$(DEPDIR)/host_cmd.Po
 	-rm -f ./$(DEPDIR)/keys.Po
-	-rm -f ./$(DEPDIR)/math.Po
 	-rm -f ./$(DEPDIR)/mathlib.Po
 	-rm -f ./$(DEPDIR)/menu.Po
 	-rm -f ./$(DEPDIR)/model.Po
@@ -1220,14 +1152,10 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/pr_edict.Po
 	-rm -f ./$(DEPDIR)/pr_exec.Po
 	-rm -f ./$(DEPDIR)/r_aclip.Po
-	-rm -f ./$(DEPDIR)/r_aclipa.Po
 	-rm -f ./$(DEPDIR)/r_alias.Po
-	-rm -f ./$(DEPDIR)/r_aliasa.Po
 	-rm -f ./$(DEPDIR)/r_bsp.Po
 	-rm -f ./$(DEPDIR)/r_draw.Po
-	-rm -f ./$(DEPDIR)/r_drawa.Po
 	-rm -f ./$(DEPDIR)/r_edge.Po
-	-rm -f ./$(DEPDIR)/r_edgea.Po
 	-rm -f ./$(DEPDIR)/r_efrag.Po
 	-rm -f ./$(DEPDIR)/r_light.Po
 	-rm -f ./$(DEPDIR)/r_main.Po
@@ -1237,27 +1165,21 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/r_sprite.Po
 	-rm -f ./$(DEPDIR)/r_surf.Po
 	-rm -f ./$(DEPDIR)/r_vars.Po
-	-rm -f ./$(DEPDIR)/r_varsa.Po
 	-rm -f ./$(DEPDIR)/sbar.Po
 	-rm -f ./$(DEPDIR)/screen.Po
 	-rm -f ./$(DEPDIR)/snd_dma.Po
 	-rm -f ./$(DEPDIR)/snd_mem.Po
 	-rm -f ./$(DEPDIR)/snd_mix.Po
-	-rm -f ./$(DEPDIR)/snd_mixa.Po
 	-rm -f ./$(DEPDIR)/snd_sdl.Po
-	-rm -f ./$(DEPDIR)/surf16.Po
-	-rm -f ./$(DEPDIR)/surf8.Po
 	-rm -f ./$(DEPDIR)/sv_main.Po
 	-rm -f ./$(DEPDIR)/sv_move.Po
 	-rm -f ./$(DEPDIR)/sv_phys.Po
 	-rm -f ./$(DEPDIR)/sv_user.Po
-	-rm -f ./$(DEPDIR)/sys_dosa.Po
 	-rm -f ./$(DEPDIR)/sys_sdl.Po
 	-rm -f ./$(DEPDIR)/vid_sdl.Po
 	-rm -f ./$(DEPDIR)/view.Po
 	-rm -f ./$(DEPDIR)/wad.Po
 	-rm -f ./$(DEPDIR)/world.Po
-	-rm -f ./$(DEPDIR)/worlda.Po
 	-rm -f ./$(DEPDIR)/zone.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -1318,32 +1240,22 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/console.Po
 	-rm -f ./$(DEPDIR)/crc.Po
 	-rm -f ./$(DEPDIR)/cvar.Po
-	-rm -f ./$(DEPDIR)/d_copy.Po
-	-rm -f ./$(DEPDIR)/d_draw.Po
-	-rm -f ./$(DEPDIR)/d_draw16.Po
 	-rm -f ./$(DEPDIR)/d_edge.Po
 	-rm -f ./$(DEPDIR)/d_fill.Po
 	-rm -f ./$(DEPDIR)/d_init.Po
 	-rm -f ./$(DEPDIR)/d_modech.Po
 	-rm -f ./$(DEPDIR)/d_part.Po
-	-rm -f ./$(DEPDIR)/d_parta.Po
-	-rm -f ./$(DEPDIR)/d_polysa.Po
 	-rm -f ./$(DEPDIR)/d_polyse.Po
 	-rm -f ./$(DEPDIR)/d_scan.Po
-	-rm -f ./$(DEPDIR)/d_scana.Po
 	-rm -f ./$(DEPDIR)/d_sky.Po
-	-rm -f ./$(DEPDIR)/d_spr8.Po
 	-rm -f ./$(DEPDIR)/d_sprite.Po
 	-rm -f ./$(DEPDIR)/d_surf.Po
 	-rm -f ./$(DEPDIR)/d_vars.Po
-	-rm -f ./$(DEPDIR)/d_varsa.Po
 	-rm -f ./$(DEPDIR)/d_zpoint.Po
-	-rm -f ./$(DEPDIR)/dosasm.Po
 	-rm -f ./$(DEPDIR)/draw.Po
 	-rm -f ./$(DEPDIR)/host.Po
 	-rm -f ./$(DEPDIR)/host_cmd.Po
 	-rm -f ./$(DEPDIR)/keys.Po
-	-rm -f ./$(DEPDIR)/math.Po
 	-rm -f ./$(DEPDIR)/mathlib.Po
 	-rm -f ./$(DEPDIR)/menu.Po
 	-rm -f ./$(DEPDIR)/model.Po
@@ -1359,14 +1271,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/pr_edict.Po
 	-rm -f ./$(DEPDIR)/pr_exec.Po
 	-rm -f ./$(DEPDIR)/r_aclip.Po
-	-rm -f ./$(DEPDIR)/r_aclipa.Po
 	-rm -f ./$(DEPDIR)/r_alias.Po
-	-rm -f ./$(DEPDIR)/r_aliasa.Po
 	-rm -f ./$(DEPDIR)/r_bsp.Po
 	-rm -f ./$(DEPDIR)/r_draw.Po
-	-rm -f ./$(DEPDIR)/r_drawa.Po
 	-rm -f ./$(DEPDIR)/r_edge.Po
-	-rm -f ./$(DEPDIR)/r_edgea.Po
 	-rm -f ./$(DEPDIR)/r_efrag.Po
 	-rm -f ./$(DEPDIR)/r_light.Po
 	-rm -f ./$(DEPDIR)/r_main.Po
@@ -1376,27 +1284,21 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/r_sprite.Po
 	-rm -f ./$(DEPDIR)/r_surf.Po
 	-rm -f ./$(DEPDIR)/r_vars.Po
-	-rm -f ./$(DEPDIR)/r_varsa.Po
 	-rm -f ./$(DEPDIR)/sbar.Po
 	-rm -f ./$(DEPDIR)/screen.Po
 	-rm -f ./$(DEPDIR)/snd_dma.Po
 	-rm -f ./$(DEPDIR)/snd_mem.Po
 	-rm -f ./$(DEPDIR)/snd_mix.Po
-	-rm -f ./$(DEPDIR)/snd_mixa.Po
 	-rm -f ./$(DEPDIR)/snd_sdl.Po
-	-rm -f ./$(DEPDIR)/surf16.Po
-	-rm -f ./$(DEPDIR)/surf8.Po
 	-rm -f ./$(DEPDIR)/sv_main.Po
 	-rm -f ./$(DEPDIR)/sv_move.Po
 	-rm -f ./$(DEPDIR)/sv_phys.Po
 	-rm -f ./$(DEPDIR)/sv_user.Po
-	-rm -f ./$(DEPDIR)/sys_dosa.Po
 	-rm -f ./$(DEPDIR)/sys_sdl.Po
 	-rm -f ./$(DEPDIR)/vid_sdl.Po
 	-rm -f ./$(DEPDIR)/view.Po
 	-rm -f ./$(DEPDIR)/wad.Po
 	-rm -f ./$(DEPDIR)/world.Po
-	-rm -f ./$(DEPDIR)/worlda.Po
 	-rm -f ./$(DEPDIR)/zone.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic

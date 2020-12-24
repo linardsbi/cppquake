@@ -907,7 +907,7 @@ auto SV_ModelIndex (char *name) -> int
 {
 	int		i = 0;
 	
-	if (!name || !name[0])
+	if (!name && !name[0])
 		return 0;
 
 	for (i=0 ; i<MAX_MODELS && sv.model_precache[i] ; i++)
@@ -954,8 +954,9 @@ void SV_CreateBaseline ()
 		else
 		{
 			svent->baseline.colormap = 0;
-			svent->baseline.modelindex =
-				SV_ModelIndex(pr_strings + svent->v.model);
+			if (svent->v.model < 3'000'000 && svent->v.model > 0) // fixme: UB!
+                svent->baseline.modelindex =
+                    SV_ModelIndex(pr_strings + svent->v.model);
 		}
 		
 	//
@@ -1159,7 +1160,7 @@ void SV_SpawnServer (char *server)
 	ent = EDICT_NUM(0);
 	memset (&ent->v, 0, progs->entityfields * 4);
 	ent->free = false;
-	ent->v.model = sv.worldmodel->name - pr_strings;
+	ent->v.model = sv.worldmodel->name - pr_strings; // here
 	ent->v.modelindex = 1;		// world model
 	ent->v.solid = SOLID_BSP;
 	ent->v.movetype = MOVETYPE_PUSH;

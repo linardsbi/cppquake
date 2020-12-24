@@ -33,7 +33,6 @@ sdlquake_SOURCES =		\
 	crc.hpp			\
 	cvar.cpp			\
 	cvar.hpp			\
-	d_copy.S		\
 	d_edge.cpp		\
 	d_fill.cpp		\
 	d_iface.hpp		\
@@ -48,7 +47,6 @@ sdlquake_SOURCES =		\
 	d_sprite.cpp		\
 	d_surf.cpp		\
 	d_zpoint.cpp		\
-	dosasm.S		\
 	dosisms.hpp		\
 	draw.cpp			\
 	draw.hpp			\
@@ -103,7 +101,6 @@ sdlquake_SOURCES =		\
 	r_sprite.cpp		\
 	r_surf.cpp		\
 	r_vars.cpp		\
-	r_varsa.S		\
 	render.hpp		\
 	resource.hpp		\
 	sbar.cpp			\
@@ -136,7 +133,7 @@ sdlquake_SOURCES =		\
 	world.hpp			\
 	zone.cpp			\
 	zone.hpp			\
-	$(X86_SRCS) $(NONX86_SRCS)
+	$(NONX86_SRCS)
 
 X86_SRCS =			\
 	snd_mixa.S		\
@@ -191,6 +188,7 @@ DOS_SRCS =			\
 	vid_ext.c		\
 	vid_vga.c		\
 	vregset.c		\
+	dosasm.S		\
 	vregset.h
 
 WIN_SRCS =			\
