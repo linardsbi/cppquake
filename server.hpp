@@ -237,7 +237,7 @@ void SV_ClientThink ();
 void SV_AddClientToServer (struct qsocket_s	*ret);
 
 void SV_ClientPrintf (const char *fmt, ...);
-void SV_BroadcastPrintf (std::string_view fmt, ...);
+void SV_BroadcastPrintf (const char* fmt, ...);
 
 void SV_Physics ();
 

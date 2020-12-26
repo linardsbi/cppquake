@@ -117,7 +117,7 @@ extern	qboolean	msg_badread;		// set if a read goes beyond end of message
 void MSG_BeginReading ();
 int MSG_ReadChar ();
 int MSG_ReadByte ();
-short MSG_ReadShort ();
+int MSG_ReadShort ();
 int MSG_ReadLong ();
 float MSG_ReadFloat ();
 char *MSG_ReadString ();
@@ -155,7 +155,7 @@ char *COM_Parse (char *data);
 extern	int		com_argc;
 extern	char	**com_argv;
 
-int COM_CheckParm (char *parm);
+int COM_CheckParm (std::string_view parm);
 void COM_Init (char *path);
 void COM_InitArgv (int argc, char **argv);
 

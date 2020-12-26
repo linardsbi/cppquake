@@ -942,8 +942,6 @@ void S_Play()
 void S_PlayVol()
 {
 	static int hash=543;
-	float vol = NAN;
-	sfx_t	*sfx = nullptr;
 
     int i = 1;
 	while (i<Cmd_Argc())
@@ -953,8 +951,8 @@ void S_PlayVol()
             name += ".wav";
         }
 
-		sfx = S_PrecacheSound(name.data());
-		vol = Q_atof(Cmd_Argv(i+1));
+        sfx_t	*sfx = S_PrecacheSound(name.data());
+		float vol = Q_atof(Cmd_Argv(i+1));
 		S_StartSound(hash++, 0, sfx, listener_origin, vol, 1.0);
 		i+=2;
 	}

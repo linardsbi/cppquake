@@ -295,13 +295,13 @@ SV_BroadcastPrintf
 Sends text to all active clients
 =================
 */
-void SV_BroadcastPrintf (std::string_view fmt, ...)
+void SV_BroadcastPrintf (const char* fmt, ...)
 {
 	va_list		argptr{};
 	char		string[1024];
 
-	va_start (argptr,fmt.data());
-	vsprintf (string, fmt.data(),argptr);
+	va_start (argptr,fmt);
+	vsprintf (string, fmt,argptr);
 	va_end (argptr);
 
 	for (int i=0 ; i<svs.maxclients ; i++)
@@ -913,7 +913,7 @@ void Host_Init (quakeparms_t *parms)
 
 	Cbuf_InsertText ("exec quake.rc\n");
 
-	Hunk_AllocName (0, "-HOST_HUNKLEVEL-");
+	hunkAllocName<void*>(0, "-HOST_HUNKLEVEL-");
 	host_hunklevel = Hunk_LowMark ();
 
 	host_initialized = true;

@@ -138,9 +138,9 @@ void R_RocketTrail (vec3_t start, vec3_t end, int type);
 void R_DarkFieldParticles (entity_t *ent);
 #endif
 void R_EntityParticles (entity_t *ent);
-void R_BlobExplosion (vec3_t org);
-void R_ParticleExplosion (vec3_t org);
-void R_ParticleExplosion2 (vec3_t org, int colorStart, int colorLength);
+void R_BlobExplosion (const vec3_t org);
+void R_ParticleExplosion (const vec3_t org);
+void R_ParticleExplosion2 (const vec3_t org, int colorStart, int colorLength);
 void R_LavaSplash (vec3_t org);
 void R_TeleportSplash (vec3_t org);
 

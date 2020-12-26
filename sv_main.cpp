@@ -760,6 +760,7 @@ void SV_UpdateToReliableMessages ()
 	int			i = 0, j = 0;
 	client_t *client = nullptr;
 
+
 // check for changes to be sent over the reliable streams
 	for (i=0, host_client = svs.clients ; i<svs.maxclients ; i++, host_client++)
 	{
@@ -1158,7 +1159,7 @@ void SV_SpawnServer (char *server)
 	ent = EDICT_NUM(0);
 	memset (&ent->v, 0, progs->entityfields * 4);
 	ent->free = false;
-	ent->v.model = sv.worldmodel->name - pr_strings; // here
+	ent->v.model = sv.worldmodel->name - pr_strings;
 	ent->v.modelindex = 1;		// world model
 	ent->v.solid = SOLID_BSP;
 	ent->v.movetype = MOVETYPE_PUSH;

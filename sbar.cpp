@@ -414,9 +414,9 @@ void Sbar_SortFrags ()
 			}
 }
 
-auto	Sbar_ColorForMap (int m) -> int
+constexpr auto	Sbar_ColorForMap (int m) -> int
 {
-	return m < 128 ? m + 8 : m + 8;
+	return m + 8 != 0;
 }
 
 /*

@@ -97,7 +97,7 @@ using memblock_t = struct memblock_s
     int     tag;            // a tag of 0 is a free block
     int     id;        		// should be ZONEID
     memblock_s       *next, *prev;
-    int		pad;			// pad to 64 bit boundary
+    int		pad;			// pad to 64 bit boundary; (sizeof(memblock_t) % 8 == 0)
 };
 
 struct memzone_t
@@ -137,10 +137,10 @@ constexpr int ZONEID = 0x1d4a11;
 constexpr int MINFRAGMENT =	64;
 
 extern byte	*hunk_base;
-extern int		hunk_size;
+extern long		hunk_size;
 
-extern int		hunk_low_used;
-extern int		hunk_high_used;
+extern long		hunk_low_used;
+extern long		hunk_high_used;
 
 extern qboolean	hunk_tempactive;
 extern int		hunk_tempmark;
@@ -150,17 +150,8 @@ extern cache_system_t	cache_head;
 void Memory_Init (void *buf, int size);
 
 void Z_Free (void *ptr);
-auto Z_Malloc (int size) -> void *;			// returns 0 filled memory
-auto Z_TagMalloc (int size, int tag) -> void *;
 
-void Z_DumpHeap ();
 void Z_CheckHeap ();
-auto Z_FreeMemory () -> int;
-
-auto Hunk_Alloc (int size) -> void *;		// returns 0 filled memory
-auto Hunk_AllocName (int size, char *name) -> void *;
-
-auto Hunk_HighAllocName (int size, char *name) -> void *;
 
 auto	Hunk_LowMark () -> int;
 void Hunk_FreeToLowMark (int mark);
@@ -168,11 +159,7 @@ void Hunk_FreeToLowMark (int mark);
 auto	Hunk_HighMark () -> int;
 void Hunk_FreeToHighMark (int mark);
 
-auto Hunk_TempAlloc (int size) -> void *;
-
 void Hunk_Check ();
-
-
 
 void Cache_Flush ();
 
@@ -181,8 +168,8 @@ auto Cache_Check (cache_user_t *c) -> void *;
 // if present, otherwise returns NULL
 
 void Cache_Free (cache_user_t *c);
-void Cache_FreeLow (int new_low_hunk);
-void Cache_FreeHigh (int new_high_hunk);
+void Cache_FreeLow (long new_low_hunk);
+void Cache_FreeHigh (long new_high_hunk);
 
 void Cache_UnlinkLRU (cache_system_t *cs);
 void Cache_MakeLRU (cache_system_t *cs);
@@ -196,15 +183,15 @@ auto Cache_TryAlloc (int size, qboolean nobottom) -> cache_system_t *;
 void Cache_Report ();
 
 template <typename MemType>
-auto hunkAllocName(int size, char *name) -> MemType {
+auto hunkAllocName(int hsize, const char *name) -> MemType {
 #ifdef PARANOID
     Hunk_Check();
 #endif
 
-    if (size < 0)
-        Sys_Error("Hunk_Alloc: bad size: %i", size);
+    if (hsize < 0)
+        Sys_Error("Hunk_Alloc: bad size: %i", hsize);
 
-    size = sizeof(hunk_t) + ((size + 15) & ~15);
+    auto size = sizeof(hunk_t) + ((hsize + 0b111) & ~0b111);
 
     if (hunk_size - hunk_low_used - hunk_high_used < size)
         Sys_Error("Hunk_Alloc: failed on %i bytes", size);
@@ -218,7 +205,7 @@ auto hunkAllocName(int size, char *name) -> MemType {
 
     h->size = size;
     h->sentinal = HUNK_SENTINAL;
-    Q_strncpy(h->name, name, 8);
+    strncpy(h->name, name, 8);
 
     return reinterpret_cast<MemType>(h + 1);
 }

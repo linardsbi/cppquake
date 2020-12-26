@@ -34,7 +34,7 @@ surfcache_t                     *sc_rover, *sc_base;
 
 auto     D_SurfaceCacheForRes (int width, int height) -> int
 {
-	int             size = 0, pix = 0;
+    auto size = SURFCACHE_SIZE_AT_320X200;
 
 	if (COM_CheckParm ("-surfcachesize"))
 	{
@@ -42,34 +42,25 @@ auto     D_SurfaceCacheForRes (int width, int height) -> int
 		return size;
 	}
 	
-	size = SURFCACHE_SIZE_AT_320X200;
-
-	pix = width*height;
+	const auto pix = width*height;
 	if (pix > 64000)
 		size += (pix-64000)*3;
-		
 
 	return size;
 }
 
 void D_CheckCacheGuard ()
 {
-	byte    *s = nullptr;
-	int             i = 0;
-
-	s = (byte *)sc_base + sc_size;
-	for (i=0 ; i<GUARDSIZE ; i++)
+	const auto s = (byte *)sc_base + sc_size;
+	for (auto i=0 ; i<GUARDSIZE ; i++)
 		if (s[i] != (byte)i)
 			Sys_Error ("D_CheckCacheGuard: failed");
 }
 
 void D_ClearCacheGuard ()
 {
-	byte    *s = nullptr;
-	int             i = 0;
-	
-	s = (byte *)sc_base + sc_size;
-	for (i=0 ; i<GUARDSIZE ; i++)
+	auto s = (byte *)sc_base + sc_size;
+	for (auto i=0 ; i<GUARDSIZE ; i++)
 		s[i] = (byte)i;
 }
 
@@ -82,7 +73,6 @@ D_InitCaches
 */
 void D_InitCaches (void *buffer, int size)
 {
-
 	if (!msg_suppress_1)
 		Con_Printf ("%ik surface cache\n", size/1024);
 
@@ -105,12 +95,10 @@ D_FlushCaches
 */
 void D_FlushCaches ()
 {
-	surfcache_t     *c = nullptr;
-	
 	if (!sc_base)
 		return;
 
-	for (c = sc_base ; c ; c = c->next)
+	for (auto c = sc_base ; c ; c = c->next)
 	{
 		if (c->owner)
 			*c->owner = nullptr;
@@ -129,9 +117,6 @@ D_SCAlloc
 */
 auto D_SCAlloc (int width, long size) -> surfcache_t     *
 {
-	surfcache_t             *newCache = nullptr;
-	qboolean                wrapped_this_time = false;
-
 	if ((width < 0) || (width > 256))
 		Sys_Error ("D_SCAlloc: bad cache width %d\n", width);
 
@@ -145,7 +130,7 @@ auto D_SCAlloc (int width, long size) -> surfcache_t     *
 		Sys_Error ("D_SCAlloc: %i > cache size",size);
 
 // if there is not size bytes after the rover, reset to the start
-	wrapped_this_time = false;
+	qboolean wrapped_this_time = false;
 
 	if ( !sc_rover || (byte *)sc_rover - (byte *)sc_base > sc_size - size)
 	{
@@ -157,7 +142,7 @@ auto D_SCAlloc (int width, long size) -> surfcache_t     *
 	}
 		
 // colect and free surfcache_t blocks until the rover block is large enough
-	newCache = sc_rover;
+	auto newCache = sc_rover;
 	if (sc_rover->owner)
 		*sc_rover->owner = nullptr;
 	
@@ -215,15 +200,13 @@ D_CheckCacheGuard ();   // DEBUG
 D_SCDump
 =================
 */
-void D_SCDump ()
+[[maybe_unused]] void D_SCDump ()
 {
-	surfcache_t             *test = nullptr;
-
-	for (test = sc_base ; test ; test = test->next)
+	for (auto test = sc_base ; test ; test = test->next)
 	{
 		if (test == sc_rover)
 			Sys_Printf ("ROVER:\n");
-		printf ("%p : %i bytes     %i width\n",test, test->size, test->width);
+		printf ("%p : %li bytes     %i width\n",test, test->size, test->width);
 	}
 }
 
@@ -231,7 +214,7 @@ void D_SCDump ()
 
 // if the num is not a power of 2, assume it will not repeat
 
-auto     MaskForNum (int num) -> int
+[[maybe_unused]] constexpr auto MaskForNum (int num) -> int
 {
 	if (num==128)
 		return 127;
@@ -244,11 +227,9 @@ auto     MaskForNum (int num) -> int
 	return 255;
 }
 
-auto D_log2 (int num) -> int
+[[maybe_unused]] constexpr auto D_log2 (int num) -> int
 {
-	int     c = 0;
-	
-	c = 0;
+	int c = 0;
 	
 	while (num>>=1)
 		c++;
@@ -262,10 +243,8 @@ auto D_log2 (int num) -> int
 D_CacheSurface
 ================
 */
-auto D_CacheSurface (msurface_t *surface, int miplevel) -> surfcache_t *
+auto D_CacheSurface (msurface_t *surface, const int miplevel) -> surfcache_t *
 {
-	surfcache_t     *cache = nullptr;
-
 //
 // if the surface is animating or flashing, flush the cache
 //
@@ -278,7 +257,7 @@ auto D_CacheSurface (msurface_t *surface, int miplevel) -> surfcache_t *
 //
 // see if the cache holds apropriate data
 //
-	cache = surface->cachespots[miplevel];
+	auto cache = surface->cachespots[miplevel];
 
 	if (cache && !cache->dlight && surface->dlightframe != r_framecount
 			&& cache->texture == r_drawsurf.texture
@@ -291,7 +270,7 @@ auto D_CacheSurface (msurface_t *surface, int miplevel) -> surfcache_t *
 //
 // determine shape of surface
 //
-	surfscale = 1.0 / (1<<miplevel);
+	surfscale = 1.0f / static_cast<float>(1<<miplevel);
 	r_drawsurf.surfmip = miplevel;
 	r_drawsurf.surfwidth = surface->extents[0] >> miplevel;
 	r_drawsurf.rowbytes = r_drawsurf.surfwidth;

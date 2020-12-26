@@ -733,6 +733,7 @@ auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean
 	dfunction_t	*func = nullptr;
 	
 	d = (void *)((int *)base + key->ofs);
+
 	
 	switch (key->type & ~DEF_SAVEGLOBAL)
 	{
@@ -985,6 +986,7 @@ void PR_LoadProgs ()
 	for (i=0 ; i<GEFV_CACHESIZE ; i++)
 		gefvCache[i].field[0] = 0;
 
+
 	CRC_Init (&pr_crc);
 
 	progs = (dprograms_t *)COM_LoadHunkFile ("progs.dat");
@@ -997,7 +999,7 @@ void PR_LoadProgs ()
 
 // byte swap the header
 	for (i=0 ; i<sizeof(*progs)/4 ; i++)
-		((int *)progs)[i] = LittleLong ( ((int *)progs)[i] );		
+		((int *)progs)[i] = LittleLong ( ((int *)progs)[i] );
 
 	if (progs->version != PROG_VERSION)
 		Sys_Error ("progs.dat has wrong version number (%i should be %i)", progs->version, PROG_VERSION);
@@ -1032,7 +1034,7 @@ void PR_LoadProgs ()
 	pr_functions[i].s_file = LittleLong (pr_functions[i].s_file);
 	pr_functions[i].numparms = LittleLong (pr_functions[i].numparms);
 	pr_functions[i].locals = LittleLong (pr_functions[i].locals);
-	}	
+	}
 
 	for (i=0 ; i<progs->numglobaldefs ; i++)
 	{

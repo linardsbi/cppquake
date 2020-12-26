@@ -530,10 +530,8 @@ void Cmd_TokenizeString (char *text)
 Cmd_AddCommand
 ============
 */
-void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
+void	Cmd_AddCommand (const char *cmd_name, xcommand_t function)
 {
-	cmd_function_t	*cmd = nullptr;
-	
 	if (host_initialized)	// because hunk allocation would get stomped
 		Sys_Error ("Cmd_AddCommand after host_initialized");
 		
@@ -543,19 +541,20 @@ void	Cmd_AddCommand (char *cmd_name, xcommand_t function)
 		Con_Printf ("Cmd_AddCommand: %s already defined as a var\n", cmd_name);
 		return;
 	}
-	
+
+    cmd_function_t	*cmd = cmd_functions;
 // fail if the command already exists
-	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
-	{
-		if (!Q_strcmp (cmd_name, cmd->name))
-		{
-			Con_Printf ("Cmd_AddCommand: %s already defined\n", cmd_name);
-			return;
-		}
-	}
+    while (cmd != nullptr) {
+        if (!Q_strcmp (cmd_name, cmd->name))
+        {
+            Con_Printf ("Cmd_AddCommand: %s already defined\n", cmd_name);
+            return;
+        }
+        cmd=cmd->next;
+    }
 
 	cmd = hunkAlloc<decltype(cmd)> (sizeof(cmd_function_t));
-	cmd->name = cmd_name;
+	cmd->name = const_cast<char*>(cmd_name);
 	cmd->function = function;
 	cmd->next = cmd_functions;
 	cmd_functions = cmd;

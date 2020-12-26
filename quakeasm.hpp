@@ -45,7 +45,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	.extern C(d_zistepu)
 	.extern C(d_pzbuffer)
 	.extern C(d_zistepv)
-	.extern C(d_zrowbytes)
+	.
+[[maybe_unused]] extern C(d_zrowbytes)
 	.extern C(d_ziorigin)
 	.extern C(r_turb_s)
 	.extern C(r_turb_t)
@@ -70,7 +71,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	.extern	C(d_viewbuffer)
 	.extern	C(cachewidth)
 	.extern	C(d_pzbuffer)
-	.extern	C(d_zrowbytes)
+	.
+[[maybe_unused]] extern	C(d_zrowbytes)
 	.extern	C(d_zwidth)
 	.extern C(d_scantable)
 	.extern C(r_lightptr)

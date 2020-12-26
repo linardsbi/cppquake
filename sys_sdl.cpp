@@ -41,7 +41,7 @@ void Sys_DebugNumber(int y, int val)
 {
 }
 
-void Sys_Printf (char *fmt, ...)
+void Sys_Printf (const char *fmt, ...)
 {
 	va_list		argptr;
 	char		text[1024];
@@ -357,7 +357,7 @@ auto main (int c, char **v) -> int
 	extern int vcrFile;
 	extern int recording;
 	static int frame;
-	constexpr int memPoolSize = 8*1024*1024;
+	constexpr int memPoolSize = sizeof(void*)*2*1024*1024;
 	constexpr float fpsInterval = 1.0;
 
 	moncontrol(0);

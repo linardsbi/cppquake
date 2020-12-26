@@ -603,110 +603,117 @@ void MSG_BeginReading ()
 // returns -1 and sets msg_badread if no more characters are available
 auto MSG_ReadChar () -> int
 {
-	if (msg_readcount+1 > net_message.cursize)
-	{
-		msg_badread = true;
-		return -1;
-	}
-		
-	int c = (signed char)net_message.data[msg_readcount];
-	msg_readcount++;
-	
-	return c;
+    int     c;
+
+    if (msg_readcount+1 > net_message.cursize)
+    {
+        msg_badread = true;
+        return -1;
+    }
+
+    c = (signed char)net_message.data[msg_readcount];
+    msg_readcount++;
+
+    return c;
 }
 
 auto MSG_ReadByte () -> int
 {
-	if (msg_readcount+1 > net_message.cursize)
-	{
-		msg_badread = true;
-		return -1;
-	}
+    if (msg_readcount+1 > net_message.cursize)
+    {
+        msg_badread = true;
+        return -1;
+    }
 
-	return net_message.data[msg_readcount++];
+    return net_message.data[msg_readcount++];
 }
 
-auto MSG_ReadShort () -> short
+auto MSG_ReadShort () -> int
 {
-	if (msg_readcount+2 > net_message.cursize)
-	{
-		msg_badread = true;
-		return -1;
-	}
-		
-	auto c = (short)(net_message.data[msg_readcount]
-	+ (net_message.data[msg_readcount+1]<<8));
-	
-	msg_readcount += 2;
-	
-	return c;
+    int     c;
+
+    if (msg_readcount+2 > net_message.cursize)
+    {
+        msg_badread = true;
+        return -1;
+    }
+
+    c = (short)(net_message.data[msg_readcount]
+                + (net_message.data[msg_readcount+1]<<8));
+
+    msg_readcount += 2;
+
+    return c;
 }
 
 auto MSG_ReadLong () -> int
 {
-	if (msg_readcount+4 > net_message.cursize)
-	{
-		msg_badread = true;
-		return -1;
-	}
-		
-	auto c = net_message.data[msg_readcount]
-	+ (net_message.data[msg_readcount+1]<<8)
-	+ (net_message.data[msg_readcount+2]<<16)
-	+ (net_message.data[msg_readcount+3]<<24);
-	
-	msg_readcount += 4;
-	
-	return c;
+    int     c;
+
+    if (msg_readcount+4 > net_message.cursize)
+    {
+        msg_badread = true;
+        return -1;
+    }
+
+    c = net_message.data[msg_readcount]
+        + (net_message.data[msg_readcount+1]<<8)
+        + (net_message.data[msg_readcount+2]<<16)
+        + (net_message.data[msg_readcount+3]<<24);
+
+    msg_readcount += 4;
+
+    return c;
 }
 
 auto MSG_ReadFloat () -> float
 {
-	union
-	{
-		byte    b[4];
-		float   f;
-		int     l;
-	} dat{};
-	
-	dat.b[0] =      net_message.data[msg_readcount];
-	dat.b[1] =      net_message.data[msg_readcount+1];
-	dat.b[2] =      net_message.data[msg_readcount+2];
-	dat.b[3] =      net_message.data[msg_readcount+3];
-	msg_readcount += 4;
-	
-	dat.l = LittleLong (dat.l);
+    union
+    {
+        byte    b[4];
+        float   f;
+        int     l;
+    } dat{};
 
-	return dat.f;   
+    dat.b[0] =      net_message.data[msg_readcount];
+    dat.b[1] =      net_message.data[msg_readcount+1];
+    dat.b[2] =      net_message.data[msg_readcount+2];
+    dat.b[3] =      net_message.data[msg_readcount+3];
+    msg_readcount += 4;
+
+    dat.l = LittleLong (dat.l);
+
+    return dat.f;
 }
 
 auto MSG_ReadString () -> char *
 {
-	static char     string[2048];
+    static char     string[2048];
+    int             l,c;
 
-	int l = 0;
-	do
-	{
-		int c = MSG_ReadChar ();
-		if (c == -1 || c == 0)
-			break;
-		string[l] = c;
-		l++;
-	} while (l < sizeof(string)-1);
-	
-	string[l] = 0;
-	
-	return string;
+    l = 0;
+    do
+    {
+        c = MSG_ReadChar ();
+        if (c == -1 || c == 0)
+            break;
+        string[l] = c;
+        l++;
+    } while (l < sizeof(string)-1);
+
+    string[l] = 0;
+
+    return string;
 }
 
 auto MSG_ReadCoord () -> float
 {
-	return MSG_ReadShort() * (1.0/8);
+    return MSG_ReadShort() * (1.0/8);
 }
 
 auto MSG_ReadAngle () -> float
 {
-	return MSG_ReadChar() * (360.0/256);
+    return MSG_ReadChar() * (360.0/256);
 }
 
 
@@ -973,11 +980,9 @@ Returns the position (1 to argc-1) in the program's argument list
 where the given parameter apears, or 0 if not present
 ================
 */
-auto COM_CheckParm (char *parm) -> int
+auto COM_CheckParm (std::string_view parm) -> int
 {
-	int             i;
-	
-	for (i=1 ; i<com_argc ; i++)
+	for (auto i=1 ; i<com_argc ; i++)
 	{
 		if (!com_argv[i])
 			continue;               // NEXTSTEP sometimes clears appkit vars.

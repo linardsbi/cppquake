@@ -123,83 +123,6 @@ void Z_Free (void *ptr)
 
 /*
 ========================
-Z_Malloc
-========================
-*/
-auto Z_Malloc (int size) -> void *
-{
-	void	*buf = nullptr;
-	
-Z_CheckHeap ();	// DEBUG
-	buf = Z_TagMalloc (size, 1);
-	if (!buf)
-		Sys_Error ("Z_Malloc: failed on allocation of %i bytes",size);
-	Q_memset (buf, 0, size);
-
-	return buf;
-}
-
-auto Z_TagMalloc (int size, int tag) -> void *
-{
-	int		extra = 0;
-	memblock_t	*start = nullptr, *rover = nullptr, *aNew = nullptr, *base = nullptr;
-
-	if (!tag)
-		Sys_Error ("Z_TagMalloc: tried to use a 0 tag");
-
-//
-// scan through the block list looking for the first free block
-// of sufficient size
-//
-	size += sizeof(memblock_t);	// account for size of block header
-	size += 4;					// space for memory trash tester
-	size = (size + 7) & ~7;		// align to 8-byte boundary
-	
-	base = rover = mainzone->rover;
-	start = base->prev;
-	
-	do
-	{
-		if (rover == start)	// scaned all the way around the list
-			return nullptr;
-		if (rover->tag)
-			base = rover = rover->next;
-		else
-			rover = rover->next;
-	} while (base->tag || base->size < size);
-	
-//
-// found a block big enough
-//
-	extra = base->size - size;
-	if (extra >  MINFRAGMENT)
-	{	// there will be a free fragment after the allocated block
-		aNew = (memblock_t *) ((byte *)base + size );
-		aNew->size = extra;
-		aNew->tag = 0;			// free block
-		aNew->prev = base;
-		aNew->id = ZONEID;
-		aNew->next = base->next;
-		aNew->next->prev = aNew;
-		base->next = aNew;
-		base->size = size;
-	}
-	
-	base->tag = tag;				// no longer a free block
-	
-	mainzone->rover = base->next;	// next allocation will start looking here
-	
-	base->id = ZONEID;
-
-// marker for memory trash testing
-	*(int *)((byte *)base + base->size - 4) = ZONEID;
-
-	return (void *) ((byte *)base + sizeof(memblock_t));
-}
-
-
-/*
-========================
 Z_Print
 ========================
 */
@@ -253,10 +176,10 @@ void Z_CheckHeap ()
 
 
 byte	*hunk_base;
-int		hunk_size;
+long		hunk_size;
 
-int		hunk_low_used;
-int		hunk_high_used;
+long		hunk_low_used;
+long		hunk_high_used;
 
 qboolean	hunk_tempactive;
 int		hunk_tempmark;
@@ -371,51 +294,6 @@ void Hunk_Print (qboolean all)
 	
 }
 
-/*
-===================
-Hunk_AllocName
-===================
-*/
-auto Hunk_AllocName (int size, char *name) -> void *
-{
-	hunk_t	*h = nullptr;
-	
-#ifdef PARANOID
-	Hunk_Check ();
-#endif
-
-	if (size < 0)
-		Sys_Error ("Hunk_Alloc: bad size: %i", size);
-		
-	size = sizeof(hunk_t) + ((size+15)&~15);
-	
-	if (hunk_size - hunk_low_used - hunk_high_used < size)
-		Sys_Error ("Hunk_Alloc: failed on %i bytes",size);
-	
-	h = (hunk_t *)(hunk_base + hunk_low_used);
-	hunk_low_used += size;
-
-	Cache_FreeLow (hunk_low_used);
-
-	memset (h, 0, size);
-	
-	h->size = size;
-	h->sentinal = HUNK_SENTINAL;
-	Q_strncpy (h->name, name, 8);
-	
-	return (void *)(h+1);
-}
-
-/*
-===================
-Hunk_Alloc
-===================
-*/
-auto Hunk_Alloc (int size) -> void *
-{
-	return Hunk_AllocName (size, "unknown");
-}
-
 auto	Hunk_LowMark () -> int
 {
 	return hunk_low_used;
@@ -452,82 +330,6 @@ void Hunk_FreeToHighMark (int mark)
 	memset (hunk_base + hunk_size - hunk_high_used, 0, hunk_high_used - mark);
 	hunk_high_used = mark;
 }
-
-
-/*
-===================
-Hunk_HighAllocName
-===================
-*/
-auto Hunk_HighAllocName (int size, char *name) -> void *
-{
-	hunk_t	*h = nullptr;
-
-	if (size < 0)
-		Sys_Error ("Hunk_HighAllocName: bad size: %i", size);
-
-	if (hunk_tempactive)
-	{
-		Hunk_FreeToHighMark (hunk_tempmark);
-		hunk_tempactive = false;
-	}
-
-#ifdef PARANOID
-	Hunk_Check ();
-#endif
-
-	size = sizeof(hunk_t) + ((size+15)&~15);
-
-	if (hunk_size - hunk_low_used - hunk_high_used < size)
-	{
-		Con_Printf ("Hunk_HighAlloc: failed on %i bytes\n",size);
-		return nullptr;
-	}
-
-	hunk_high_used += size;
-	Cache_FreeHigh (hunk_high_used);
-
-	h = (hunk_t *)(hunk_base + hunk_size - hunk_high_used);
-
-	memset (h, 0, size);
-	h->size = size;
-	h->sentinal = HUNK_SENTINAL;
-	Q_strncpy (h->name, name, 8);
-
-	return (void *)(h+1);
-}
-
-
-
-
-/*
-=================
-Hunk_TempAlloc
-
-Return space from the top of the hunk
-=================
-*/
-auto Hunk_TempAlloc (int size) -> void *
-{
-	void	*buf = nullptr;
-
-	size = (size+15)&~15;
-	
-	if (hunk_tempactive)
-	{
-		Hunk_FreeToHighMark (hunk_tempmark);
-		hunk_tempactive = false;
-	}
-	
-	hunk_tempmark = Hunk_HighMark ();
-
-	buf = Hunk_HighAllocName (size, "temp");
-
-	hunk_tempactive = true;
-
-	return buf;
-}
-
 
 
 /*
@@ -575,7 +377,7 @@ Cache_FreeLow
 Throw things out until the hunk can be expanded to the given point
 ============
 */
-void Cache_FreeLow (int new_low_hunk)
+void Cache_FreeLow (long new_low_hunk)
 {
 	cache_system_t	*c = nullptr;
 	
@@ -597,7 +399,7 @@ Cache_FreeHigh
 Throw things out until the hunk can be expanded to the given point
 ============
 */
-void Cache_FreeHigh (int new_high_hunk)
+void Cache_FreeHigh (long new_high_hunk)
 {
 	cache_system_t	*c = nullptr, *prev = nullptr;
 	
@@ -763,17 +565,7 @@ Cache_Report
 */
 void Cache_Report ()
 {
-	Con_DPrintf ("%4.1f megabyte data cache\n", (hunk_size - hunk_high_used - hunk_low_used) / (float)(1024*1024) );
-}
-
-/*
-============
-Cache_Compact
-
-============
-*/
-void Cache_Compact ()
-{
+	Con_DPrintf ("%4.1f megabyte data cache\n", static_cast<float>(hunk_size - hunk_high_used - hunk_low_used) / (float)(1024*1024) );
 }
 
 /*
@@ -836,46 +628,6 @@ auto Cache_Check (cache_user_t *c) -> void *
 	Cache_MakeLRU (cs);
 	
 	return c->data;
-}
-
-
-/*
-==============
-Cache_Alloc
-==============
-*/
-auto Cache_Alloc (cache_user_t *c, int size, char *name) -> void *
-{
-	cache_system_t	*cs = nullptr;
-
-	if (c->data)
-		Sys_Error ("Cache_Alloc: allready allocated");
-	
-	if (size <= 0)
-		Sys_Error ("Cache_Alloc: size %i", size);
-
-	size = (size + sizeof(cache_system_t) + 15) & ~15;
-
-// find memory for it	
-	while (true)
-	{
-		cs = Cache_TryAlloc (size, false);
-		if (cs)
-		{
-			strncpy (cs->name, name, sizeof(cs->name)-1);
-			c->data = (void *)(cs+1);
-			cs->user = c;
-			break;
-		}
-	
-	// free the least recently used cahedat
-		if (cache_head.lru_prev == &cache_head)
-			Sys_Error ("Cache_Alloc: out of memory");
-													// not enough memory at all
-		Cache_Free ( cache_head.lru_prev->user );
-	} 
-	
-	return Cache_Check (c);
 }
 
 //============================================================================

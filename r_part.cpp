@@ -46,9 +46,7 @@ R_InitParticles
 */
 void R_InitParticles ()
 {
-	int		i = 0;
-
-	i = COM_CheckParm ("-particles");
+	int i = COM_CheckParm ("-particles");
 
 	if (i)
 	{
@@ -61,8 +59,8 @@ void R_InitParticles ()
 		r_numparticles = MAX_PARTICLES;
 	}
 
-	particles = (particle_t *)
-			Hunk_AllocName (r_numparticles * sizeof(particle_t), "particles");
+	particles =
+			hunkAllocName<particle_t *>(r_numparticles * sizeof(particle_t), "particles");
 }
 
 #ifdef QUAKE2
@@ -232,7 +230,7 @@ void R_ReadPointFile_f ()
 		active_particles = p;
 		
 		p->die = 99999;
-		p->color = (-c)&15;
+		p->color = static_cast<float>((-c)&15);
 		p->type = pt_static;
 		VectorCopy (vec3_origin, p->vel);
 		VectorCopy (org, p->org);
@@ -261,10 +259,10 @@ void R_ParseParticleEffect ()
 	msgcount = MSG_ReadByte ();
 	color = MSG_ReadByte ();
 
-if (msgcount == 255)
-	count = 1024;
-else
-	count = msgcount;
+    if (msgcount == 255)
+        count = 1024;
+    else
+        count = msgcount;
 	
 	R_RunParticleEffect (org, dir, color, count);
 }
@@ -275,7 +273,7 @@ R_ParticleExplosion
 
 ===============
 */
-void R_ParticleExplosion (vec3_t org)
+void R_ParticleExplosion (const vec3_t org)
 {
 	int			i = 0, j = 0;
 	particle_t	*p = nullptr;
@@ -319,7 +317,7 @@ R_ParticleExplosion2
 
 ===============
 */
-void R_ParticleExplosion2 (vec3_t org, int colorStart, int colorLength)
+void R_ParticleExplosion2 (const vec3_t org, int colorStart, int colorLength)
 {
 	int			i = 0, j = 0;
 	particle_t	*p = nullptr;
@@ -353,7 +351,7 @@ R_BlobExplosion
 
 ===============
 */
-void R_BlobExplosion (vec3_t org)
+void R_BlobExplosion (const vec3_t org)
 {
 	int			i = 0, j = 0;
 	particle_t	*p = nullptr;

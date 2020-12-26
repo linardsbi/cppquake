@@ -25,14 +25,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // TODO: fine-tune this; it's based on providing some overage even if there
 // is a 2k-wide scan, with subdivision every 8, for 256 spans of 12 bytes each
 //
-#define SCANBUFFERPAD		0x1000
 
 #define R_SKY_SMASK	0x007F0000
 #define R_SKY_TMASK	0x007F0000
 
 #define DS_SPAN_LIST_END	-128
 
-#define SURFCACHE_SIZE_AT_320X200	600*1024
+constexpr int SURFCACHE_SIZE_AT_320X200 = 600*1024;
 
 typedef struct surfcache_s
 {
@@ -40,10 +39,10 @@ typedef struct surfcache_s
 	struct surfcache_s 	**owner;		// NULL is an empty chunk of memory
 	int					lightadj[MAXLIGHTMAPS]; // checked for strobe flush
 	int					dlight;
-	int					size;		// including header
+	long				size;		// including header
 	unsigned			width;
 	unsigned			height;		// DEBUG only needed for debug
-	float				mipscale;
+    [[maybe_unused]] float				mipscale;
 	struct texture_s	*texture;	// checked for animating textures
 	byte				data[4];	// width*height elements
 } surfcache_t;
@@ -77,23 +76,25 @@ void Turbulent8 (espan_t *pspan);
 void D_SpriteDrawSpans (sspan_t *pspan);
 
 void D_DrawSkyScans8 (espan_t *pspan);
-void D_DrawSkyScans16 (espan_t *pspan);
 
-void R_ShowSubDiv (void);
-extern void (*prealspandrawer)(void);
+[[maybe_unused]] void D_DrawSkyScans16 (espan_t *pspan);
+
+[[maybe_unused]] void R_ShowSubDiv ();
+
+[[maybe_unused]] extern void (*prealspandrawer)();
 surfcache_t	*D_CacheSurface (msurface_t *surface, int miplevel);
 
 extern int D_MipLevelForScale (float scale);
 
 #if id386
-extern void D_PolysetAff8Start (void);
-extern void D_PolysetAff8End (void);
+extern void D_PolysetAff8Start ();
+extern void D_PolysetAff8End ();
 #endif
 
 extern short *d_pzbuffer;
-extern unsigned int d_zrowbytes, d_zwidth;
+[[maybe_unused]] extern unsigned int d_zrowbytes, d_zwidth;
 
-extern int	*d_pscantable;
+[[maybe_unused]] extern int	*d_pscantable;
 extern int	d_scantable[MAXHEIGHT];
 
 extern int	d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;

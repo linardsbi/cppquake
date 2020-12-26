@@ -58,11 +58,9 @@ float	Cvar_VariableValue (const char *var_name)
 Cvar_VariableString
 ============
 */
-char *Cvar_VariableString (char *var_name)
+char *Cvar_VariableString (const char *var_name)
 {
-	cvar_t *var;
-	
-	var = Cvar_FindVar (var_name);
+    cvar_t * var = Cvar_FindVar (var_name);
 	if (!var)
 		return cvar_null_string;
 	return var->string;

@@ -107,8 +107,9 @@ void    VID_Init (unsigned char *palette)
         Sys_Error ("Not enough memory for video mode\n");
 
     // initialize the cache memory 
-        cache = (byte *) d_pzbuffer
-                + vid.width * vid.height * sizeof (*d_pzbuffer);
+    cache = (byte *) d_pzbuffer
+            + vid.width * vid.height * sizeof (*d_pzbuffer);
+
     D_InitCaches (cache, cachesize);
 
     // initialize the mouse

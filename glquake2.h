@@ -105,7 +105,7 @@ typedef struct surfcache_s
 	int					size;		// including header
 	unsigned			width;
 	unsigned			height;		// DEBUG only needed for debug
-	float				mipscale;
+    [[maybe_unused]] float				mipscale;
 	struct texture_s	*texture;	// checked for animating textures
 	byte				data[4];	// width*height elements
 } surfcache_t;
