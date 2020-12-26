@@ -516,49 +516,42 @@ Handles byte ordering and avoids alignment errors
 
 void MSG_WriteChar (sizebuf_t *sb, int c)
 {
-	byte    *buf;
 	
 #ifdef PARANOID
 	if (c < -128 || c > 127)
 		Sys_Error ("MSG_WriteChar: range error");
 #endif
 
-	buf = SZGetSpace<decltype(buf)> (sb, 1);
+    byte    *buf = SZGetSpace<decltype(buf)> (sb, 1);
 	buf[0] = c;
 }
 
 void MSG_WriteByte (sizebuf_t *sb, int c)
 {
-	byte    *buf;
-	
 #ifdef PARANOID
 	if (c < 0 || c > 255)
 		Sys_Error ("MSG_WriteByte: range error");
 #endif
 
-	buf = SZGetSpace<decltype(buf)> (sb, 1);
+    byte    *buf = SZGetSpace<decltype(buf)> (sb, 1);
 	buf[0] = c;
 }
 
-void MSG_WriteShort (sizebuf_t *sb, int c)
+void MSG_WriteShort (sizebuf_t *sb, short c)
 {
-	byte    *buf;
-	
 #ifdef PARANOID
 	if (c < ((short)0x8000) || c > (short)0x7fff)
 		Sys_Error ("MSG_WriteShort: range error");
 #endif
 
-	buf = SZGetSpace<decltype(buf)> (sb, 2);
+    byte    *buf = SZGetSpace<decltype(buf)> (sb, 2);
 	buf[0] = c&0xff;
 	buf[1] = c>>8;
 }
 
 void MSG_WriteLong (sizebuf_t *sb, int c)
 {
-	byte    *buf;
-	
-	buf = SZGetSpace<decltype(buf)> (sb, 4);
+    byte    *buf = SZGetSpace<decltype(buf)> (sb, 4);
 	buf[0] = c&0xff;
 	buf[1] = (c>>8)&0xff;
 	buf[2] = (c>>16)&0xff;
@@ -571,7 +564,7 @@ void MSG_WriteFloat (sizebuf_t *sb, float f)
 	{
 		float   f;
 		int     l;
-	} dat;
+	} dat{};
 	
 	
 	dat.f = f;
@@ -610,15 +603,13 @@ void MSG_BeginReading ()
 // returns -1 and sets msg_badread if no more characters are available
 auto MSG_ReadChar () -> int
 {
-	int     c;
-	
 	if (msg_readcount+1 > net_message.cursize)
 	{
 		msg_badread = true;
 		return -1;
 	}
 		
-	c = (signed char)net_message.data[msg_readcount];
+	int c = (signed char)net_message.data[msg_readcount];
 	msg_readcount++;
 	
 	return c;
@@ -635,17 +626,15 @@ auto MSG_ReadByte () -> int
 	return net_message.data[msg_readcount++];
 }
 
-auto MSG_ReadShort () -> int
+auto MSG_ReadShort () -> short
 {
-	int     c;
-	
 	if (msg_readcount+2 > net_message.cursize)
 	{
 		msg_badread = true;
 		return -1;
 	}
 		
-	c = (short)(net_message.data[msg_readcount]
+	auto c = (short)(net_message.data[msg_readcount]
 	+ (net_message.data[msg_readcount+1]<<8));
 	
 	msg_readcount += 2;
@@ -655,15 +644,13 @@ auto MSG_ReadShort () -> int
 
 auto MSG_ReadLong () -> int
 {
-	int     c;
-	
 	if (msg_readcount+4 > net_message.cursize)
 	{
 		msg_badread = true;
 		return -1;
 	}
 		
-	c = net_message.data[msg_readcount]
+	auto c = net_message.data[msg_readcount]
 	+ (net_message.data[msg_readcount+1]<<8)
 	+ (net_message.data[msg_readcount+2]<<16)
 	+ (net_message.data[msg_readcount+3]<<24);
@@ -680,7 +667,7 @@ auto MSG_ReadFloat () -> float
 		byte    b[4];
 		float   f;
 		int     l;
-	} dat;
+	} dat{};
 	
 	dat.b[0] =      net_message.data[msg_readcount];
 	dat.b[1] =      net_message.data[msg_readcount+1];
@@ -696,12 +683,11 @@ auto MSG_ReadFloat () -> float
 auto MSG_ReadString () -> char *
 {
 	static char     string[2048];
-	int             l,c;
-	
-	l = 0;
+
+	int l = 0;
 	do
 	{
-		c = MSG_ReadChar ();
+		int c = MSG_ReadChar ();
 		if (c == -1 || c == 0)
 			break;
 		string[l] = c;

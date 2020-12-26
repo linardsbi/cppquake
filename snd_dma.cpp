@@ -335,12 +335,10 @@ S_PrecacheSound
 */
 auto S_PrecacheSound (char *name) -> sfx_t *
 {
-	sfx_t	*sfx = nullptr;
-
 	if (!sound_started || nosound.value)
 		return nullptr;
 
-	sfx = S_FindName (name);
+    sfx_t	*sfx = S_FindName (name);
 	
 // cache it in
 	if (precache.value)

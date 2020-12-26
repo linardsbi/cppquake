@@ -119,7 +119,7 @@ Host_Error
 This shuts down both the client and server
 ================
 */
-void Host_Error (char *error, ...)
+void Host_Error (const char *error, ...)
 {
 	va_list		argptr;
 	char		string[1024];
@@ -275,7 +275,7 @@ Sends text across to be displayed
 FIXME: make this just a stuffed echo?
 =================
 */
-void SV_ClientPrintf (char *fmt, ...)
+void SV_ClientPrintf (const char *fmt, ...)
 {
 	va_list		argptr;
 	char		string[1024];
@@ -295,17 +295,16 @@ SV_BroadcastPrintf
 Sends text to all active clients
 =================
 */
-void SV_BroadcastPrintf (char *fmt, ...)
+void SV_BroadcastPrintf (std::string_view fmt, ...)
 {
-	va_list		argptr;
+	va_list		argptr{};
 	char		string[1024];
-	int			i = 0;
 
-	va_start (argptr,fmt);
-	vsprintf (string, fmt,argptr);
+	va_start (argptr,fmt.data());
+	vsprintf (string, fmt.data(),argptr);
 	va_end (argptr);
 
-	for (i=0 ; i<svs.maxclients ; i++)
+	for (int i=0 ; i<svs.maxclients ; i++)
 		if (svs.clients[i].active && svs.clients[i].spawned)
 		{
 			MSG_WriteByte (&svs.clients[i].message, svc_print);
@@ -320,7 +319,7 @@ Host_ClientCommands
 Send text over to the client to be executed
 =================
 */
-void Host_ClientCommands (char *fmt, ...)
+void Host_ClientCommands (const char *fmt, ...)
 {
 	va_list		argptr;
 	char		string[1024];

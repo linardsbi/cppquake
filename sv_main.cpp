@@ -899,27 +899,6 @@ SERVER SPAWNING
 
 /*
 ================
-SV_ModelIndex
-
-================
-*/
-auto SV_ModelIndex (char *name) -> int
-{
-	int		i = 0;
-	
-	if (!name && !name[0])
-		return 0;
-
-	for (i=0 ; i<MAX_MODELS && sv.model_precache[i] ; i++)
-		if (!strcmp(sv.model_precache[i], name))
-			return i;
-	if (i==MAX_MODELS || !sv.model_precache[i])
-		Sys_Error ("SV_ModelIndex: model %s not precached", name);
-	return i;
-}
-
-/*
-================
 SV_CreateBaseline
 
 ================
@@ -928,8 +907,8 @@ void SV_CreateBaseline ()
 {
 	int			i = 0;
 	edict_t			*svent = nullptr;
-	int				entnum = 0;	
-		
+	int				entnum = 0;
+
 	for (entnum = 0; entnum < sv.num_edicts ; entnum++)
 	{
 	// get the current server version
@@ -954,15 +933,13 @@ void SV_CreateBaseline ()
 		else
 		{
 			svent->baseline.colormap = 0;
-			if (svent->v.model < 3'000'000 && svent->v.model > 0) // fixme: UB!
-                svent->baseline.modelindex =
-                    SV_ModelIndex(pr_strings + svent->v.model);
+			svent->baseline.modelindex = svent->v.modelindex;
 		}
-		
+
 	//
 	// add to the message
 	//
-		MSG_WriteByte (&sv.signon,svc_spawnbaseline);		
+		MSG_WriteByte (&sv.signon,svc_spawnbaseline);
 		MSG_WriteShort (&sv.signon,entnum);
 
 		MSG_WriteByte (&sv.signon, svent->baseline.modelindex);
@@ -975,6 +952,27 @@ void SV_CreateBaseline ()
 			MSG_WriteAngle(&sv.signon, svent->baseline.angles[i]);
 		}
 	}
+}
+
+/*
+================
+SV_ModelIndex
+
+================
+*/
+auto SV_ModelIndex (std::string_view name) -> int
+{
+    int		i = 0;
+
+    if (name.length() == 0)
+        return 0;
+
+    for (i=0 ; i<MAX_MODELS && sv.model_precache[i] ; i++)
+        if (!Q_strcmp(sv.model_precache[i], name))
+            return i;
+    if (i==MAX_MODELS || !sv.model_precache[i])
+        Sys_Error ("SV_ModelIndex: model %s not precached", name);
+    return i;
 }
 
 

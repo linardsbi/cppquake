@@ -258,7 +258,7 @@ PR_RunError
 Aborts the currently executing function
 ============
 */
-void PR_RunError (char *error, ...)
+void PR_RunError (const char *error, ...)
 {
 	va_list		argptr;
 	char		string[1024];
@@ -521,8 +521,7 @@ while (true)
 					(a->vector[2] != b->vector[2]);
 		break;
 	case OP_NE_S:
-        if (a->string < 3'000'000 && a->string > 0) // fixme: UB!
-		    c->_float = strcmp(pr_strings+a->string,pr_strings+b->string);
+	    c->_float = Q_strcmp(pr_strings + a->string, pr_strings + b->string);
 		break;
 	case OP_NE_E:
 		c->_float = a->_int != b->_int;
@@ -634,7 +633,7 @@ while (true)
 			break;
 		}
 
-		s = PR_EnterFunction (newf);
+		s = PR_EnterFunction(newf);
 		break;
 
 	case OP_DONE:

@@ -61,7 +61,7 @@ void Host_Status_f ()
 	int			minutes = 0;
 	int			hours = 0;
 	int			j = 0;
-	void		(*print) (char *fmt, ...);
+	void		(*print) (const char *fmt, ...);
 	
 	if (cmd_source == src_command)
 	{

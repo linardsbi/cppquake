@@ -32,17 +32,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ===============================================================================
 */
 
-auto PF_VarString (int	first) -> char *
+auto PF_VarString (int	first) -> std::string
 {
-	int		i = 0;
-	static std::string out = "";
-	out[0] = 0;
+	std::string out;
 
-	for (i=first ; i<pr_argc ; i++)
+	for (int i=first ; i<pr_argc ; i++)
 	{
-	    out += G_STRING((OFS_PARM0+i*3));
+	    out += G_STRING(OFS_PARM0+i*3);
 	}
-	return out.data();
+
+	return out;
 }
 
 
@@ -58,13 +57,8 @@ error(value)
 */
 void PF_error ()
 {
-	char	*s = nullptr;
-	edict_t	*ed = nullptr;
-	
-	s = PF_VarString(0);
-	Con_Printf ("======SERVER ERROR in %s:\n%s\n"
-	,pr_strings + pr_xfunction->s_name,s);
-	ed = PROG_TO_EDICT(pr_global_struct->self);
+	Con_Printf ("======SERVER ERROR in %s:\n%s\n", pr_strings + pr_xfunction->s_name, PF_VarString(0).c_str());
+    edict_t	*ed = PROG_TO_EDICT(pr_global_struct->self);
 	ED_Print (ed);
 
 	Host_Error ("Program error");
@@ -82,13 +76,8 @@ objerror(value)
 */
 void PF_objerror ()
 {
-	char	*s = nullptr;
-	edict_t	*ed = nullptr;
-	
-	s = PF_VarString(0);
-	Con_Printf ("======OBJECT ERROR in %s:\n%s\n"
-	,pr_strings + pr_xfunction->s_name,s);
-	ed = PROG_TO_EDICT(pr_global_struct->self);
+	Con_Printf ("======OBJECT ERROR in %s:\n%s\n", pr_strings + pr_xfunction->s_name, PF_VarString(0).c_str());
+    edict_t	*ed = PROG_TO_EDICT(pr_global_struct->self);
 	ED_Print (ed);
 	ED_Free (ed);
 	
@@ -235,22 +224,20 @@ setmodel(entity, model)
 */
 void PF_setmodel ()
 {
-	edict_t	*e = nullptr;
-	char	*m = nullptr, **check = nullptr;
+	char **check = nullptr;
 	model_t	*mod = nullptr;
 	int		i = 0;
 
-	e = G_EDICT(OFS_PARM0);
-	m = G_STRING(OFS_PARM1);
+    edict_t	*e = G_EDICT(OFS_PARM0);
+    const char* m = G_STRING(OFS_PARM1);
 
 // check to see if model was properly precached
 	for (i=0, check = sv.model_precache ; *check ; i++, check++)
-		if (!strcmp(*check, m))
+		if (!Q_strcmp(*check, m))
 			break;
 			
 	if (!*check)
 		PR_RunError ("no precache: %s\n", m);
-		
 
 	e->v.model = m - pr_strings;
 	e->v.modelindex = i; //SV_ModelIndex (m);
@@ -274,10 +261,8 @@ bprint(value)
 */
 void PF_bprint ()
 {
-	char		*s = nullptr;
 
-	s = PF_VarString(0);
-	SV_BroadcastPrintf ("%s", s);
+	SV_BroadcastPrintf ("%s", PF_VarString(0).c_str());
 }
 
 /*
@@ -291,10 +276,8 @@ sprint(clientent, value)
 */
 void PF_sprint ()
 {
-	
 	int entnum = G_EDICTNUM(OFS_PARM0);
-	char* s = PF_VarString(1);
-	
+
 	if (entnum < 1 || entnum > svs.maxclients)
 	{
 		Con_Printf ("tried to sprint to a non-client\n");
@@ -304,7 +287,7 @@ void PF_sprint ()
 	client_t* client = &svs.clients[entnum-1];
 		
 	MSG_WriteChar (&client->message,svc_print);
-	MSG_WriteString (&client->message, s );
+	MSG_WriteString (&client->message, PF_VarString(1) );
 }
 
 
@@ -319,23 +302,18 @@ centerprint(clientent, value)
 */
 void PF_centerprint ()
 {
-	char		*s = nullptr;
-	client_t	*client = nullptr;
-	int			entnum = 0;
-	
-	entnum = G_EDICTNUM(OFS_PARM0);
-	s = PF_VarString(1);
+	int entnum = G_EDICTNUM(OFS_PARM0);
 	
 	if (entnum < 1 || entnum > svs.maxclients)
 	{
 		Con_Printf ("tried to sprint to a non-client\n");
 		return;
 	}
-		
-	client = &svs.clients[entnum-1];
+
+    client_t *client = &svs.clients[entnum-1];
 		
 	MSG_WriteChar (&client->message,svc_centerprint);
-	MSG_WriteString (&client->message, s );
+	MSG_WriteString (&client->message, PF_VarString(1) );
 }
 
 
@@ -505,24 +483,23 @@ PF_ambientsound
 void PF_ambientsound ()
 {
 	char		**check = nullptr;
-	char		*samp = nullptr;
 	float		*pos = nullptr;
 	float 		vol = NAN, attenuation = NAN;
 	int			i = 0, soundnum = 0;
 
 	pos = G_VECTOR (OFS_PARM0);			
-	samp = G_STRING(OFS_PARM1);
+	std::string samp = G_STRING(OFS_PARM1);
 	vol = G_FLOAT(OFS_PARM2);
 	attenuation = G_FLOAT(OFS_PARM3);
 	
 // check to see if samp was properly precached
 	for (soundnum=0, check = sv.sound_precache ; *check ; check++, soundnum++)
-		if (!strcmp(*check,samp))
+		if (!Q_strcmp(*check,samp))
 			break;
 			
 	if (!*check)
 	{
-		Con_Printf ("no precache: %s\n", samp);
+		Con_Printf ("no precache: %s\n", samp.c_str());
 		return;
 	}
 
@@ -556,7 +533,6 @@ Larger attenuations will drop off.
 */
 void PF_sound ()
 {
-	char		*sample = nullptr;
 	int			channel = 0;
 	edict_t		*entity = nullptr;
 	int 		volume = 0;
@@ -564,7 +540,7 @@ void PF_sound ()
 		
 	entity = G_EDICT(OFS_PARM0);
 	channel = G_FLOAT(OFS_PARM1);
-	sample = G_STRING(OFS_PARM2);
+	std::string sample = G_STRING(OFS_PARM2);
 	volume = G_FLOAT(OFS_PARM3) * 255;
 	attenuation = G_FLOAT(OFS_PARM4);
 	
@@ -577,7 +553,7 @@ void PF_sound ()
 	if (channel < 0 || channel > 7)
 		Sys_Error ("SV_StartSound: channel = %i", channel);
 
-	SV_StartSound (entity, channel, sample, volume, attenuation);
+	SV_StartSound (entity, channel, sample.data(), volume, attenuation);
 }
 
 /*
@@ -809,11 +785,10 @@ void PF_stuffcmd ()
 	entnum = G_EDICTNUM(OFS_PARM0);
 	if (entnum < 1 || entnum > svs.maxclients)
 		PR_RunError ("Parm 0 not a client");
-	str = G_STRING(OFS_PARM1);	
-	
+
 	old = host_client;
 	host_client = &svs.clients[entnum-1];
-	Host_ClientCommands ("%s", str);
+	Host_ClientCommands ("%s", G_STRING(OFS_PARM1));
 	host_client = old;
 }
 
@@ -828,10 +803,7 @@ localcmd (string)
 */
 void PF_localcmd ()
 {
-	char	*str = nullptr;
-	
-	str = G_STRING(OFS_PARM0);	
-	Cbuf_AddText (str);
+	Cbuf_AddText (G_STRING(OFS_PARM0));
 }
 
 /*
@@ -843,11 +815,7 @@ float cvar (string)
 */
 void PF_cvar ()
 {
-	char	*str = nullptr;
-	
-	str = G_STRING(OFS_PARM0);
-	
-	G_FLOAT(OFS_RETURN) = Cvar_VariableValue (str);
+	G_FLOAT(OFS_RETURN) = Cvar_VariableValue (G_STRING(OFS_PARM0));
 }
 
 /*
@@ -859,12 +827,7 @@ float cvar (string)
 */
 void PF_cvar_set ()
 {
-	char	*var = nullptr, *val = nullptr;
-	
-	var = G_STRING(OFS_PARM0);
-	val = G_STRING(OFS_PARM1);
-	
-	Cvar_Set (var, val);
+	Cvar_Set (G_STRING(OFS_PARM0), G_STRING(OFS_PARM1));
 }
 
 /*
@@ -916,7 +879,7 @@ PF_dprint
 */
 void PF_dprint ()
 {
-	Con_DPrintf ("%s",PF_VarString(0));
+	Con_DPrintf ("%s", PF_VarString(0).c_str());
 }
 
 char	pr_string_temp[128];
@@ -1022,26 +985,23 @@ void PF_Find ()
 }
 #else
 {
-	int		e = 0;	
-	int		f = 0;
-	char	*s = nullptr, *t = nullptr;
-	edict_t	*ed = nullptr;
+	int e = G_EDICTNUM(OFS_PARM0);
+	std::string_view s = G_STRING(OFS_PARM2);
 
-	e = G_EDICTNUM(OFS_PARM0);
-	f = G_INT(OFS_PARM1);
-	s = G_STRING(OFS_PARM2);
-	if (!s)
+	if (s.length() == 0)
 		PR_RunError ("PF_Find: bad search string");
 		
 	for (e++ ; e < sv.num_edicts ; e++)
 	{
-		ed = EDICT_NUM(e);
+        edict_t	*ed = EDICT_NUM(e);
 		if (ed->free)
 			continue;
-		t = E_STRING(ed,f);
+
+		char *t = E_STRING(ed, G_INT(OFS_PARM1));
+
 		if (!t)
 			continue;
-		if (!strcmp(t,s))
+		if (!Q_strcmp(t,s))
 		{
 			RETURN_EDICT(ed);
 			return;
@@ -1052,7 +1012,7 @@ void PF_Find ()
 }
 #endif
 
-void PR_CheckEmptyString (char *s)
+void PR_CheckEmptyString (const char *s)
 {
 	if (s[0] <= ' ')
 		PR_RunError ("Bad string");
@@ -1065,24 +1025,24 @@ void PF_precache_file ()
 
 void PF_precache_sound ()
 {
-	char	*s = nullptr;
-	int		i = 0;
-	
 	if (sv.state != ss_loading)
 		PR_RunError ("PF_Precache_*: Precache can only be done in spawn functions");
 		
-	s = G_STRING(OFS_PARM0);
+	std::string_view s = G_STRING(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
-	PR_CheckEmptyString (s);
+
+	if (s.length() == 0) {
+        PR_RunError ("Bad string");
+	}
 	
-	for (i=0 ; i<MAX_SOUNDS ; i++)
+	for (auto & i : sv.sound_precache)
 	{
-		if (!sv.sound_precache[i])
+		if (!i)
 		{
-			sv.sound_precache[i] = s;
+            i = const_cast<char*>(s.data());
 			return;
 		}
-		if (!strcmp(sv.sound_precache[i], s))
+		if (!Q_strcmp(i, s))
 			return;
 	}
 	PR_RunError ("PF_precache_sound: overflow");
@@ -1090,25 +1050,27 @@ void PF_precache_sound ()
 
 void PF_precache_model ()
 {
-	char	*s = nullptr;
-	int		i = 0;
-	
 	if (sv.state != ss_loading)
 		PR_RunError ("PF_Precache_*: Precache can only be done in spawn functions");
-		
-	s = G_STRING(OFS_PARM0);
-	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
-	PR_CheckEmptyString (s);
 
-	for (i=0 ; i<MAX_MODELS ; i++)
+
+	std::string_view s = G_STRING(OFS_PARM0);
+	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
+
+    if (s.length() == 0) {
+        PR_RunError ("Bad string");
+    }
+
+	for (std::size_t i=0 ; i<MAX_MODELS ; i++)
 	{
 		if (!sv.model_precache[i])
 		{
-			sv.model_precache[i] = s;
-			sv.models[i] = Mod_ForName (s, true);
+			sv.model_precache[i] = const_cast<char*>(s.data());
+
+			sv.models[i] = Mod_ForName (s.data(), true);
 			return;
 		}
-		if (!strcmp(sv.model_precache[i], s))
+		if (!Q_strcmp(sv.model_precache[i], s))
 			return;
 	}
 	PR_RunError ("PF_precache_model: overflow");
@@ -1219,28 +1181,24 @@ void(float style, string value) lightstyle
 */
 void PF_lightstyle ()
 {
-	int		style = 0;
-	char	*val = nullptr;
-	client_t	*client = nullptr;
-	int			j = 0;
-	
-	style = G_FLOAT(OFS_PARM0);
-	val = G_STRING(OFS_PARM1);
+	int style = G_FLOAT(OFS_PARM0);
 
 // change the string in sv
-	sv.lightstyles[style] = val;
+	sv.lightstyles[style] = const_cast<char*>(G_STRING(OFS_PARM1));
 	
 // send message to all clients on this server
 	if (sv.state != ss_active)
 		return;
-	
-	for (j=0, client = svs.clients ; j<svs.maxclients ; j++, client++)
-		if (client->active || client->spawned)
-		{
-			MSG_WriteChar (&client->message, svc_lightstyle);
-			MSG_WriteChar (&client->message,style);
-			MSG_WriteString (&client->message, val);
-		}
+
+    auto *client = svs.clients;
+	for (auto j=0 ; j<svs.maxclients ; j++, client++) {
+        if (client->active || client->spawned)
+        {
+            MSG_WriteChar (&client->message, svc_lightstyle);
+            MSG_WriteChar (&client->message,style);
+            MSG_WriteString (&client->message, G_STRING(OFS_PARM1));
+        }
+	}
 }
 
 void PF_rint ()
@@ -1578,23 +1536,21 @@ void PF_WriteEntity ()
 
 //=============================================================================
 
-auto SV_ModelIndex (char *name) -> int;
+
 
 void PF_makestatic ()
 {
-	edict_t	*ent = nullptr;
-	int		i = 0;
-	
-	ent = G_EDICT(OFS_PARM0);
+	edict_t	*ent = G_EDICT(OFS_PARM0);
 
 	MSG_WriteByte (&sv.signon,svc_spawnstatic);
 
-	MSG_WriteByte (&sv.signon, SV_ModelIndex(pr_strings + ent->v.model));
+	MSG_WriteByte (&sv.signon, ent->v.modelindex);
 
 	MSG_WriteByte (&sv.signon, ent->v.frame);
 	MSG_WriteByte (&sv.signon, ent->v.colormap);
 	MSG_WriteByte (&sv.signon, ent->v.skin);
-	for (i=0 ; i<3 ; i++)
+
+	for (std::size_t i=0 ; i<3 ; i++)
 	{
 		MSG_WriteCoord(&sv.signon, ent->v.origin[i]);
 		MSG_WriteAngle(&sv.signon, ent->v.angles[i]);
@@ -1651,15 +1607,13 @@ void PF_changelevel ()
 	else
 		Cbuf_AddText (va("changelevel2 %s %s\n",s1, s2));
 #else
-	char	*s = nullptr;
 
 // make sure we don't issue two changelevels
 	if (svs.changelevel_issued)
 		return;
 	svs.changelevel_issued = true;
-	
-	s = G_STRING(OFS_PARM0);
-	Cbuf_AddText (va("changelevel %s\n",s));
+
+	Cbuf_AddText (va("changelevel %s\n", G_STRING(OFS_PARM0)));
 #endif
 }
 
@@ -1825,9 +1779,8 @@ void PF_Fixme ()
 	PR_RunError ("unimplemented bulitin");
 }
 
-
-
-builtin_t pr_builtin[] =
+#include <array>
+std::array pr_builtin =
 {
 PF_Fixme,
 PF_makevectors,	// void(entity e)	makevectors 		= #1;
@@ -1928,6 +1881,6 @@ PF_precache_file,
 PF_setspawnparms
 };
 
-builtin_t *pr_builtins = pr_builtin;
-int pr_numbuiltins = sizeof(pr_builtin)/sizeof(pr_builtin[0]);
+builtin_t *pr_builtins = pr_builtin.data();
+constexpr int pr_numbuiltins = sizeof(pr_builtin)/sizeof(pr_builtin[0]);
 

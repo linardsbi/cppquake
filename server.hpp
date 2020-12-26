@@ -216,7 +216,7 @@ extern	edict_t		*sv_player;
 
 //===========================================================
 
-void SV_Init (void);
+void SV_Init ();
 
 void SV_StartParticle (vec3_t org, vec3_t dir, int color, int count);
 void SV_StartSound (edict_t *entity, int channel, char *sample, int volume,
@@ -224,32 +224,32 @@ void SV_StartSound (edict_t *entity, int channel, char *sample, int volume,
 
 void SV_DropClient (qboolean crash);
 
-void SV_SendClientMessages (void);
-void SV_ClearDatagram (void);
+void SV_SendClientMessages ();
+void SV_ClearDatagram ();
 
-int SV_ModelIndex (char *name);
+int SV_ModelIndex (std::string_view name);
 
-void SV_SetIdealPitch (void);
+void SV_SetIdealPitch ();
 
-void SV_AddUpdates (void);
+void SV_AddUpdates ();
 
-void SV_ClientThink (void);
+void SV_ClientThink ();
 void SV_AddClientToServer (struct qsocket_s	*ret);
 
-void SV_ClientPrintf (char *fmt, ...);
-void SV_BroadcastPrintf (char *fmt, ...);
+void SV_ClientPrintf (const char *fmt, ...);
+void SV_BroadcastPrintf (std::string_view fmt, ...);
 
-void SV_Physics (void);
+void SV_Physics ();
 
 qboolean SV_CheckBottom (edict_t *ent);
 qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink);
 
 void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg);
 
-void SV_MoveToGoal (void);
+void SV_MoveToGoal ();
 
-void SV_CheckForNewClients (void);
-void SV_RunClients (void);
+void SV_CheckForNewClients ();
+void SV_RunClients ();
 void SV_SaveSpawnparms ();
 #ifdef QUAKE2
 void SV_SpawnServer (char *server, char *startspot);

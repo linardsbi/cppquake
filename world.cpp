@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // world.c -- world query functions
 
 #include <cmath>
+#include <memory>
 #include "quakedef.hpp"
 
 /*
@@ -275,17 +276,15 @@ void SV_UnlinkEdict (edict_t *ent)
 SV_TouchLinks
 ====================
 */
-void SV_TouchLinks ( edict_t *ent, areanode_t *node )
+void SV_TouchLinks (const edict_t *ent, const areanode_t *node )
 {
-	link_t		*l = nullptr, *next = nullptr;
-	edict_t		*touch = nullptr;
-	int			old_self = 0, old_other = 0;
-
 // touch linked edicts
-	for (l = node->trigger_edicts.next ; l != &node->trigger_edicts ; l = next)
+	for (link_t	*l = node->trigger_edicts.next, *next = l->next;
+	     l != &node->trigger_edicts;
+	     l = next, next = l->next)
 	{
-		next = l->next;
-		touch = EDICT_FROM_AREA(l);
+        auto touch = (EDICT_FROM_AREA(l));
+
 		if (touch == ent)
 			continue;
 		if (!touch->v.touch || touch->v.solid != SOLID_TRIGGER)
@@ -297,8 +296,9 @@ void SV_TouchLinks ( edict_t *ent, areanode_t *node )
 		|| ent->v.absmax[1] < touch->v.absmin[1]
 		|| ent->v.absmax[2] < touch->v.absmin[2] )
 			continue;
-		old_self = pr_global_struct->self;
-		old_other = pr_global_struct->other;
+
+		const int old_self = pr_global_struct->self;
+		const int old_other = pr_global_struct->other;
 
 		pr_global_struct->self = EDICT_TO_PROG(touch);
 		pr_global_struct->other = EDICT_TO_PROG(ent);

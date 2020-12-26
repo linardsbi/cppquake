@@ -20,6 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // sv_edict.c -- entity dictionary
 
 
+#include <string>
+#include <memory>
 #include "quakedef.hpp"
 
 dprograms_t		*progs;
@@ -34,7 +36,7 @@ int				pr_edict_size;	// in bytes
 
 unsigned short		pr_crc;
 
-int		type_size[8] = {1,sizeof(string_t)/4,1,3,1,1,sizeof(func_t)/4,sizeof(void *)/4};
+constexpr int		type_size[8] = {1,sizeof(string_t)/4,1,3,1,1,sizeof(func_t)/4,sizeof(void *)/4};
 
 auto ED_FieldAtOfs (int ofs) -> ddef_t *;
 auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean;
@@ -434,13 +436,6 @@ For debugging
 */
 void ED_Print (edict_t *ed)
 {
-	int		l = 0;
-	ddef_t	*d = nullptr;
-	int		*v = nullptr;
-	int		i = 0, j = 0;
-	char	*name = nullptr;
-	int		type = 0;
-
 	if (ed->free)
 	{
 		Con_Printf ("FREE\n");
@@ -448,27 +443,33 @@ void ED_Print (edict_t *ed)
 	}
 
 	Con_Printf("\nEDICT %i:\n", NUM_FOR_EDICT(ed));
-	for (i=1 ; i<progs->numfielddefs ; i++)
+	for (auto i=1 ; i<progs->numfielddefs ; i++)
 	{
-		d = &pr_fielddefs[i];
-		name = pr_strings + d->s_name;
-		if (name[strlen(name)-2] == '_')
+		const ddef_t	*d = &pr_fielddefs[i];
+		std::string_view name = pr_strings + d->s_name;
+
+		if (name[name.length() - 2] == '_')
 			continue;	// skip _x, _y, _z vars
 			
-		v = (int *)((char *)&ed->v + d->ofs*4);
+		const int *v = (int *)((char *)&ed->v + d->ofs*4);
 
 	// if the value is still all 0, skip the field
-		type = d->type & ~DEF_SAVEGLOBAL;
-		
-		for (j=0 ; j<type_size[type] ; j++)
-			if (v[j])
-				break;
+		const int type = d->type & ~DEF_SAVEGLOBAL;
+
+		int j = 0;
+
+		while (j<type_size[type]) {
+            if (v[j])
+                break;
+            j++;
+		}
+
 		if (j == type_size[type])
 			continue;
 	
-		Con_Printf ("%s",name);
-		l = strlen (name);
-		while (l++ < 15)
+		Con_Printf ("%s", name.data());
+
+		for (int l = name.length(); l++ < 15;)
 			Con_Printf (" ");
 
 		Con_Printf ("%s\n", PR_ValueString(static_cast<etype_t>(d->type), (eval_t *)v));		
@@ -690,16 +691,13 @@ void ED_ParseGlobals (char *data)
 ED_NewString
 =============
 */
-auto ED_NewString (char *string) -> char *
+auto ED_NewString (std::string_view string) -> char *
 {
-	char	*newMem = nullptr, *new_p = nullptr;
-	int		i = 0,l = 0;
-	
-	l = strlen(string) + 1;
-	newMem = hunkAlloc<decltype(newMem)> (l);
-	new_p = newMem;
+    std::size_t l = string.length() + 1;
+	char* newMem = hunkAlloc<decltype(newMem)> (l);
+	char* new_p = newMem;
 
-	for (i=0 ; i< l ; i++)
+	for (std::size_t i=0 ; i< l ; i++)
 	{
 		if (string[i] == '\\' && i < l-1)
 		{
@@ -1016,7 +1014,7 @@ void PR_LoadProgs ()
 	pr_globals = (float *)pr_global_struct;
 
 	pr_edict_size = progs->entityfields * 4 + sizeof (edict_t) - sizeof(entvars_t);
-	
+
 // byte swap the lumps
 	for (i=0 ; i<progs->numstatements ; i++)
 	{
@@ -1092,10 +1090,15 @@ auto EDICT_NUM(int n) -> edict_t *
 
 auto NUM_FOR_EDICT(edict_t *e) -> int
 {
-	int b = (byte *)e - (byte *)sv.edicts;
+	auto b = (byte *)e - (byte *)sv.edicts;
 	b = b / pr_edict_size;
 	
 	if (b < 0 || b >= sv.num_edicts)
 		Sys_Error ("NUM_FOR_EDICT: bad pointer");
 	return b;
+}
+
+auto G_STRING(int ofs) -> const char* {
+    // fixme I'm assuming that this can sometimes return a pointer to freed memory
+    return (pr_strings + *(string_t *)&pr_globals[ofs]);
 }

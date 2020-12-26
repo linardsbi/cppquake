@@ -184,7 +184,7 @@ Mod_FindName
 
 ==================
 */
-auto Mod_FindName (char *name) -> model_t *
+auto Mod_FindName (const char *name) -> model_t *
 {
 	int		i = 0;
 	model_t	*mod = nullptr;
@@ -327,11 +327,9 @@ Mod_ForName
 Loads in a model for the given name
 ==================
 */
-auto Mod_ForName (char *name, qboolean crash) -> model_t *
+auto Mod_ForName (const char *name, qboolean crash) -> model_t *
 {
-	model_t	*mod = nullptr;
-
-	mod = Mod_FindName (name);
+    model_t	*mod = Mod_FindName (name);
 
 	return Mod_LoadModel (mod, crash);
 }
@@ -1545,9 +1543,7 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 
 	for (i=0 ; i<numskins ; i++)
 	{
-		aliasskintype_t	skintype{};
-
-		skintype = static_cast<decltype(skintype)>(LittleLong (pskintype->type));
+		auto skintype = static_cast<aliasskintype_t>(LittleLong (pskintype->type));
 		pskindesc[i].type = skintype;
 
 		if (skintype == ALIAS_SKIN_SINGLE)
@@ -1613,9 +1609,7 @@ void Mod_LoadAliasModel (model_t *mod, void *buffer)
 
 	for (i=0 ; i<numframes ; i++)
 	{
-		aliasframetype_t	frametype{};
-
-		frametype = static_cast<decltype(frametype)>(LittleLong (pframetype->type));
+		auto frametype = static_cast<aliasframetype_t>(LittleLong (pframetype->type));
 		pheader->frames[i].type = frametype;
 
 		if (frametype == ALIAS_SINGLE)
@@ -1783,7 +1777,6 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer)
 	dsprite_t			*pin = nullptr;
 	msprite_t			*psprite = nullptr;
 	int					numframes = 0;
-	int					size = 0;
 	dspriteframetype_t	*pframetype = nullptr;
 	
 	pin = (dsprite_t *)buffer;
@@ -1795,7 +1788,7 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer)
 
 	numframes = static_cast<decltype(numframes)>(LittleLong (pin->numframes));
 
-	size = sizeof (msprite_t) +	(numframes - 1) * sizeof (psprite->frames);
+	long size = sizeof (msprite_t) +	(numframes - 1) * sizeof (psprite->frames);
 
 	psprite = hunkAllocName<decltype(psprite)> (size, loadname);
 
