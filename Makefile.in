@@ -128,8 +128,8 @@ am_sdlquake_OBJECTS = cd_sdl.$(OBJEXT) chase.$(OBJEXT) \
 	snd_dma.$(OBJEXT) snd_mem.$(OBJEXT) snd_mix.$(OBJEXT) \
 	snd_sdl.$(OBJEXT) sv_main.$(OBJEXT) sv_move.$(OBJEXT) \
 	sv_phys.$(OBJEXT) sv_user.$(OBJEXT) sys_sdl.$(OBJEXT) \
-	vid_sdl.$(OBJEXT) view.$(OBJEXT) wad.$(OBJEXT) world.$(OBJEXT) \
-	zone.$(OBJEXT) $(am__objects_1)
+	util.$(OBJEXT) vid_sdl.$(OBJEXT) view.$(OBJEXT) wad.$(OBJEXT) \
+	world.$(OBJEXT) zone.$(OBJEXT) $(am__objects_1)
 sdlquake_OBJECTS = $(am_sdlquake_OBJECTS)
 sdlquake_DEPENDENCIES =
 AM_V_P = $(am__v_P_@AM_V@)
@@ -179,9 +179,9 @@ am__depfiles_remade = ./$(DEPDIR)/cd_sdl.Po ./$(DEPDIR)/chase.Po \
 	./$(DEPDIR)/snd_mix.Po ./$(DEPDIR)/snd_sdl.Po \
 	./$(DEPDIR)/sv_main.Po ./$(DEPDIR)/sv_move.Po \
 	./$(DEPDIR)/sv_phys.Po ./$(DEPDIR)/sv_user.Po \
-	./$(DEPDIR)/sys_sdl.Po ./$(DEPDIR)/vid_sdl.Po \
-	./$(DEPDIR)/view.Po ./$(DEPDIR)/wad.Po ./$(DEPDIR)/world.Po \
-	./$(DEPDIR)/zone.Po
+	./$(DEPDIR)/sys_sdl.Po ./$(DEPDIR)/util.Po \
+	./$(DEPDIR)/vid_sdl.Po ./$(DEPDIR)/view.Po ./$(DEPDIR)/wad.Po \
+	./$(DEPDIR)/world.Po ./$(DEPDIR)/zone.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -484,6 +484,8 @@ sdlquake_SOURCES = \
 	sv_user.cpp		\
 	sys.hpp			\
 	sys_sdl.cpp		\
+	util.hpp        \
+	util.cpp        \
 	vgamodes.hpp		\
 	vid.hpp			\
 	vid_sdl.cpp		\
@@ -805,6 +807,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sv_phys.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sv_user.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sys_sdl.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vid_sdl.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/view.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wad.Po@am__quote@ # am--include-marker
@@ -1175,6 +1178,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/sv_phys.Po
 	-rm -f ./$(DEPDIR)/sv_user.Po
 	-rm -f ./$(DEPDIR)/sys_sdl.Po
+	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/vid_sdl.Po
 	-rm -f ./$(DEPDIR)/view.Po
 	-rm -f ./$(DEPDIR)/wad.Po
@@ -1294,6 +1298,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/sv_phys.Po
 	-rm -f ./$(DEPDIR)/sv_user.Po
 	-rm -f ./$(DEPDIR)/sys_sdl.Po
+	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/vid_sdl.Po
 	-rm -f ./$(DEPDIR)/view.Po
 	-rm -f ./$(DEPDIR)/wad.Po

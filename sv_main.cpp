@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <cmath>
 #include "quakedef.hpp"
+#include "util.hpp"
 
 
 server_t		sv;
@@ -117,7 +118,7 @@ Larger attenuations will drop off.  (max 4 attenuation)
 
 ==================
 */  
-void SV_StartSound (edict_t *entity, int channel, char *sample, int volume,
+void SV_StartSound (edict_t *entity, int channel, std::string_view sample, int volume,
     float attenuation)
 {       
     int         sound_num = 0;
@@ -140,12 +141,12 @@ void SV_StartSound (edict_t *entity, int channel, char *sample, int volume,
 // find precache number for sound
     for (sound_num=1 ; sound_num<MAX_SOUNDS
         && sv.sound_precache[sound_num] ; sound_num++)
-        if (!strcmp(sample, sv.sound_precache[sound_num]))
+        if (!Q_strcmp(sample, sv.sound_precache[sound_num]))
             break;
     
     if ( sound_num == MAX_SOUNDS || !sv.sound_precache[sound_num] )
     {
-        Con_Printf ("SV_StartSound: %s not precacheed\n", sample);
+        Con_Printf ("SV_StartSound: %s not precacheed\n", sample.data());
         return;
     }
     
@@ -206,7 +207,7 @@ void SV_SendServerinfo (client_t *client)
 	else
 		MSG_WriteByte (&client->message, GAME_COOP);
 
-	sprintf (message, "%s", pr_strings+sv.edicts->v.message);
+	sprintf (message, "%s", getStringByOffset(sv.edicts->v.message).data());
 
 	MSG_WriteString (&client->message,message);
 
@@ -453,7 +454,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 		if (ent != clent)	// clent is ALLWAYS sent
 		{
 // ignore ents without visible models
-			if (!ent->v.modelindex || !pr_strings[ent->v.model])
+			if (!ent->v.modelindex || !stringExistsAtOffset(ent->v.model))
 				continue;
 
 			for (i=0 ; i < ent->num_leafs ; i++)
@@ -688,7 +689,7 @@ void SV_WriteClientdataToMessage (edict_t *ent, sizebuf_t *msg)
 	if (bits & SU_ARMOR)
 		MSG_WriteByte (msg, ent->v.armorvalue);
 	if (bits & SU_WEAPON)
-		MSG_WriteByte (msg, SV_ModelIndex(pr_strings+ent->v.weaponmodel));
+		MSG_WriteByte (msg, SV_ModelIndex(getStringByOffset(ent->v.weaponmodel)));
 	
 	MSG_WriteShort (msg, ent->v.health);
 	MSG_WriteByte (msg, ent->v.currentammo);
@@ -1159,7 +1160,7 @@ void SV_SpawnServer (char *server)
 	ent = EDICT_NUM(0);
 	memset (&ent->v, 0, progs->entityfields * 4);
 	ent->free = false;
-	ent->v.model = sv.worldmodel->name - pr_strings;
+	ent->v.model = getOffsetByString(sv.worldmodel->name);
 	ent->v.modelindex = 1;		// world model
 	ent->v.solid = SOLID_BSP;
 	ent->v.movetype = MOVETYPE_PUSH;
@@ -1169,8 +1170,8 @@ void SV_SpawnServer (char *server)
 	else
 		pr_global_struct->deathmatch = deathmatch.value;
 
-	pr_global_struct->mapname = sv.name - pr_strings;
-#ifdef QUAKE2
+	pr_global_struct->mapname = getOffsetByString(sv.name);
+#ifdef QUAKE2 // this might be useful
 	pr_global_struct->startspot = sv.startspot - pr_strings;
 #endif
 

@@ -21,8 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
 #include <string>
-#include <memory>
 #include "quakedef.hpp"
+#include "util.hpp"
 
 dprograms_t		*progs;
 dfunction_t		*pr_functions;
@@ -33,6 +33,9 @@ dstatement_t	*pr_statements;
 globalvars_t	*pr_global_struct;
 float			*pr_globals;			// same as pr_global_struct
 int				pr_edict_size;	// in bytes
+
+std::vector<NameOffsetPair> edictStrings{};
+std::vector<dfunction_t> edictFunctions{};
 
 unsigned short		pr_crc;
 
@@ -194,7 +197,7 @@ auto ED_FindField (char *name) -> ddef_t *
 	for (i=0 ; i<progs->numfielddefs ; i++)
 	{
 		def = &pr_fielddefs[i];
-		if (!strcmp(pr_strings + def->s_name,name) )
+		if (!Q_strcmp(getStringByOffset(def->s_name),name) )
 			return def;
 	}
 	return nullptr;
@@ -214,7 +217,7 @@ auto ED_FindGlobal (char *name) -> ddef_t *
 	for (i=0 ; i<progs->numglobaldefs ; i++)
 	{
 		def = &pr_globaldefs[i];
-		if (!strcmp(pr_strings + def->s_name,name) )
+		if (!Q_strcmp(getStringByOffset(def->s_name),name) )
 			return def;
 	}
 	return nullptr;
@@ -226,18 +229,24 @@ auto ED_FindGlobal (char *name) -> ddef_t *
 ED_FindFunction
 ============
 */
-auto ED_FindFunction (char *name) -> dfunction_t *
+// this needs to be replaced with a map<string, function>
+auto ED_FindFunction (std::string_view name)
 {
-	dfunction_t		*func = nullptr;
-	int				i = 0;
-	
-	for (i=0 ; i<progs->numfunctions ; i++)
-	{
-		func = &pr_functions[i];
-		if (!strcmp(pr_strings + func->s_name,name) )
-			return func;
-	}
-	return nullptr;
+    auto funcIt = std::find_if(edictFunctions.begin(), edictFunctions.end(), [&name](const auto& item) {
+        return getStringByOffset(item.s_name) == name;
+    });
+    return std::distance(edictFunctions.begin(), funcIt);
+
+//	dfunction_t		*func = nullptr;
+//	int				i = 0;
+//
+//	for (i=0 ; i<progs->numfunctions ; i++)
+//	{
+//		func = &pr_functions[i];
+//		if (!strcmp(pr_strings + func->s_name,name) )
+//			return func;
+//	}
+//	return nullptr;
 }
 
 
@@ -291,18 +300,18 @@ auto PR_ValueString (etype_t type, eval_t *val) -> char *
 	switch (type)
 	{
 	case ev_string:
-		sprintf (line, "%s", pr_strings + val->string);
+		sprintf (line, "%s", getStringByOffset(val->string).data());
 		break;
 	case ev_entity:	
 		sprintf (line, "entity %i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)) );
 		break;
 	case ev_function:
-		f = pr_functions + val->function;
-		sprintf (line, "%s()", pr_strings + f->s_name);
+		f = &edictFunctions[val->function];
+		sprintf (line, "%s()", getStringByOffset(f->s_name).data());
 		break;
 	case ev_field:
 		def = ED_FieldAtOfs ( val->_int );
-		sprintf (line, ".%s", pr_strings + def->s_name);
+		sprintf (line, ".%s", getStringByOffset(def->s_name).data());
 		break;
 	case ev_void:
 		sprintf (line, "void");
@@ -343,18 +352,18 @@ auto PR_UglyValueString (etype_t type, eval_t *val) -> char *
 	switch (type)
 	{
 	case ev_string:
-		sprintf (line, "%s", pr_strings + val->string);
+		sprintf (line, "%s", getStringByOffset(val->string).data());
 		break;
 	case ev_entity:	
 		sprintf (line, "%i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
 		break;
 	case ev_function:
-		f = pr_functions + val->function;
-		sprintf (line, "%s", pr_strings + f->s_name);
+		f = &edictFunctions[val->function];
+		sprintf (line, "%s", getStringByOffset(f->s_name).data());
 		break;
 	case ev_field:
 		def = ED_FieldAtOfs ( val->_int );
-		sprintf (line, "%s", pr_strings + def->s_name);
+		sprintf (line, "%s", getStringByOffset(def->s_name).data());
 		break;
 	case ev_void:
 		sprintf (line, "void");
@@ -395,7 +404,7 @@ auto PR_GlobalString (int ofs) -> char *
 	else
 	{
 		s = PR_ValueString (static_cast<etype_t>(def->type), val);
-		sprintf (line,"%i(%s)%s", ofs, pr_strings + def->s_name, s);
+		sprintf (line,"%i(%s)%s", ofs, getStringByOffset(def->s_name).data(), s);
 	}
 	
 	i = strlen(line);
@@ -416,7 +425,7 @@ auto PR_GlobalStringNoContents (int ofs) -> char *
 	if (!def)
 		sprintf (line,"%i(???)", ofs);
 	else
-		sprintf (line,"%i(%s)", ofs, pr_strings + def->s_name);
+		sprintf (line,"%i(%s)", ofs, getStringByOffset(def->s_name).data());
 	
 	i = strlen(line);
 	for ( ; i<20 ; i++)
@@ -446,7 +455,7 @@ void ED_Print (edict_t *ed)
 	for (auto i=1 ; i<progs->numfielddefs ; i++)
 	{
 		const ddef_t	*d = &pr_fielddefs[i];
-		std::string_view name = pr_strings + d->s_name;
+		std::string_view name = getStringByOffset(d->s_name);
 
 		if (name[name.length() - 2] == '_')
 			continue;	// skip _x, _y, _z vars
@@ -488,7 +497,6 @@ void ED_Write (FILE *f, edict_t *ed)
 	ddef_t	*d = nullptr;
 	int		*v = nullptr;
 	int		i = 0, j = 0;
-	char	*name = nullptr;
 	int		type = 0;
 
 	fprintf (f, "{\n");
@@ -502,8 +510,8 @@ void ED_Write (FILE *f, edict_t *ed)
 	for (i=1 ; i<progs->numfielddefs ; i++)
 	{
 		d = &pr_fielddefs[i];
-		name = pr_strings + d->s_name;
-		if (name[strlen(name)-2] == '_')
+		auto name = getStringByOffset(d->s_name);
+		if (name[name.length()-2] == '_')
 			continue;	// skip _x, _y, _z vars
 			
 		v = (int *)((char *)&ed->v + d->ofs*4);
@@ -516,7 +524,7 @@ void ED_Write (FILE *f, edict_t *ed)
 		if (j == type_size[type])
 			continue;
 	
-		fprintf (f,"\"%s\" ",name);
+		fprintf (f,"\"%s\" ",name.data());
 		fprintf (f,"\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(d->type), (eval_t *)v));		
 	}
 
@@ -635,8 +643,7 @@ void ED_WriteGlobals (FILE *f)
 		&& type != ev_entity)
 			continue;
 
-		name = pr_strings + def->s_name;		
-		fprintf (f,"\"%s\" ", name);
+		fprintf (f,"\"%s\" ", getStringByOffset(def->s_name).data());
 		fprintf (f,"\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(type), (eval_t *)&pr_globals[def->ofs]));		
 	}
 	fprintf (f,"}\n");
@@ -686,11 +693,8 @@ void ED_ParseGlobals (char *data)
 //============================================================================
 
 
+
 /*
-=============
-ED_NewString
-=============
-*/
 auto ED_NewString (std::string_view string) -> char *
 {
     std::size_t l = string.length() + 1;
@@ -713,7 +717,7 @@ auto ED_NewString (std::string_view string) -> char *
 	
 	return newMem;
 }
-
+*/
 
 /*
 =============
@@ -730,15 +734,17 @@ auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean
 	ddef_t	*def = nullptr;
 	char	*v = nullptr, *w = nullptr;
 	void	*d = nullptr;
-	dfunction_t	*func = nullptr;
-	
+	unsigned long functionDistance = 0;
+
 	d = (void *)((int *)base + key->ofs);
 
 	
 	switch (key->type & ~DEF_SAVEGLOBAL)
 	{
 	case ev_string:
-		*(string_t *)d = ED_NewString (s) - pr_strings;
+		//*(string_t *)d = ED_NewString (s) - pr_strings;
+
+        *(string_t *)d = newString(s);
 		break;
 		
 	case ev_float:
@@ -774,13 +780,13 @@ auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean
 		break;
 	
 	case ev_function:
-		func = ED_FindFunction (s);
-		if (!func)
+		functionDistance = getFunctionOffsetFromName(s);
+		if (functionDistance == 0)
 		{
 			Con_Printf ("Can't find function %s\n", s);
 			return false;
 		}
-		*(func_t *)d = func - pr_functions;
+		*(func_t *)d = functionDistance;
 		break;
 		
 	default:
@@ -866,12 +872,12 @@ if (!strcmp(com_token, "light"))
 			continue;
 		}
 
-if (anglehack)
-{
-char	temp[32];
-strcpy (temp, com_token);
-sprintf (com_token, "0 %s 0", temp);
-}
+        if (anglehack)
+        {
+            char	temp[32];
+            strcpy (temp, com_token);
+            sprintf (com_token, "0 %s 0", temp);
+        }
 
 		if (!ED_ParseEpair ((void *)&ent->v, key, com_token))
 			Host_Error ("ED_ParseEdict: parse error");
@@ -903,7 +909,6 @@ void ED_LoadFromFile (char *data)
 {	
 	edict_t		*ent = nullptr;
 	int			inhibit = 0;
-	dfunction_t	*func = nullptr;
 
 	pr_global_struct->time = sv.time;
 	
@@ -946,7 +951,7 @@ void ED_LoadFromFile (char *data)
 //
 // immediately call spawn function
 //
-		if (!ent->v.classname)
+		if (ent->v.classname == 0)
 		{
 			Con_Printf ("No classname for:\n");
 			ED_Print (ent);
@@ -955,9 +960,9 @@ void ED_LoadFromFile (char *data)
 		}
 
 	// look for the spawn function
-		func = ED_FindFunction ( pr_strings + ent->v.classname );
+		auto funcOfs = getFunctionOffsetFromName(getStringByOffset(ent->v.classname)); // XD
 
-		if (!func)
+		if (funcOfs == 0)
 		{
 			Con_Printf ("No spawn function for:\n");
 			ED_Print (ent);
@@ -966,7 +971,7 @@ void ED_LoadFromFile (char *data)
 		}
 
 		pr_global_struct->self = EDICT_TO_PROG(ent);
-		PR_ExecuteProgram (func - pr_functions);
+		PR_ExecuteProgram (funcOfs);
 	}	
 
 	Con_DPrintf ("%i entities inhibited\n", inhibit);
@@ -1025,15 +1030,24 @@ void PR_LoadProgs ()
 		pr_statements[i].b = LittleShort(pr_statements[i].b);
 		pr_statements[i].c = LittleShort(pr_statements[i].c);
 	}
-
+    edictFunctions.reserve(progs->numfunctions);
 	for (i=0 ; i<progs->numfunctions; i++)
 	{
-	pr_functions[i].first_statement = LittleLong (pr_functions[i].first_statement);
-	pr_functions[i].parm_start = LittleLong (pr_functions[i].parm_start);
-	pr_functions[i].s_name = LittleLong (pr_functions[i].s_name);
-	pr_functions[i].s_file = LittleLong (pr_functions[i].s_file);
-	pr_functions[i].numparms = LittleLong (pr_functions[i].numparms);
-	pr_functions[i].locals = LittleLong (pr_functions[i].locals);
+	    edictFunctions.push_back({
+	        .first_statement = LittleLong (pr_functions[i].first_statement),
+	        .parm_start = LittleLong (pr_functions[i].parm_start),
+            .locals = LittleLong (pr_functions[i].locals),
+            .profile = 0,
+            .s_name = LittleLong (pr_functions[i].s_name),
+            .s_file = LittleLong (pr_functions[i].s_file),
+            .numparms = LittleLong (pr_functions[i].numparms),
+	    });
+//	pr_functions[i].first_statement = LittleLong (pr_functions[i].first_statement);
+//	pr_functions[i].parm_start = LittleLong (pr_functions[i].parm_start);
+//	pr_functions[i].s_name = LittleLong (pr_functions[i].s_name);
+//	pr_functions[i].s_file = LittleLong (pr_functions[i].s_file);
+//	pr_functions[i].numparms = LittleLong (pr_functions[i].numparms);
+//	pr_functions[i].locals = LittleLong (pr_functions[i].locals);
 	}
 
 	for (i=0 ; i<progs->numglobaldefs ; i++)
@@ -1054,6 +1068,16 @@ void PR_LoadProgs ()
 
 	for (i=0 ; i<progs->numglobals ; i++)
 		((int *)pr_globals)[i] = LittleLong (((int *)pr_globals)[i]);
+
+	std::string temp{};
+	for (auto j = 1; j < progs->numstrings; j++) {
+	    if (pr_strings[j] != '\0') {
+	        temp += pr_strings[j];
+	    } else {
+            edictStrings.emplace_back(temp, j - temp.length());
+            temp.clear();
+        }
+	}
 }
 
 
@@ -1100,7 +1124,9 @@ auto NUM_FOR_EDICT(edict_t *e) -> int
 	return b;
 }
 
-auto G_STRING(int ofs) -> const char* {
-    // fixme I'm assuming that this can sometimes return a pointer to freed memory
+
+
+auto G_STRINGg(int ofs) -> const char* {
+    // fixme in 64-bit this will try to access strings in function space
     return (pr_strings + *(string_t *)&pr_globals[ofs]);
 }

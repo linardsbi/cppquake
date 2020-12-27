@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <cmath>
 #include <string>
 #include "quakedef.hpp"
+#include "util.hpp"
 
 #define	RETURN_EDICT(e) (((int *)pr_globals)[OFS_RETURN] = EDICT_TO_PROG(e))
 
@@ -38,7 +39,7 @@ auto PF_VarString (int	first) -> std::string
 
 	for (int i=first ; i<pr_argc ; i++)
 	{
-	    out += G_STRING(OFS_PARM0+i*3);
+	    out += getGlobalString(OFS_PARM0+i*3);
 	}
 
 	return out;
@@ -57,7 +58,7 @@ error(value)
 */
 void PF_error ()
 {
-	Con_Printf ("======SERVER ERROR in %s:\n%s\n", pr_strings + pr_xfunction->s_name, PF_VarString(0).c_str());
+	Con_Printf ("======SERVER ERROR in %s:\n%s\n", getStringByOffset(pr_xfunction->s_name).data(), PF_VarString(0).c_str());
     edict_t	*ed = PROG_TO_EDICT(pr_global_struct->self);
 	ED_Print (ed);
 
@@ -76,7 +77,7 @@ objerror(value)
 */
 void PF_objerror ()
 {
-	Con_Printf ("======OBJECT ERROR in %s:\n%s\n", pr_strings + pr_xfunction->s_name, PF_VarString(0).c_str());
+	Con_Printf ("======OBJECT ERROR in %s:\n%s\n", getStringByOffset(pr_xfunction->s_name).data(), PF_VarString(0).c_str());
     edict_t	*ed = PROG_TO_EDICT(pr_global_struct->self);
 	ED_Print (ed);
 	ED_Free (ed);
@@ -229,17 +230,17 @@ void PF_setmodel ()
 	int		i = 0;
 
     edict_t	*e = G_EDICT(OFS_PARM0);
-    const char* m = G_STRING(OFS_PARM1);
+    auto m = getGlobalStringOffsetPair(OFS_PARM1);
 
 // check to see if model was properly precached
 	for (i=0, check = sv.model_precache ; *check ; i++, check++)
-		if (!Q_strcmp(*check, m))
+		if (!Q_strcmp(*check, m.name))
 			break;
 			
 	if (!*check)
-		PR_RunError ("no precache: %s\n", m);
+		PR_RunError ("no precache: %s\n", m.name.c_str());
 
-	e->v.model = m - pr_strings;
+	e->v.model = m.offset;
 	e->v.modelindex = i; //SV_ModelIndex (m);
 
 	mod = sv.models[ (int)e->v.modelindex];  // Mod_ForName (m, true);
@@ -488,7 +489,7 @@ void PF_ambientsound ()
 	int			i = 0, soundnum = 0;
 
 	pos = G_VECTOR (OFS_PARM0);			
-	std::string samp = G_STRING(OFS_PARM1);
+	std::string_view samp = getGlobalString(OFS_PARM1);
 	vol = G_FLOAT(OFS_PARM2);
 	attenuation = G_FLOAT(OFS_PARM3);
 	
@@ -499,7 +500,7 @@ void PF_ambientsound ()
 			
 	if (!*check)
 	{
-		Con_Printf ("no precache: %s\n", samp.c_str());
+		Con_Printf ("no precache: %s\n", samp.data());
 		return;
 	}
 
@@ -540,7 +541,7 @@ void PF_sound ()
 		
 	entity = G_EDICT(OFS_PARM0);
 	channel = G_FLOAT(OFS_PARM1);
-	std::string sample = G_STRING(OFS_PARM2);
+	std::string_view sample = getGlobalString(OFS_PARM2);
 	volume = G_FLOAT(OFS_PARM3) * 255;
 	attenuation = G_FLOAT(OFS_PARM4);
 	
@@ -788,7 +789,7 @@ void PF_stuffcmd ()
 
 	old = host_client;
 	host_client = &svs.clients[entnum-1];
-	Host_ClientCommands ("%s", G_STRING(OFS_PARM1));
+	Host_ClientCommands ("%s", getGlobalString(OFS_PARM1).data());
 	host_client = old;
 }
 
@@ -803,7 +804,7 @@ localcmd (string)
 */
 void PF_localcmd ()
 {
-	Cbuf_AddText (G_STRING(OFS_PARM0));
+	Cbuf_AddText (getGlobalString(OFS_PARM0).data());
 }
 
 /*
@@ -815,7 +816,7 @@ float cvar (string)
 */
 void PF_cvar ()
 {
-	G_FLOAT(OFS_RETURN) = Cvar_VariableValue (G_STRING(OFS_PARM0));
+	G_FLOAT(OFS_RETURN) = Cvar_VariableValue (const_cast<char*>(getGlobalString(OFS_PARM0).data()));
 }
 
 /*
@@ -827,7 +828,7 @@ float cvar (string)
 */
 void PF_cvar_set ()
 {
-	Cvar_Set (G_STRING(OFS_PARM0), G_STRING(OFS_PARM1));
+	Cvar_Set (getGlobalString(OFS_PARM0).data(), getGlobalString(OFS_PARM1).data());
 }
 
 /*
@@ -986,7 +987,7 @@ void PF_Find ()
 #else
 {
 	int e = G_EDICTNUM(OFS_PARM0);
-	std::string_view s = G_STRING(OFS_PARM2);
+	std::string_view s = getGlobalString(OFS_PARM2);
 
 	if (s.length() == 0)
 		PR_RunError ("PF_Find: bad search string");
@@ -997,9 +998,9 @@ void PF_Find ()
 		if (ed->free)
 			continue;
 
-		char *t = E_STRING(ed, G_INT(OFS_PARM1));
+		auto t = getEdictString(G_INT(OFS_PARM1), ed);
 
-		if (!t)
+		if (t.length() == 0)
 			continue;
 		if (!Q_strcmp(t,s))
 		{
@@ -1028,7 +1029,7 @@ void PF_precache_sound ()
 	if (sv.state != ss_loading)
 		PR_RunError ("PF_Precache_*: Precache can only be done in spawn functions");
 		
-	std::string_view s = G_STRING(OFS_PARM0);
+	std::string_view s = getGlobalString(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 
 	if (s.length() == 0) {
@@ -1054,7 +1055,7 @@ void PF_precache_model ()
 		PR_RunError ("PF_Precache_*: Precache can only be done in spawn functions");
 
 
-	std::string_view s = G_STRING(OFS_PARM0);
+	std::string_view s = getGlobalString(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 
     if (s.length() == 0) {
@@ -1184,7 +1185,7 @@ void PF_lightstyle ()
 	int style = G_FLOAT(OFS_PARM0);
 
 // change the string in sv
-	sv.lightstyles[style] = const_cast<char*>(G_STRING(OFS_PARM1));
+	sv.lightstyles[style] = const_cast<char*>(getGlobalString(OFS_PARM1).data());
 	
 // send message to all clients on this server
 	if (sv.state != ss_active)
@@ -1196,7 +1197,7 @@ void PF_lightstyle ()
         {
             MSG_WriteChar (&client->message, svc_lightstyle);
             MSG_WriteChar (&client->message,style);
-            MSG_WriteString (&client->message, G_STRING(OFS_PARM1));
+            MSG_WriteString (&client->message, getGlobalString(OFS_PARM1));
         }
 	}
 }
@@ -1525,7 +1526,7 @@ void PF_WriteCoord ()
 
 void PF_WriteString ()
 {
-	MSG_WriteString (WriteDest(), G_STRING(OFS_PARM1));
+	MSG_WriteString (WriteDest(), getGlobalString(OFS_PARM1));
 }
 
 
@@ -1613,7 +1614,7 @@ void PF_changelevel ()
 		return;
 	svs.changelevel_issued = true;
 
-	Cbuf_AddText (va("changelevel %s\n", G_STRING(OFS_PARM0)));
+	Cbuf_AddText (va("changelevel %s\n", getGlobalString(OFS_PARM0).data()));
 #endif
 }
 

@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "quakedef.hpp"
-
+#include "util.hpp"
 
 /*
 
@@ -208,7 +208,7 @@ void PR_StackTrace ()
 			Con_Printf ("<NO FUNCTION>\n");
 		}
 		else
-			Con_Printf ("%12s : %s\n", pr_strings + f->s_file, pr_strings + f->s_name);		
+			Con_Printf ("%12s : %s\n", getGlobalString(f->s_file).data(), getGlobalString(f->s_name).data());
 	}
 }
 
@@ -243,7 +243,7 @@ void PR_Profile_f ()
 		if (best)
 		{
 			if (num < 10)
-				Con_Printf ("%7i %s\n", best->profile, pr_strings+best->s_name);
+				Con_Printf ("%7i %s\n", best->profile, getStringByOffset(best->s_name).data());
 			num++;
 			best->profile = 0;
 		}
@@ -377,7 +377,7 @@ void PR_ExecuteProgram (func_t fnum)
 		Host_Error ("PR_ExecuteProgram: NULL function");
 	}
 	
-	f = &pr_functions[fnum];
+	f = &edictFunctions[fnum];
 
 	runaway = 100000;
 	pr_trace = false;
@@ -483,7 +483,7 @@ while (true)
 		c->_float = !a->vector[0] && !a->vector[1] && !a->vector[2];
 		break;
 	case OP_NOT_S:
-		c->_float = !a->string || !pr_strings[a->string];
+		c->_float = !a->string || !stringExistsAtOffset(a->string);
 		break;
 	case OP_NOT_FNC:
 		c->_float = !a->function;
@@ -501,8 +501,8 @@ while (true)
 					(a->vector[2] == b->vector[2]);
 		break;
 	case OP_EQ_S:
-	    if (!pr_strings+a->string) break;
-		c->_float = !Q_strcmp(pr_strings+a->string,pr_strings+b->string);
+	    if (getStringByOffset(a->string).length() == 0) break;
+		c->_float = !Q_strcmp(getStringByOffset(a->string),getStringByOffset(b->string));
 		break;
 	case OP_EQ_E:
 		c->_float = a->_int == b->_int;
@@ -521,7 +521,7 @@ while (true)
 					(a->vector[2] != b->vector[2]);
 		break;
 	case OP_NE_S:
-	    c->_float = Q_strcmp(pr_strings + a->string, pr_strings + b->string);
+	    c->_float = Q_strcmp(getStringByOffset(a->string), getStringByOffset(b->string));
 		break;
 	case OP_NE_E:
 		c->_float = a->_int != b->_int;

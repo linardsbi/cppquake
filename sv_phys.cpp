@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <cmath>
 #include "quakedef.hpp"
+#include "util.hpp"
 
 /*
 
@@ -99,12 +100,12 @@ void SV_CheckVelocity (edict_t *ent)
 	{
 		if (IS_NAN(ent->v.velocity[i]))
 		{
-			Con_Printf ("Got a NaN velocity on %s\n", pr_strings + ent->v.classname);
+			Con_Printf ("Got a NaN velocity on %s\n", getStringByOffset(ent->v.classname).data());
 			ent->v.velocity[i] = 0;
 		}
 		if (IS_NAN(ent->v.origin[i]))
 		{
-			Con_Printf ("Got a NaN origin on %s\n", pr_strings + ent->v.classname);
+			Con_Printf ("Got a NaN origin on %s\n", getStringByOffset(ent->v.classname).data());
 			ent->v.origin[i] = 0;
 		}
 		if (ent->v.velocity[i] > sv_maxvelocity.value)

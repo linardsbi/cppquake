@@ -96,6 +96,7 @@ const char * Cvar_CompleteVariable (char *partial)
 Cvar_Set
 ============
 */
+// see if this will work with string_view parameters
 void Cvar_Set (const char *var_name, const char *value)
 {
 	cvar_t	*var;

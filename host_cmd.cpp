@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <cmath>
 #include "quakedef.hpp"
+#include "util.hpp"
 
 extern cvar_t	pausable;
 
@@ -937,8 +938,10 @@ void Host_Name_f ()
 		if (Q_strcmp(host_client->name, newName) != 0)
 			Con_Printf ("%s renamed to %s\n", host_client->name, newName);
 	Q_strcpy (host_client->name, newName);
-	host_client->edict->v.netname = host_client->name - pr_strings;
-	
+
+	host_client->edict->v.netname = newString(host_client->name);
+
+
 // send notification to all clients
 	
 	MSG_WriteByte (&sv.reliable_datagram, svc_updatename);
@@ -1231,11 +1234,11 @@ void Host_Pause_f ()
 
 		if (sv.paused)
 		{
-			SV_BroadcastPrintf ("%s paused the game\n", pr_strings + sv_player->v.netname);
+			SV_BroadcastPrintf ("%s paused the game\n", getStringByOffset(sv_player->v.netname).data());
 		}
 		else
 		{
-			SV_BroadcastPrintf ("%s unpaused the game\n",pr_strings + sv_player->v.netname);
+			SV_BroadcastPrintf ("%s unpaused the game\n",getStringByOffset(sv_player->v.netname).data());
 		}
 
 	// send notification to all clients
@@ -1679,7 +1682,7 @@ auto FindViewthing () -> edict_t	*
 	for (i=0 ; i<sv.num_edicts ; i++)
 	{
 		e = EDICT_NUM(i);
-		if ( !strcmp (pr_strings + e->v.classname, "viewthing") )
+		if ( !Q_strcmp (getStringByOffset(e->v.classname), "viewthing") )
 			return e;
 	}
 	Con_Printf ("No viewthing on map\n");

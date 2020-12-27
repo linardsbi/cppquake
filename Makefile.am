@@ -121,6 +121,8 @@ sdlquake_SOURCES =		\
 	sv_user.cpp		\
 	sys.hpp			\
 	sys_sdl.cpp		\
+	util.hpp        \
+	util.cpp        \
 	vgamodes.hpp		\
 	vid.hpp			\
 	vid_sdl.cpp		\
