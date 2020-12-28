@@ -139,8 +139,8 @@ bool Q_strcmp (std::string_view s1, std::string_view s2);
 //int Q_strcmp (char *s1, char *s2);
 bool Q_strncmp (std::string_view s1, std::string_view s2, std::size_t count);
 //int Q_strncmp (char *s1, char *s2, int count);
-int Q_strcasecmp (char *s1, char *s2);
-int Q_strncasecmp (char *s1, char *s2, int n);
+int Q_strcasecmp (const char *s1, const char *s2);
+int Q_strncasecmp (const char *s1, const char *s2, int n);
 int	Q_atoi (char *str);
 float Q_atof (const char *str);
 
@@ -159,12 +159,12 @@ int COM_CheckParm (std::string_view parm);
 void COM_Init (char *path);
 void COM_InitArgv (int argc, char **argv);
 
-char *COM_SkipPath (char *pathname);
-void COM_StripExtension (char *in, char *out);
-void COM_FileBase (char *in, char *out);
+[[maybe_unused]] char *COM_SkipPath (char *pathname);
+[[maybe_unused]] void COM_StripExtension (char *in, char *out);
+void COM_FileBase (std::string_view in, char *out);
 void COM_DefaultExtension (char *path, char *extension);
 
-char	*va(char *format, ...);
+char	*va(const char *format, ...);
 // does a varargs printf into a temp buffer
 
 
@@ -176,14 +176,14 @@ struct cache_user_s;
 extern	char	com_gamedir[MAX_OSPATH];
 
 void COM_WriteFile (char *filename, void *data, int len);
-int COM_OpenFile (char *filename, int *hndl);
+int COM_OpenFile (std::string_view filename, int *handle);
 int COM_FOpenFile (char *filename, FILE **file);
 void COM_CloseFile (int h);
 
 byte *COM_LoadStackFile (char *path, void *buffer, int bufsize);
 byte *COM_LoadTempFile (char *path);
 byte *COM_LoadHunkFile (char *path);
-void COM_LoadCacheFile (char *path, struct cache_user_s *cu);
+void COM_LoadCacheFile (std::string_view path, cache_user_s *cu);
 
 
 extern	struct cvar_s	registered;

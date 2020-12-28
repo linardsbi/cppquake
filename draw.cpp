@@ -61,14 +61,13 @@ qpic_t	*Draw_PicFromWad (char *name)
 Draw_CachePic
 ================
 */
-qpic_t	*Draw_CachePic (char *path)
+qpic_t	*Draw_CachePic (std::string_view path)
 {
-	cachepic_t	*pic;
-	int			i;
-	qpic_t		*dat;
-	
+	cachepic_t	*pic{};
+	int			i{};
+
 	for (pic=menu_cachepics, i=0 ; i<menu_numcachepics ; pic++, i++)
-		if (!strcmp (path, pic->name))
+		if (!Q_strcmp (path, pic->name))
 			break;
 
 	if (i == menu_numcachepics)
@@ -76,10 +75,10 @@ qpic_t	*Draw_CachePic (char *path)
 		if (menu_numcachepics == MAX_CACHED_PICS)
 			Sys_Error ("menu_numcachepics == MAX_CACHED_PICS");
 		menu_numcachepics++;
-		strcpy (pic->name, path);
+		strcpy (pic->name, path.data());
 	}
 
-	dat = cacheCheck<decltype(dat)> (&pic->cache);
+	auto *dat = cacheCheck<qpic_t*> (&pic->cache);
 
 	if (dat)
 		return dat;
@@ -107,7 +106,7 @@ qpic_t	*Draw_CachePic (char *path)
 Draw_Init
 ===============
 */
-void Draw_Init (void)
+void Draw_Init ()
 {
 	int		i;
 
@@ -247,7 +246,7 @@ This is for debugging lockups by drawing different chars in different parts
 of the code.
 ================
 */
-void Draw_DebugChar (char num)
+[[maybe_unused]] void Draw_DebugChar (char num)
 {
 	byte			*dest;
 	byte			*source;
@@ -424,7 +423,7 @@ void Draw_TransPic (int x, int y, qpic_t *pic)
 Draw_TransPicTranslate
 =============
 */
-void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation)
+void Draw_TransPicTranslate (int x, int y, qpic_t *pic, const byte *translation)
 {
 	byte	*dest, *source, tbyte;
 	unsigned short	*pusdest;
@@ -538,10 +537,8 @@ Draw_ConsoleBackground
 */
 void Draw_ConsoleBackground (int lines)
 {
-	int				x, y, v;
 	byte			*src, *dest;
 	unsigned short	*pusdest;
-	int				f, fstep;
 	qpic_t			*conback;
 	char			ver[100];
 
@@ -555,14 +552,14 @@ void Draw_ConsoleBackground (int lines)
 	sprintf (ver, "(X11 Quake %2.2f) %4.2f", (float)X11_VERSION, (float)VERSION);
 	dest = conback->data + 320*186 + 320 - 11 - 8*strlen(ver);
 #elif defined(__linux__)
-	sprintf (ver, "(Linux Quake %2.2f) %4.2f", (float)LINUX_VERSION, (float)VERSION);
+	sprintf (ver, "CPPQUAKE %4.2f", VERSION);
 	dest = conback->data + 320*186 + 320 - 11 - 8*strlen(ver);
 #else
 	dest = conback->data + 320 - 43 + 320*186;
 	sprintf (ver, "%4.2f", VERSION);
 #endif
 
-	for (x=0 ; x<strlen(ver) ; x++)
+	for (auto x=0U ; x<strlen(ver) ; x++)
 		Draw_CharToConback (ver[x], dest+(x<<3));
 	
 // draw the pic
@@ -570,17 +567,17 @@ void Draw_ConsoleBackground (int lines)
 	{
 		dest = vid.conbuffer;
 
-		for (y=0 ; y<lines ; y++, dest += vid.conrowbytes)
+		for (auto y=0 ; y<lines ; y++, dest += vid.conrowbytes)
 		{
-			v = (vid.conheight - lines + y)*200/vid.conheight;
+			auto v = (vid.conheight - lines + y)*200/vid.conheight;
 			src = conback->data + v*320;
 			if (vid.conwidth == 320)
 				memcpy (dest, src, vid.conwidth);
 			else
 			{
-				f = 0;
-				fstep = 320*0x10000/vid.conwidth;
-				for (x=0 ; x<vid.conwidth ; x+=4)
+				auto f = 0;
+				auto fstep = 320*0x10000/vid.conwidth;
+				for (unsigned int x=0 ; x<vid.conwidth ; x+=4)
 				{
 					dest[x] = src[f>>16];
 					f += fstep;
@@ -598,15 +595,15 @@ void Draw_ConsoleBackground (int lines)
 	{
 		pusdest = (unsigned short *)vid.conbuffer;
 
-		for (y=0 ; y<lines ; y++, pusdest += (vid.conrowbytes >> 1))
+		for (auto y=0 ; y<lines ; y++, pusdest += (vid.conrowbytes >> 1))
 		{
 		// FIXME: pre-expand to native format?
 		// FIXME: does the endian switching go away in production?
-			v = (vid.conheight - lines + y)*200/vid.conheight;
+			auto v = (vid.conheight - lines + y)*200/vid.conheight;
 			src = conback->data + v*320;
-			f = 0;
-			fstep = 320*0x10000/vid.conwidth;
-			for (x=0 ; x<vid.conwidth ; x+=4)
+			auto f = 0;
+			auto fstep = 320*0x10000/vid.conwidth;
+			for (auto x=0U ; x<vid.conwidth ; x+=4)
 			{
 				pusdest[x] = d_8to16table[src[f>>16]];
 				f += fstep;

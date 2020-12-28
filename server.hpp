@@ -76,7 +76,7 @@ struct server_t
 #define	NUM_PING_TIMES		16
 #define	NUM_SPAWN_PARMS		16
 
-typedef struct client_s
+using client_t = struct client_s
 {
 	qboolean		active;				// false = client is free
 	qboolean		spawned;			// false = don't send datagrams
@@ -96,7 +96,7 @@ typedef struct client_s
 										// copied and clear once per frame
 	byte			msgbuf[MAX_MSGLEN];
 	edict_t			*edict;				// EDICT_NUM(clientnum+1)
-	char			name[32];			// for printing to other people
+	std::string     name{"unconnected"};			// for printing to other people
 	int				colors;
 
 	float			ping_times[NUM_PING_TIMES];
@@ -107,7 +107,7 @@ typedef struct client_s
 
 // client known data for deltas
 	int				old_frags;
-} client_t;
+};
 
 
 //=============================================================================

@@ -25,12 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define	QUAKE_GAME			// as opposed to utilities
 
 #undef VERSION
-#define	VERSION				1.09
-#define	GLQUAKE_VERSION		1.00
-#define	D3DQUAKE_VERSION	0.01
-#define	WINQUAKE_VERSION	0.996
-#define	LINUX_VERSION		1.30
-#define	X11_VERSION			1.10
+#define	VERSION				1.09f
+#define	GLQUAKE_VERSION		1.00f
+#define	D3DQUAKE_VERSION	0.01f
+#define	WINQUAKE_VERSION	0.996f
+#define	LINUX_VERSION		1.30f
+#define	X11_VERSION			1.10f
 
 //define	PARANOID			// speed sapping error checking
 

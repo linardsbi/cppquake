@@ -9,7 +9,7 @@
 #include "quakedef.hpp"
 
 // TEMPORARY HACKY STUFF
-// Why did I not just convert everything into a map?
+// needs to be changed
 
 auto getGlobalString(unsigned long offset) -> std::string_view;
 auto getEdictString(unsigned long offset, edict_s* edict) -> std::string_view;
@@ -28,6 +28,8 @@ auto getFunctionByName(std::string_view name) -> dfunction_t;
 auto getFunctionByNameOffset(unsigned long offset) -> dfunction_t;
 
 auto getFunctionOffsetFromName(std::string_view name) -> unsigned long;
+
+auto toString(std::string_view v) -> std::string;
 
 auto stringExistsAtOffset(unsigned long offset) -> bool;
 

@@ -265,10 +265,10 @@ void SV_ConnectClient (int clientnum)
 	
 	if (sv.loadgame)
 		memcpy (spawn_parms, client->spawn_parms, sizeof(spawn_parms));
-	memset (client, 0, sizeof(*client));
+	//memset (client, 0, sizeof(*client));
 	client->netconnection = netconnection;
 
-	strcpy (client->name, "unconnected");
+	client->name = "unconnected";
 	client->active = true;
 	client->spawned = false;
 	client->edict = ent;
@@ -966,7 +966,7 @@ auto SV_ModelIndex (std::string_view name) -> int
 {
     int		i = 0;
 
-    if (name.length() == 0)
+    if (name.empty())
         return 0;
 
     for (i=0 ; i<MAX_MODELS && sv.model_precache[i] ; i++)
@@ -1052,7 +1052,7 @@ void SV_SpawnServer (char *server)
 {
 	edict_t		*ent = nullptr;
 	int			i = 0;
-
+    edictStrings.resize(staticStringCount);
 	// let's not have any servers with no name
 	if (hostname.string[0] == 0)
 		Cvar_Set ("hostname", "UNNAMED");

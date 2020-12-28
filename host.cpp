@@ -365,7 +365,7 @@ void SV_DropClient (qboolean crash)
 			pr_global_struct->self = saveSelf;
 		}
 
-		Sys_Printf ("Client %s removed\n",host_client->name);
+		Sys_Printf ("Client %s removed\n",host_client->name.c_str());
 	}
 
 // break the net connection
@@ -374,7 +374,7 @@ void SV_DropClient (qboolean crash)
 
 // free the client (the body stays around)
 	host_client->active = false;
-	host_client->name[0] = 0;
+	host_client->name.resize(0);
 	host_client->old_frags = -999999;
 	net_activeconnections--;
 
@@ -462,7 +462,8 @@ void Host_ShutdownServer(qboolean crash)
 // clear structures
 //
 	memset (&sv, 0, sizeof(sv));
-	memset (svs.clients, 0, svs.maxclientslimit*sizeof(client_t));
+    // fixme cleanup like this results in UB if std::string is used
+//	memset (svs.clients, 0, svs.maxclientslimit*sizeof(client_t));
 }
 
 

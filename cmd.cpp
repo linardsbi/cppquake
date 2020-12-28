@@ -565,11 +565,9 @@ void	Cmd_AddCommand (const char *cmd_name, xcommand_t function)
 Cmd_Exists
 ============
 */
-auto	Cmd_Exists (const char *cmd_name) -> qboolean
+auto	Cmd_Exists (std::string_view cmd_name) -> qboolean
 {
-	cmd_function_t	*cmd = nullptr;
-
-	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
+	for (auto cmd=cmd_functions ; cmd ; cmd=cmd->next)
 	{
 		if (!Q_strcmp (cmd_name,cmd->name))
 			return true;
@@ -585,22 +583,17 @@ auto	Cmd_Exists (const char *cmd_name) -> qboolean
 Cmd_CompleteCommand
 ============
 */
-auto Cmd_CompleteCommand (char *partial) -> char *
+auto Cmd_CompleteCommand (std::string_view partial) -> std::string_view
 {
-	cmd_function_t	*cmd = nullptr;
-	int				len = 0;
-	
-	len = Q_strlen(partial);
-	
-	if (!len)
-		return nullptr;
+	if (partial.empty())
+		return {};
 		
 // check functions
-	for (cmd=cmd_functions ; cmd ; cmd=cmd->next)
-		if (!Q_strncmp (partial,cmd->name, len))
+	for (auto cmd=cmd_functions ; cmd ; cmd=cmd->next)
+		if (!Q_strncmp (partial,cmd->name, partial.length()))
 			return cmd->name;
 
-	return nullptr;
+	return {};
 }
 
 /*

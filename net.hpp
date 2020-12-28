@@ -227,9 +227,9 @@ double SetNetTime(void);
 
 typedef struct
 {
-	char	name[16];
-	char	map[16];
-	char	cname[32];
+    std::string	name;
+    std::string	map;
+	std::string	cname;
 	int		users;
 	int		maxusers;
 	int		driver;

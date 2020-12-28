@@ -3,10 +3,10 @@
 //
 
 #include "util.hpp"
+#include <limits>
 
 // TEMPORARY HACKY STUFF
 
-// DEAR LORD WHY
 
 auto findStringByName(std::string_view str) {
     return std::find_if(edictStrings.begin(), edictStrings.end(), [str](const auto& eString) {
@@ -24,10 +24,15 @@ auto stringExistsAtOffset(unsigned long offset) -> bool {
 }
 
 auto getStringByOffset(const unsigned long offset) -> std::string_view {
+//    if (offset == 0 || offset == std::numeric_limits<decltype(offset)>::max()) {
+//        //printf("aaa %ld", offset);
+//        return "";
+//    }
     auto stringIt = findStringByOffset(offset);
     if (stringIt != edictStrings.end()) {
         return stringIt->name;
     } else {
+        //printf("aaa %ld", offset);
         return "??";
     }
 }
@@ -78,11 +83,34 @@ auto getFunctionOffsetFromName(std::string_view name) -> unsigned long {
 NewString
 =============
 */
-// going to have to clear all strings that were allocated "dynamically" after level change
-auto newString(const std::string& string) -> long
+
+auto fixNewLines(std::string_view string) {
+    std::string newstring = string.data();
+    for (std::size_t i=0, l = string.length(); i< l ; i++)
+    {
+        if (string[i] == '\\' && i < l-1)
+        {
+            i++;
+            if (string[i] == 'n') {
+                newstring[i - 1] = ' ';
+                newstring[i] = '\n';
+            }
+            else
+                newstring[i] = '\\';
+        }
+    }
+    return newstring;
+}
+
+// going to have to clear all strings that were allocated after level change
+auto newString(std::string_view string) -> unsigned long
 {
     auto lastIt = --edictStrings.end();
-    auto offset = lastIt->offset + lastIt->name.length() + 1;
-    edictStrings.emplace_back(string, offset);
+    auto offset = lastIt->offset + lastIt->name.length() + 1; // I might not be adding something..
+    edictStrings.emplace_back(fixNewLines(string), offset);
     return offset;
+}
+
+inline auto toString(std::string_view v) -> std::string {
+    return {v.data(), v.size()};
 }

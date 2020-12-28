@@ -275,9 +275,9 @@ static void PrintSlist()
 	for (n = slistLastShown; n < hostCacheCount; n++)
 	{
 		if (hostcache[n].maxusers)
-			Con_Printf("%-15.15s %-15.15s %2u/%2u\n", hostcache[n].name, hostcache[n].map, hostcache[n].users, hostcache[n].maxusers);
+			Con_Printf("%-15.15s %-15.15s %2u/%2u\n", hostcache[n].name.c_str(), hostcache[n].map.c_str(), hostcache[n].users, hostcache[n].maxusers);
 		else
-			Con_Printf("%-15.15s %-15.15s\n", hostcache[n].name, hostcache[n].map);
+			Con_Printf("%-15.15s %-15.15s\n", hostcache[n].name.c_str(), hostcache[n].map.c_str());
 	}
 	slistLastShown = n;
 }
@@ -388,9 +388,9 @@ auto NET_Connect (char *host) -> qsocket_t *
 		if (hostCacheCount)
 		{
 			for (n = 0; n < hostCacheCount; n++)
-				if (Q_strcasecmp (host, hostcache[n].name) == 0)
+				if (host == hostcache[n].name)
 				{
-					host = hostcache[n].cname;
+					host = hostcache[n].cname.data();
 					break;
 				}
 			if (n < hostCacheCount)
@@ -398,7 +398,7 @@ auto NET_Connect (char *host) -> qsocket_t *
 		}
 	}
 
-	slistSilent = host ? true : false;
+	slistSilent = host != nullptr;
 	NET_Slist_f ();
 
 	while(slistInProgress)
@@ -408,22 +408,22 @@ auto NET_Connect (char *host) -> qsocket_t *
 	{
 		if (hostCacheCount != 1)
 			return nullptr;
-		host = hostcache[0].cname;
-		Con_Printf("Connecting to...\n%s @ %s\n\n", hostcache[0].name, host);
+		host = hostcache[0].cname.data();
+		Con_Printf("Connecting to...\n%s @ %s\n\n", hostcache[0].name.c_str(), host);
 	}
 
 	if (hostCacheCount)
 		for (n = 0; n < hostCacheCount; n++)
-			if (Q_strcasecmp (host, hostcache[n].name) == 0)
+			if (host == hostcache[n].name)
 			{
-				host = hostcache[n].cname;
+				host = hostcache[n].cname.data();
 				break;
 			}
 
 JustDoIt:
 	for (net_driverlevel=0 ; net_driverlevel<numdrivers; net_driverlevel++)
 	{
-		if (net_drivers[net_driverlevel].initialized == false)
+		if (!net_drivers[net_driverlevel].initialized)
 			continue;
 		ret = dfunc.Connect (host);
 		if (ret)
@@ -939,7 +939,7 @@ void NET_Poll()
 			else
 				useModem = false;
 			SetComPortConfig (0, (int)config_com_port.value, (int)config_com_irq.value, (int)config_com_baud.value, useModem);
-			SetModemConfig (0, config_modem_dialtype.string, config_modem_clear.string, config_modem_init.string, config_modem_hangup.string);
+			SetModemConfig (0, config_modem_dialtype.string.data(), config_modem_clear.string.data(), config_modem_init.string.data(), config_modem_hangup.string.data());
 		}
 		configRestored = true;
 	}

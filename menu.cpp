@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include <cmath>
 #include "quakedef.hpp"
+#include <array>
 
 #ifdef _WIN32
 #include "winquake.hpp"
@@ -72,7 +73,7 @@ void M_Main_Key (int key);
 		void M_Load_Key (int key);
 		void M_Save_Key (int key);
 	void M_MultiPlayer_Key (int key);
-		void M_Setup_Key (int key);
+		void M_Setup_Key (wchar_t key);
 		void M_Net_Key (int key);
 	void M_Options_Key (int key);
 		void M_Keys_Key (int key);
@@ -110,29 +111,25 @@ M_DrawCharacter
 Draws one solid graphics character
 ================
 */
-void M_DrawCharacter (int cx, int line, int num)
+void M_DrawCharacter (const auto cx, const auto line, const auto num)
 {
 	Draw_Character ( cx + ((vid.width - 320)>>1), line, num);
 }
 
-void M_Print (int cx, int cy, char *str)
+void M_Print (int cx, const int cy, std::string_view str)
 {
-	while (*str)
-	{
-		M_DrawCharacter (cx, cy, (*str)+128);
-		str++;
-		cx += 8;
-	}
+    for (const auto chr: str) {
+        M_DrawCharacter (cx, cy, chr+128);
+        cx += 8;
+    }
 }
 
-void M_PrintWhite (int cx, int cy, char *str)
+void M_PrintWhite (int cx, const int cy, std::string_view str)
 {
-	while (*str)
-	{
-		M_DrawCharacter (cx, cy, *str);
-		str++;
-		cx += 8;
-	}
+    for (const auto chr: str) {
+        M_DrawCharacter (cx, cy, chr);
+        cx += 8;
+    }
 }
 
 void M_DrawTransPic (int x, int y, qpic_t *pic)
@@ -682,10 +679,10 @@ void M_MultiPlayer_Key (int key)
 /* SETUP MENU */
 
 int		setup_cursor = 4;
-int		setup_cursor_table[] = {40, 56, 80, 104, 140};
+constexpr std::array setup_cursor_table = {40, 56, 80, 104, 140};
 
-char	setup_hostname[16];
-char	setup_myname[16];
+std::string	setup_hostname;
+std::string	setup_myname;
 int		setup_oldtop;
 int		setup_oldbottom;
 int		setup_top;
@@ -698,8 +695,8 @@ void M_Menu_Setup_f ()
 	key_dest = key_menu;
 	m_state = m_setup;
 	m_entersound = true;
-	Q_strcpy(setup_myname, cl_name.string);
-	Q_strcpy(setup_hostname, hostname.string);
+	setup_myname = cl_name.string;
+	setup_hostname = hostname.string;
 	setup_top = setup_oldtop = ((int)cl_color.value) >> 4;
 	setup_bottom = setup_oldbottom = ((int)cl_color.value) & 15;
 }
@@ -736,14 +733,14 @@ void M_Setup_Draw ()
 	M_DrawCharacter (56, setup_cursor_table [setup_cursor], 12+((int)(realtime*4)&1));
 
 	if (setup_cursor == 0)
-		M_DrawCharacter (168 + 8*strlen(setup_hostname), setup_cursor_table [setup_cursor], 10+((int)(realtime*4)&1));
+		M_DrawCharacter (168 + 8 * setup_hostname.length(), setup_cursor_table [setup_cursor], 10+((int)(realtime*4)&1));
 
 	if (setup_cursor == 1)
-		M_DrawCharacter (168 + 8*strlen(setup_myname), setup_cursor_table [setup_cursor], 10+((int)(realtime*4)&1));
+		M_DrawCharacter (168 + 8 * setup_hostname.length(), setup_cursor_table [setup_cursor], 10+((int)(realtime*4)&1));
 }
 
 
-void M_Setup_Key (int k)
+void M_Setup_Key (wchar_t k)
 {
 	int			l = 0;
 
@@ -795,12 +792,13 @@ forward:
 			goto forward;
 
 		// setup_cursor == 4 (OK)
-		if (Q_strcmp(cl_name.string, setup_myname) != 0)
-			Cbuf_AddText ( va ("name \"%s\"\n", setup_myname) );
-		if (Q_strcmp(hostname.string, setup_hostname) != 0)
+		if (cl_name.string != setup_myname)
+			Cbuf_AddText ( va ("name \"%s\"\n", setup_myname.c_str()) );
+		if (hostname.string != setup_hostname)
 			Cvar_Set("hostname", setup_hostname);
 		if (setup_top != setup_oldtop || setup_bottom != setup_oldbottom)
 			Cbuf_AddText( va ("color %i %i\n", setup_top, setup_bottom) );
+
 		m_entersound = true;
 		M_Menu_MultiPlayer_f ();
 		break;
@@ -808,14 +806,12 @@ forward:
 	case K_BACKSPACE:
 		if (setup_cursor == 0)
 		{
-			if (strlen(setup_hostname))
-				setup_hostname[strlen(setup_hostname)-1] = 0;
-		}
-
-		if (setup_cursor == 1)
+			if (!setup_hostname.empty())
+			    setup_hostname.resize(setup_hostname.length()-1);
+		} else if (setup_cursor == 1)
 		{
-			if (strlen(setup_myname))
-				setup_myname[strlen(setup_myname)-1] = 0;
+			if (!setup_myname.empty())
+                setup_myname.resize(setup_myname.length()-1);
 		}
 		break;
 
@@ -824,20 +820,15 @@ forward:
 			break;
 		if (setup_cursor == 0)
 		{
-			l = strlen(setup_hostname);
-			if (l < 15)
+			if (setup_hostname.length() < 15)
 			{
-				setup_hostname[l+1] = 0;
-				setup_hostname[l] = k;
+				setup_hostname += k;
 			}
-		}
-		if (setup_cursor == 1)
+		} else if (setup_cursor == 1)
 		{
-			l = strlen(setup_myname);
-			if (l < 15)
+			if (setup_myname.length() < 15)
 			{
-				setup_myname[l+1] = 0;
-				setup_myname[l] = k;
+				setup_myname += k;
 			}
 		}
 	}
@@ -859,7 +850,7 @@ int	m_net_cursor;
 int m_net_items;
 int m_net_saveHeight;
 
-char *net_helpMessage [] =
+constexpr std::array net_helpMessage =
 {
 /* .........1.........2.... */
   "                        ",
@@ -1003,17 +994,11 @@ again:
 		switch (m_net_cursor)
 		{
 		case 0:
-			M_Menu_SerialConfig_f ();
-			break;
-
 		case 1:
 			M_Menu_SerialConfig_f ();
 			break;
 
 		case 2:
-			M_Menu_LanConfig_f ();
-			break;
-
 		case 3:
 			M_Menu_LanConfig_f ();
 			break;
@@ -1021,7 +1006,11 @@ again:
 		case 4:
 // multiprotocol
 			break;
+        default:
+            Con_Printf("Invalid cursor state %d", m_net_cursor);
 		}
+        default:
+            break;
 	}
 
 	if (m_net_cursor == 0 && !serialAvailable)
@@ -1582,7 +1571,7 @@ m_state_t		m_quit_prevstate;
 qboolean	wasInMenus;
 
 #ifndef	_WIN32
-constexpr char *quitMessage[] = 
+constexpr std::array quitMessage =
 {
 /* .........1.........2.... */
   "  Are you gonna quit    ",
@@ -2382,11 +2371,11 @@ void M_LanConfig_Key (int key)
 
 using level_t = struct
 {
-	char	*name;
-	char	*description;
+	const char	*name;
+	const char	*description;
 };
 
-level_t		levels[] =
+constexpr level_t		levels[] =
 {
 	{"start", "Entrance"},	// 0
 
@@ -2435,7 +2424,7 @@ level_t		levels[] =
 };
 
 //MED 01/06/97 added hipnotic levels
-level_t     hipnoticlevels[] =
+constexpr level_t     hipnoticlevels[] =
 {
    {"start", "Command HQ"},  // 0
 
@@ -2464,7 +2453,7 @@ level_t     hipnoticlevels[] =
 
 //PGM 01/07/97 added rogue levels
 //PGM 03/02/97 added dmatch level
-level_t		roguelevels[] =
+constexpr level_t		roguelevels[] =
 {
 	{"start",	"Split Decision"},
 	{"r1m1",	"Deviant's Domain"},
@@ -2487,12 +2476,12 @@ level_t		roguelevels[] =
 
 using episode_t = struct
 {
-	char	*description;
+	const char	*description;
 	int		firstLevel;
 	int		levels;
 };
 
-episode_t	episodes[] =
+constexpr episode_t	episodes[] =
 {
 	{"Welcome to Quake", 0, 1},
 	{"Doomed Dimension", 1, 8},
@@ -2504,7 +2493,7 @@ episode_t	episodes[] =
 };
 
 //MED 01/06/97  added hipnotic episodes
-episode_t   hipnoticepisodes[] =
+constexpr episode_t   hipnoticepisodes[] =
 {
    {"Scourge of Armagon", 0, 1},
    {"Fortress of the Dead", 1, 5},
@@ -2516,7 +2505,7 @@ episode_t   hipnoticepisodes[] =
 
 //PGM 01/07/97 added rogue episodes
 //PGM 03/02/97 added dmatch episode
-episode_t	rogueepisodes[] =
+constexpr episode_t	rogueepisodes[] =
 {
 	{"Introduction", 0, 1},
 	{"Hell's Fortress", 1, 7},
@@ -2562,15 +2551,17 @@ void M_GameOptions_Draw ()
 	M_Print (160, 56, va("%i", maxplayers) );
 
 	M_Print (0, 64, "        Game Type");
-	if (coop.value)
+
+	if (coop.value == 1)
 		M_Print (160, 64, "Cooperative");
 	else
 		M_Print (160, 64, "Deathmatch");
 
 	M_Print (0, 72, "        Teamplay");
+
 	if (rogue)
 	{
-		char *msg = nullptr;
+		const char *msg = nullptr;
 
 		switch((int)teamplay.value)
 		{
@@ -2586,7 +2577,7 @@ void M_GameOptions_Draw ()
 	}
 	else
 	{
-		char *msg = nullptr;
+		const char *msg = nullptr;
 
 		switch((int)teamplay.value)
 		{
@@ -2923,14 +2914,13 @@ void M_ServerList_Draw ()
 		if (hostCacheCount > 1)
 		{
 			int	i = 0,j = 0;
-			hostcache_t temp;
 			for (i = 0; i < hostCacheCount; i++)
 				for (j = i+1; j < hostCacheCount; j++)
-					if (strcmp(hostcache[j].name, hostcache[i].name) < 0)
+					if (hostcache[j].name != hostcache[i].name)
 					{
-						Q_memcpy(&temp, &hostcache[j], sizeof(hostcache_t));
-						Q_memcpy(&hostcache[j], &hostcache[i], sizeof(hostcache_t));
-						Q_memcpy(&hostcache[i], &temp, sizeof(hostcache_t));
+                        hostcache_t temp = hostcache[j];
+                        hostcache[j] = hostcache[i];
+                        hostcache[i] = temp;
 					}
 		}
 		slist_sorted = true;
@@ -2941,9 +2931,9 @@ void M_ServerList_Draw ()
 	for (n = 0; n < hostCacheCount; n++)
 	{
 		if (hostcache[n].maxusers)
-			sprintf(string, "%-15.15s %-15.15s %2u/%2u\n", hostcache[n].name, hostcache[n].map, hostcache[n].users, hostcache[n].maxusers);
+			sprintf(string, "%-15.15s %-15.15s %2u/%2u\n", hostcache[n].name.c_str(), hostcache[n].map.c_str(), hostcache[n].users, hostcache[n].maxusers);
 		else
-			sprintf(string, "%-15.15s %-15.15s\n", hostcache[n].name, hostcache[n].map);
+			sprintf(string, "%-15.15s %-15.15s\n", hostcache[n].name.c_str(), hostcache[n].map.c_str());
 		M_Print (16, 32 + 8*n, string);
 	}
 	M_DrawCharacter (0, 32 + slist_cursor*8, 12+((int)(realtime*4)&1));
@@ -2988,7 +2978,7 @@ void M_ServerList_Key (int k)
 		slist_sorted = false;
 		key_dest = key_game;
 		m_state = m_none;
-		Cbuf_AddText ( va ("connect \"%s\"\n", hostcache[slist_cursor].cname) );
+		Cbuf_AddText ( va ("connect \"%s\"\n", hostcache[slist_cursor].cname.c_str()) );
 		break;
 
 	default:
@@ -3028,7 +3018,7 @@ void M_Draw ()
 	{
 		scr_copyeverything = 1;
 
-		if (scr_con_current)
+		if (scr_con_current != 0)
 		{
 			Draw_ConsoleBackground (vid.height);
 			VID_UnlockBuffer ();

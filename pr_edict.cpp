@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
 #include <string>
+#include <array>
 #include "quakedef.hpp"
 #include "util.hpp"
 
@@ -36,13 +37,14 @@ int				pr_edict_size;	// in bytes
 
 std::vector<NameOffsetPair> edictStrings{};
 std::vector<dfunction_t> edictFunctions{};
+std::size_t staticStringCount{};
 
 unsigned short		pr_crc;
 
-constexpr int		type_size[8] = {1,sizeof(string_t)/4,1,3,1,1,sizeof(func_t)/4,sizeof(void *)/4};
+//constexpr std::array<unsigned long, 8> type_size = {1,sizeof(string_t)/4,1,3,1,1,sizeof(func_t)/4,sizeof(void *)/4};
 
 auto ED_FieldAtOfs (int ofs) -> ddef_t *;
-auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean;
+auto	ED_ParseEpair (void *base, ddef_t *key, std::string_view s) -> qboolean;
 
 cvar_t	nomonsters = {"nomonsters", "0"};
 cvar_t	gamecfg = {"gamecfg", "0"};
@@ -189,15 +191,12 @@ auto ED_FieldAtOfs (int ofs) -> ddef_t *
 ED_FindField
 ============
 */
-auto ED_FindField (char *name) -> ddef_t *
+auto ED_FindField (std::string_view name) -> ddef_t *
 {
-	ddef_t		*def = nullptr;
-	int			i = 0;
-	
-	for (i=0 ; i<progs->numfielddefs ; i++)
+	for (auto i=0 ; i<progs->numfielddefs ; i++)
 	{
-		def = &pr_fielddefs[i];
-		if (!Q_strcmp(getStringByOffset(def->s_name),name) )
+		auto def = &pr_fielddefs[i];
+		if (!Q_strcmp(getStringByOffset(def->s_name), name) )
 			return def;
 	}
 	return nullptr;
@@ -209,14 +208,11 @@ auto ED_FindField (char *name) -> ddef_t *
 ED_FindGlobal
 ============
 */
-auto ED_FindGlobal (char *name) -> ddef_t *
+auto ED_FindGlobal (std::string_view name) -> ddef_t *
 {
-	ddef_t		*def = nullptr;
-	int			i = 0;
-	
-	for (i=0 ; i<progs->numglobaldefs ; i++)
+	for (auto i=0 ; i<progs->numglobaldefs ; i++)
 	{
-		def = &pr_globaldefs[i];
+		auto def = &pr_globaldefs[i];
 		if (!Q_strcmp(getStringByOffset(def->s_name),name) )
 			return def;
 	}
@@ -727,7 +723,7 @@ Can parse either fields or globals
 returns false if error
 =============
 */
-auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean
+auto	ED_ParseEpair (void *base, ddef_t *key, std::string_view s) -> qboolean
 {
 	int		i = 0;
 	char	string[128];
@@ -748,11 +744,11 @@ auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean
 		break;
 		
 	case ev_float:
-		*(float *)d = atof (s);
+		*(float *)d = atof (s.data());
 		break;
 		
 	case ev_vector:
-		strcpy (string, s);
+		strcpy (string, s.data());
 		v = string;
 		w = string;
 		for (i=0 ; i<3 ; i++)
@@ -766,7 +762,7 @@ auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean
 		break;
 		
 	case ev_entity:
-		*(int *)d = EDICT_TO_PROG(EDICT_NUM(atoi (s)));
+		*(int *)d = EDICT_TO_PROG(EDICT_NUM(atoi (s.data())));
 		break;
 		
 	case ev_field:
@@ -783,7 +779,7 @@ auto	ED_ParseEpair (void *base, ddef_t *key, char *s) -> qboolean
 		functionDistance = getFunctionOffsetFromName(s);
 		if (functionDistance == 0)
 		{
-			Con_Printf ("Can't find function %s\n", s);
+			Con_Printf ("Can't find function %s\n", s.data());
 			return false;
 		}
 		*(func_t *)d = functionDistance;
@@ -806,11 +802,8 @@ Used for initial level load and for savegames.
 */
 auto ED_ParseEdict (char *data, edict_t *ent) -> char *
 {
-	ddef_t		*key = nullptr;
 	qboolean	anglehack = false;
 	qboolean	init = false;
-	char		keyname[256];
-	int			n = 0;
 
 // clear it
 	if (ent != sv.edicts)	// hack
@@ -819,68 +812,68 @@ auto ED_ParseEdict (char *data, edict_t *ent) -> char *
 // go through all the dictionary pairs
 	while (true)
 	{	
-	// parse key
+	    // parse key
 		data = COM_Parse (data);
 		if (com_token[0] == '}')
 			break;
 		if (!data)
 			Sys_Error ("ED_ParseEntity: EOF without closing brace");
 		
-// anglehack is to allow QuakeEd to write single scalar angles
-// and allow them to be turned into vectors. (FIXME...)
-if (!strcmp(com_token, "angle"))
-{
-	strcpy (com_token, "angles");
-	anglehack = true;
-}
-else
-	anglehack = false;
+        // anglehack is to allow QuakeEd to write single scalar angles
+        // and allow them to be turned into vectors. (FIXME...)
+        if (!strcmp(com_token, "angle"))
+        {
+            strcpy (com_token, "angles");
+            anglehack = true;
+        }
+        else
+            anglehack = false;
 
-// FIXME: change light to _light to get rid of this hack
-if (!strcmp(com_token, "light"))
-	strcpy (com_token, "light_lev");	// hack for single light def
+        // FIXME: change light to _light to get rid of this hack
+        if (!strcmp(com_token, "light"))
+            strcpy (com_token, "light_lev");	// hack for single light def
 
-		strcpy (keyname, com_token);
+        std::string keyname = com_token;
 
-		// another hack to fix heynames with trailing spaces
-		n = strlen(keyname);
-		while (n && keyname[n-1] == ' ')
-		{
-			keyname[n-1] = 0;
-			n--;
-		}
+        // another hack to fix heynames with trailing spaces
+        auto n = keyname.length();
+        while (n && keyname[n-1] == ' ')
+        {
+            keyname[n-1] = 0;
+            n--;
+        }
 
-	// parse value	
-		data = COM_Parse (data);
-		if (!data)
-			Sys_Error ("ED_ParseEntity: EOF without closing brace");
+    // parse value
+        data = COM_Parse (data);
+        if (!data)
+            Sys_Error ("ED_ParseEntity: EOF without closing brace");
 
-		if (com_token[0] == '}')
-			Sys_Error ("ED_ParseEntity: closing brace without data");
+        if (com_token[0] == '}')
+            Sys_Error ("ED_ParseEntity: closing brace without data");
 
-		init = true;	
+        init = true;
 
 // keynames with a leading underscore are used for utility comments,
 // and are immediately discarded by quake
-		if (keyname[0] == '_')
-			continue;
-		
-		key = ED_FindField (keyname);
-		if (!key)
-		{
-			Con_Printf ("'%s' is not a field\n", keyname);
-			continue;
-		}
+        if (keyname[0] == '_')
+            continue;
+
+        auto key = ED_FindField (keyname);
+        if (!key)
+        {
+            Con_Printf ("'%s' is not a field\n", keyname.c_str());
+            continue;
+        }
 
         if (anglehack)
         {
-            char	temp[32];
-            strcpy (temp, com_token);
-            sprintf (com_token, "0 %s 0", temp);
+//            char	temp[32];
+//            strcpy (temp, com_token);
+            sprintf (com_token, "0 %s 0", com_token);
         }
 
-		if (!ED_ParseEpair ((void *)&ent->v, key, com_token))
-			Host_Error ("ED_ParseEdict: parse error");
+        if (!ED_ParseEpair ((void *)&ent->v, key, com_token))
+            Host_Error ("ED_ParseEdict: parse error");
 	}
 
 	if (!init)
@@ -960,7 +953,8 @@ void ED_LoadFromFile (char *data)
 		}
 
 	// look for the spawn function
-		auto funcOfs = getFunctionOffsetFromName(getStringByOffset(ent->v.classname)); // XD
+		auto funcOfs = getFunctionOffsetFromName(getStringByOffset(ent->v.classname)); // fixme
+
 
 		if (funcOfs == 0)
 		{
@@ -1078,6 +1072,7 @@ void PR_LoadProgs ()
             temp.clear();
         }
 	}
+	staticStringCount = edictStrings.size();
 }
 
 

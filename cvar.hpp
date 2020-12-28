@@ -52,11 +52,12 @@ r_draworder 0		sets the current value to 0
 Cvars are restricted from having the same names as commands to keep this
 interface from being ambiguous.
 */
+#include <string>
 
 typedef struct cvar_s
 {
-	const char	*name{};
-	char	*string{"0"};
+	std::string name{};
+	std::string string{};
 	qboolean archive{};		// set to true to cause it to be saved to vars.rc
 	qboolean server{};		// notifies players when changed
 	float	value{};
@@ -67,23 +68,23 @@ void 	Cvar_RegisterVariable (cvar_t *variable);
 // registers a cvar that allready has the name, string, and optionally the
 // archive elements set.
 
-void 	Cvar_Set (const char *var_name, const char *value);
+void 	Cvar_Set (std::string_view var_name, std::string_view value);
 // equivelant to "<name> <variable>" typed at the console
 
-void	Cvar_SetValue (char *var_name, float value);
+void	Cvar_SetValue (std::string_view var_name, float value);
 // expands value to a string and calls Cvar_Set
 
-float	Cvar_VariableValue (const char *var_name);
+float	Cvar_VariableValue (std::string_view var_name);
 // returns 0 if not defined or non numeric
 
-char	*Cvar_VariableString (const char *var_name);
+auto Cvar_VariableString (std::string_view var_name) -> std::string_view;
 // returns an empty string if not defined
 
-const char * Cvar_CompleteVariable (char *partial);
+auto Cvar_CompleteVariable (std::string_view partial) -> std::string_view;
 // attempts to match a partial variable name for command line completion
 // returns NULL if nothing fits
 
-qboolean Cvar_Command (void);
+qboolean Cvar_Command ();
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known
 // command.  Returns true if the command was a variable reference that
 // was handled. (print or change)
@@ -92,6 +93,6 @@ void 	Cvar_WriteVariables (FILE *f);
 // Writes lines containing "set variable value" for all variables
 // with the archive flag set to true.
 
-cvar_t *Cvar_FindVar (const char *var_name);
+cvar_t *Cvar_FindVar (std::string_view var_name);
 
 extern cvar_t	*cvar_vars;

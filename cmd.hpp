@@ -84,10 +84,10 @@ void	Cmd_AddCommand (const char *cmd_name, xcommand_t function);
 // register commands and functions to call for them.
 // The cmd_name is referenced later, so it should not be in temp memory
 
-qboolean Cmd_Exists (const char *cmd_name);
+qboolean Cmd_Exists (std::string_view cmd_name);
 // used by the cvar code to check for cvar / command name overlap
 
-char 	*Cmd_CompleteCommand (char *partial);
+auto Cmd_CompleteCommand (std::string_view partial) -> std::string_view;
 // attempts to match a partial command for automatic command line completion
 // returns NULL if nothing fits
 

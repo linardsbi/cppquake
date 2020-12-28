@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.hpp"
 #include <string_view>
+#include <array>
 
 #define NUM_SAFE_ARGVS  7
 ;
@@ -57,7 +58,7 @@ char	com_cmdline[CMDLINE_LENGTH];
 qboolean		standard_quake = true, rogue, hipnotic;
 
 // this graphic needs to be in the pak file to use registered features
-constexpr unsigned short pop[] =
+constexpr std::array pop =
 {
  0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 ,0x0000,0x0000,0x6600,0x0000,0x0000,0x0000,0x6600,0x0000
@@ -257,14 +258,12 @@ auto Q_strncmp (std::string_view s1, std::string_view s2, const std::size_t coun
 //	return -1;
 //}
 
-auto Q_strncasecmp (char *s1, char *s2, int n) -> int
+auto Q_strncasecmp (const char *s1, const char *s2, int n) -> int
 {
-	int             c1, c2;
-	
 	while (true)
 	{
-		c1 = *s1++;
-		c2 = *s2++;
+		auto c1 = *s1++;
+		auto c2 = *s2++;
 
 		if (!n--)
 			return 0;               // strings are equal until end point
@@ -287,7 +286,7 @@ auto Q_strncasecmp (char *s1, char *s2, int n) -> int
 	return -1;
 }
 
-auto Q_strcasecmp (char *s1, char *s2) -> int
+auto Q_strcasecmp (const char *s1, const char *s2) -> int
 {
 	return Q_strncasecmp (s1, s2, 99999);
 }
@@ -794,7 +793,7 @@ void SZ_Print (sizebuf_t *buf, char *data)
 COM_SkipPath
 ============
 */
-auto COM_SkipPath (char *pathname) -> char *
+[[maybe_unused]] auto COM_SkipPath (char *pathname) -> char *
 {
 	char    *last;
 	
@@ -846,25 +845,22 @@ auto COM_FileExtension (char *in) -> char *
 COM_FileBase
 ============
 */
-void COM_FileBase (char *in, char *out)
+void COM_FileBase (std::string_view in, char *out)
 {
-	char *s, *s2;
-	
-	s = in + strlen(in) - 1;
-	
-	while (s != in && *s != '.')
-		s--;
-	
-	for (s2 = s ; *s2 && *s2 != '/' ; s2--)
-	;
-	
-	if (s-s2 < 2)
-		strcpy (out,"?model?");
-	else
-	{
-		s--;
-		strncpy (out,s2+1, s-s2);
-		out[s-s2] = 0;
+	auto i = in.length() - 1;
+	while (i != 0 && in[i] != '.') {
+	    --i;
+	}
+
+	for (auto j = i;  j != 0 && in[j] != '/'; --j) {
+        if (i - j < 2)
+            strcpy (out,"?model?");
+        else
+        {
+            --i;
+            strncpy (out, in.data() + j + 1, i - j);
+            out[i - j] = 0;
+        }
 	}
 }
 
@@ -1113,16 +1109,16 @@ void COM_InitArgv (int argc, char **argv)
 COM_Init
 ================
 */
-void COM_Init (char *basedir)
+void COM_Init ([[maybe_unused]] char *basedir)
 {
-	byte    swaptest[2] = {1,0};
+	constexpr byte    swaptest[2] = {1,0};
 
 // set the byte swapping variables in a portable manner 
 #ifdef SDL
 	// This is necessary because egcs 1.1.1 mis-compiles swaptest with -O2
-	if ( SDL_BYTEORDER == SDL_LIL_ENDIAN )
+	if constexpr ( SDL_BYTEORDER == SDL_LIL_ENDIAN )
 #else
-	if ( *(short *)swaptest == 1)
+	if constexpr ( *(short *)swaptest == 1)
 #endif
 	{
 		bigendien = false;
@@ -1162,7 +1158,7 @@ varargs versions of all text functions.
 FIXME: make this buffer size safe someday
 ============
 */
-auto va(char *format, ...) -> char    *
+auto va(const char *format, ...) -> char    *
 {
 	va_list         argptr;
 	static char             string[1024];
@@ -1176,7 +1172,7 @@ auto va(char *format, ...) -> char    *
 
 
 /// just for debugging
-auto     memsearch (byte *start, int count, int search) -> int
+auto     memsearch (const byte *start, int count, int search) -> int
 {
 	int             i;
 	
@@ -1328,14 +1324,14 @@ needed.  This is for the convenience of developers using ISDN from home.
 void COM_CopyFile (char *netpath, char *cachepath)
 {
 	int             in, out;
-	int             remaining, count;
+
 	char    buf[4096];
 	
-	remaining = Sys_FileOpenRead (netpath, &in);            
+	std::size_t remaining = Sys_FileOpenRead (netpath, &in);
 	COM_CreatePath (cachepath);     // create directories up to the cache file
 	out = Sys_FileOpenWrite (cachepath);
 	
-	while (remaining)
+	for (std::size_t count = 0; remaining; remaining -= count)
 	{
 		if (remaining < sizeof(buf))
 			count = remaining;
@@ -1343,7 +1339,6 @@ void COM_CopyFile (char *netpath, char *cachepath)
 			count = sizeof(buf);
 		Sys_FileRead (in, buf, count);
 		Sys_FileWrite (out, buf, count);
-		remaining -= count;
 	}
 
 	Sys_FileClose (in);
@@ -1358,9 +1353,9 @@ Finds the file in the search path.
 Sets com_filesize and one of handle or file
 ===========
 */
-auto COM_FindFile (char *filename, int *handle, FILE **file) -> int
+auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
 {
-	Sys_Printf ("PackFile: %s\n",filename);
+	Sys_Printf ("PackFile: %s\n",filename.data());
 	searchpath_t    *search;
 	char            netpath[MAX_OSPATH];
 	char            cachepath[MAX_OSPATH];
@@ -1379,7 +1374,7 @@ auto COM_FindFile (char *filename, int *handle, FILE **file) -> int
 	search = com_searchpaths;
 	if (proghack)
 	{	// gross hack to use quake 1 progs with quake 2 maps
-		if (!strcmp(filename, "progs.dat"))
+		if (!Q_strcmp(filename, "progs.dat"))
 			search = search->next;
 	}
 
@@ -1391,9 +1386,9 @@ auto COM_FindFile (char *filename, int *handle, FILE **file) -> int
 		// look through all the pak file elements
 			pak = search->pack;
 			for (i=0 ; i<pak->numfiles ; i++)
-				if (!strcmp (pak->files[i].name, filename))
+				if (!Q_strcmp (pak->files[i].name, filename))
 				{       // found it!
-					Sys_Printf ("PackFile: %s : %s\n",pak->filename, filename);
+					Sys_Printf ("PackFile: %s : %s\n",pak->filename, filename.data());
 					if (handle)
 					{
 						*handle = pak->handle;
@@ -1414,11 +1409,12 @@ auto COM_FindFile (char *filename, int *handle, FILE **file) -> int
 	// check a file in the directory tree
 			if (!static_registered)
 			{       // if not a registered version, don't ever go beyond base
-				if ( strchr (filename, '/') || strchr (filename,'\\'))
+				if ( filename.find('/') != std::string::npos
+				     || filename.find('\\') != std::string::npos)
 					continue;
 			}
 			
-			sprintf (netpath, "%s/%s",search->filename, filename);
+			sprintf (netpath, "%s/%s",search->filename, filename.data());
 			
 			findtime = Sys_FileTime (netpath);
 			if (findtime == -1)
@@ -1459,7 +1455,7 @@ auto COM_FindFile (char *filename, int *handle, FILE **file) -> int
 		
 	}
 	
-	Sys_Printf ("FindFile: can't find %s\n", filename);
+	Sys_Printf ("FindFile: can't find %s\n", filename.data());
 	
 	if (handle)
 		*handle = -1;
@@ -1479,7 +1475,7 @@ returns a handle and a length
 it may actually be inside a pak file
 ===========
 */
-auto COM_OpenFile (char *filename, int *handle) -> int
+auto COM_OpenFile (std::string_view filename, int *handle) -> int
 {
 	return COM_FindFile (filename, handle, nullptr);
 }
@@ -1527,7 +1523,7 @@ Allways appends a 0 byte.
 cache_user_t *loadcache;
 byte    *loadbuf;
 int             loadsize;
-auto COM_LoadFile (char *path, int usehunk) -> byte *
+auto COM_LoadFile (std::string_view path, const int usehunk) -> byte *
 {
 	int             h;
 	char    base[32];
@@ -1584,7 +1580,7 @@ auto COM_LoadTempFile (char *path) -> byte *
 	return COM_LoadFile (path, 2);
 }
 
-void COM_LoadCacheFile (char *path, struct cache_user_s *cu)
+void COM_LoadCacheFile (std::string_view path, cache_user_s *cu)
 {
 	loadcache = cu;
 	COM_LoadFile (path, 3);

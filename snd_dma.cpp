@@ -280,17 +280,15 @@ S_FindName
 
 ==================
 */
-auto S_FindName (char *name) -> sfx_t *
+auto S_FindName (std::string_view name) -> sfx_t *
 {
-	int		i = 0;
-	sfx_t	*sfx = nullptr;
-
-	if (!name)
+	if (name.empty())
 		Sys_Error ("S_FindName: NULL\n");
 
-	if (Q_strlen(name) >= MAX_QPATH)
+	if (name.length() >= MAX_QPATH)
 		Sys_Error ("Sound name too long: %s", name);
 
+	int i = 0;
 // see if already loaded
 	for (i=0 ; i < num_sfx ; i++)
 		if (!Q_strcmp(known_sfx[i].name, name))
@@ -301,8 +299,8 @@ auto S_FindName (char *name) -> sfx_t *
 	if (num_sfx == MAX_SFX)
 		Sys_Error ("S_FindName: out of sfx_t");
 	
-	sfx = &known_sfx[i];
-	strcpy (sfx->name, name);
+	auto sfx = &known_sfx[i];
+	strcpy (sfx->name, name.data());
 
 	num_sfx++;
 	
@@ -333,15 +331,15 @@ S_PrecacheSound
 
 ==================
 */
-auto S_PrecacheSound (char *name) -> sfx_t *
+auto S_PrecacheSound (std::string_view name) -> sfx_t *
 {
-	if (!sound_started || nosound.value)
+	if (!sound_started || nosound.value == 0)
 		return nullptr;
 
     sfx_t	*sfx = S_FindName (name);
 	
 // cache it in
-	if (precache.value)
+	if (precache.value == 0)
 		S_LoadSound (sfx);
 	
 	return sfx;
@@ -983,16 +981,14 @@ void S_SoundList()
 }
 
 
-void S_LocalSound (char *sound)
+void S_LocalSound (std::string_view sound)
 {
-	sfx_t	*sfx = nullptr;
-
-	if (nosound.value)
+	if (nosound.value == 0)
 		return;
 	if (!sound_started)
 		return;
 		
-	sfx = S_PrecacheSound (sound);
+	auto sfx = S_PrecacheSound (sound);
 	if (!sfx)
 	{
 		Con_Printf ("S_LocalSound: can't cache %s\n", sound);

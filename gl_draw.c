@@ -556,6 +556,8 @@ This is for debugging lockups by drawing different chars in different parts
 of the code.
 ================
 */
+[[maybe_unused]]
+
 void Draw_DebugChar (char num)
 {
 }

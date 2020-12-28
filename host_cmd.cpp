@@ -99,7 +99,7 @@ void Host_Status_f ()
 		}
 		else
 			hours = 0;
-		print ("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j+1, client->name, (int)client->edict->v.frags, hours, minutes, seconds);
+		print ("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j+1, client->name.c_str(), (int)client->edict->v.frags, hours, minutes, seconds);
 		print ("   %s\n", client->netconnection->address);
 	}
 }
@@ -233,7 +233,7 @@ void Host_Ping_f ()
 		for (j=0 ; j<NUM_PING_TIMES ; j++)
 			total+=client->ping_times[j];
 		total /= NUM_PING_TIMES;
-		SV_ClientPrintf ("%4i %s\n", (int)(total*1000), client->name);
+		SV_ClientPrintf ("%4i %s\n", (int)(total*1000), client->name.c_str());
 	}
 }
 
@@ -911,36 +911,32 @@ Host_Name_f
 */
 void Host_Name_f ()
 {
-	char	*newName = nullptr;
-
 	if (Cmd_Argc () == 1)
 	{
-		Con_Printf ("\"name\" is \"%s\"\n", cl_name.string);
+		Con_Printf ("\"name\" is \"%s\"\n", cl_name.string.c_str());
 		return;
 	}
-	if (Cmd_Argc () == 2)
-		newName = Cmd_Argv(1);	
-	else
-		newName = Cmd_Args();
-	newName[15] = 0;
+	std::string_view newName = Cmd_Argc () == 2 ? Cmd_Argv(1) : Cmd_Args();
+
+	//newName[15] = 0;
 
 	if (cmd_source == src_command)
 	{
 		if (Q_strcmp(cl_name.string, newName) == 0)
 			return;
-		Cvar_Set ("_cl_name", newName);
+		Cvar_Set ("_cl_name", newName.data());
 		if (cls.state == ca_connected)
 			Cmd_ForwardToServer ();
 		return;
 	}
 
-	if (host_client->name[0] && strcmp(host_client->name, "unconnected") != 0 )
+	if (!host_client->name.empty() && host_client->name != "unconnected" )
 		if (Q_strcmp(host_client->name, newName) != 0)
-			Con_Printf ("%s renamed to %s\n", host_client->name, newName);
-	Q_strcpy (host_client->name, newName);
+			Con_Printf ("%s renamed to %s\n", host_client->name.c_str(), newName.data());
+
+	host_client->name = newName;
 
 	host_client->edict->v.netname = newString(host_client->name);
-
 
 // send notification to all clients
 	
@@ -1047,9 +1043,9 @@ void Host_Say(qboolean teamonly)
 
 // turn on color set 1
 	if (!fromServer)
-		sprintf (text, "%c%s: ", 1, save->name);
+		sprintf (text, "%c%s: ", 1, save->name.c_str());
 	else
-		sprintf (text, "%c<%s> ", 1, hostname.string);
+		sprintf (text, "%c<%s> ", 1, hostname.string.c_str());
 
 	j = sizeof(text) - 2 - Q_strlen(text);  // -2 for /n and null terminator
 	if (Q_strlen(p) > j)
@@ -1087,12 +1083,6 @@ void Host_Say_Team_f()
 
 void Host_Tell_f()
 {
-	client_t *client = nullptr;
-	client_t *save = nullptr;
-	int		j = 0;
-	char	*p = nullptr;
-	char	text[64];
-
 	if (cmd_source == src_command)
 	{
 		Cmd_ForwardToServer ();
@@ -1102,10 +1092,9 @@ void Host_Tell_f()
 	if (Cmd_Argc () < 3)
 		return;
 
-	Q_strcpy(text, host_client->name);
-	Q_strcat(text, ": ");
+    std::string text{host_client->name + ": "};
 
-	p = Cmd_Args();
+	auto p = Cmd_Args();
 
 // remove quotes if present
 	if (*p == '"')
@@ -1115,22 +1104,25 @@ void Host_Tell_f()
 	}
 
 // check length & truncate if necessary
-	j = sizeof(text) - 2 - Q_strlen(text);  // -2 for /n and null terminator
-	if (Q_strlen(p) > j)
-		p[j] = 0;
 
-	strcat (text, p);
-	strcat (text, "\n");
+	if (auto j = text.length() - 2 - text.length(); Q_strlen(p) > j) { // -2 for /n and null terminator
+        p[j] = 0;
+	}
 
-	save = host_client;
-	for (j = 0, client = svs.clients; j < svs.maxclients; j++, client++)
+	text += p;
+    text += "\n";
+
+	const auto save = host_client;
+    auto client = svs.clients;
+
+	for (auto j = 0; j < svs.maxclients; j++, client++)
 	{
 		if (!client->active || !client->spawned)
 			continue;
-		if (Q_strcasecmp(client->name, Cmd_Argv(1)))
+		if (Q_strcasecmp(client->name.data(), Cmd_Argv(1)))
 			continue;
 		host_client = client;
-		SV_ClientPrintf("%s", text);
+		SV_ClientPrintf("%s", text.c_str());
 		break;
 	}
 	host_client = save;
@@ -1283,7 +1275,6 @@ Host_Spawn_f
 void Host_Spawn_f ()
 {
 	int		i = 0;
-	client_t	*client = nullptr;
 	edict_t	*ent = nullptr;
 
 	if (cmd_source == src_command)
@@ -1312,7 +1303,7 @@ void Host_Spawn_f ()
 		memset (&ent->v, 0, progs->entityfields * 4);
 		ent->v.colormap = NUM_FOR_EDICT(ent);
 		ent->v.team = (host_client->colors & 15) + 1;
-		ent->v.netname = host_client->name - pr_strings;
+		ent->v.netname = getOffsetByString(host_client->name);
 
 		// copy spawn parms out of the client_t
 
@@ -1326,7 +1317,7 @@ void Host_Spawn_f ()
 		PR_ExecuteProgram (pr_global_struct->ClientConnect);
 
 		if ((Sys_FloatTime() - host_client->netconnection->connecttime) <= sv.time)
-			Sys_Printf ("%s entered the game\n", host_client->name);
+			Sys_Printf ("%s entered the game\n", host_client->name.c_str());
 
 		PR_ExecuteProgram (pr_global_struct->PutClientInServer);	
 	}
@@ -1338,9 +1329,10 @@ void Host_Spawn_f ()
 // send time of update
 	MSG_WriteByte (&host_client->message, svc_time);
 	MSG_WriteFloat (&host_client->message, sv.time);
-
-	for (i=0, client = svs.clients ; i<svs.maxclients ; i++, client++)
+    auto client = svs.clients;
+	for (i=0; i<svs.maxclients ; i++, client++)
 	{
+        if (!client->active) continue; // fixme hack to prevent name being printed, which will crash the game
 		MSG_WriteByte (&host_client->message, svc_updatename);
 		MSG_WriteByte (&host_client->message, i);
 		MSG_WriteString (&host_client->message, client->name);
@@ -1421,6 +1413,7 @@ void Host_Begin_f ()
 //===========================================================================
 
 
+
 /*
 ==================
 Host_Kick_f
@@ -1430,10 +1423,7 @@ Kicks a user off of the server
 */
 void Host_Kick_f ()
 {
-	char		*who = nullptr;
-	char		*message = nullptr;
 	client_t	*save = nullptr;
-	int			i = 0;
 	qboolean	byNumber = false;
 
 	if (cmd_source == src_command)
@@ -1448,10 +1438,11 @@ void Host_Kick_f ()
 		return;
 
 	save = host_client;
+    auto i = 0;
 
 	if (Cmd_Argc() > 2 && Q_strcmp(Cmd_Argv(1), "#") == 0)
 	{
-		i = Q_atof(Cmd_Argv(2)) - 1;
+		i = static_cast<int>(Q_atof(Cmd_Argv(2))) - 1;
 		if (i < 0 || i >= svs.maxclients)
 			return;
 		if (!svs.clients[i].active)
@@ -1461,17 +1452,19 @@ void Host_Kick_f ()
 	}
 	else
 	{
-		for (i = 0, host_client = svs.clients; i < svs.maxclients; i++, host_client++)
+	    auto hostClient = svs.clients;
+		for (i = 0; i < svs.maxclients; i++, hostClient++)
 		{
-			if (!host_client->active)
+			if (!hostClient->active)
 				continue;
-			if (Q_strcasecmp(host_client->name, Cmd_Argv(1)) == 0)
+			if (hostClient->name == Cmd_Argv(1))
 				break;
 		}
 	}
 
 	if (i < svs.maxclients)
 	{
+	    std::string who{};
 		if (cmd_source == src_command)
 			if (cls.state == ca_dedicated)
 				who = "Console";
@@ -1486,21 +1479,27 @@ void Host_Kick_f ()
 
 		if (Cmd_Argc() > 2)
 		{
-			message = COM_Parse(Cmd_Args());
-			if (byNumber)
+			std::string message = COM_Parse(Cmd_Args());
+            auto j = 1U;
+			if (byNumber) // skip the #
 			{
-				message++;							// skip the #
-				while (*message == ' ')				// skip white space
-					message++;
-				message += Q_strlen(Cmd_Argv(2));	// skip the number
+				while (message[j] == ' ')				// skip white space
+					++j;
+				j += Q_strlen(Cmd_Argv(2));	// skip the number
 			}
-			while (*message && *message == ' ')
-				message++;
+
+            while (message[j] == ' ')				// skip white space
+                ++j;
+
+            if (j <= message.length())
+			    message = message.substr(j);
+
+            if (message.length())
+                SV_ClientPrintf ("Kicked by %s: %s\n", who.c_str(), message.c_str());
 		}
-		if (message)
-			SV_ClientPrintf ("Kicked by %s: %s\n", who, message);
+
 		else
-			SV_ClientPrintf ("Kicked by %s\n", who);
+			SV_ClientPrintf ("Kicked by %s\n", who.c_str());
 		SV_DropClient (false);
 	}
 

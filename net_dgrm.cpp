@@ -594,7 +594,6 @@ static void Test_Poll(void*)
 
 static void Test_f ()
 {
-	char	*host = nullptr;
 	int		n = 0;
 	int		max = MAX_SCOREBOARD;
 	struct qsockaddr sendaddr{};
@@ -602,12 +601,12 @@ static void Test_f ()
 	if (testInProgress)
 		return;
 
-	host = Cmd_Argv (1);
+	std::string_view host = Cmd_Argv (1);
 
-	if (host && hostCacheCount)
+	if (!host.empty() && hostCacheCount)
 	{
 		for (n = 0; n < hostCacheCount; n++)
-			if (Q_strcasecmp (host, hostcache[n].name) == 0)
+			if (host == hostcache[n].name)
 			{
 				if (hostcache[n].driver != myDriverLevel)
 					continue;
@@ -626,7 +625,7 @@ static void Test_f ()
 			continue;
 
 		// see if we can resolve the host name
-		if (dfunc.GetAddrFromName(host, &sendaddr) != -1)
+		if (dfunc.GetAddrFromName(const_cast<char*>(host.data()), &sendaddr) != -1)
 			break;
 	}
 	if (net_landriverlevel == net_numlandrivers)
@@ -723,19 +722,18 @@ Done:
 
 static void Test2_f ()
 {
-	char	*host = nullptr;
 	int		n = 0;
 	struct qsockaddr sendaddr{};
 
 	if (test2InProgress)
 		return;
 
-	host = Cmd_Argv (1);
+	std::string_view host = Cmd_Argv (1);
 
-	if (host && hostCacheCount)
+	if (!host.empty() && hostCacheCount)
 	{
 		for (n = 0; n < hostCacheCount; n++)
-			if (Q_strcasecmp (host, hostcache[n].name) == 0)
+			if (host == hostcache[n].name)
 			{
 				if (hostcache[n].driver != myDriverLevel)
 					continue;
@@ -753,7 +751,7 @@ static void Test2_f ()
 			continue;
 
 		// see if we can resolve the host name
-		if (dfunc.GetAddrFromName(host, &sendaddr) != -1)
+		if (dfunc.GetAddrFromName(const_cast<char*>(host.data()), &sendaddr) != -1)
 			break;
 	}
 	if (net_landriverlevel == net_numlandrivers)
@@ -1178,30 +1176,29 @@ static void _Datagram_SearchForHosts (qboolean xmit)
 
 		// add it
 		hostCacheCount++;
-		Q_strcpy(hostcache[n].name, MSG_ReadString());
-		Q_strcpy(hostcache[n].map, MSG_ReadString());
+		hostcache[n].name = MSG_ReadString();
+		hostcache[n].map = MSG_ReadString();
 		hostcache[n].users = MSG_ReadByte();
 		hostcache[n].maxusers = MSG_ReadByte();
 		if (MSG_ReadByte() != NET_PROTOCOL_VERSION)
 		{
-			Q_strcpy(hostcache[n].cname, hostcache[n].name);
-			hostcache[n].cname[14] = 0;
-			Q_strcpy(hostcache[n].name, "*");
-			Q_strcat(hostcache[n].name, hostcache[n].cname);
+			hostcache[n].cname = hostcache[n].name;
+			hostcache[n].cname.resize(14);
+			hostcache[n].name = "*" + hostcache[n].cname;
 		}
 		Q_memcpy(&hostcache[n].addr, &readaddr, sizeof(struct qsockaddr));
 		hostcache[n].driver = net_driverlevel;
 		hostcache[n].ldriver = net_landriverlevel;
-		Q_strcpy(hostcache[n].cname, dfunc.AddrToString(&readaddr));
+		hostcache[n].cname = dfunc.AddrToString(&readaddr);
 
 		// check for a name conflict
 		for (i = 0; i < hostCacheCount; i++)
 		{
 			if (i == n)
 				continue;
-			if (Q_strcasecmp (hostcache[n].name, hostcache[i].name) == 0)
+			if (hostcache[n].name == hostcache[i].name)
 			{
-				i = Q_strlen(hostcache[n].name);
+				i = hostcache[n].name.length();
 				if (i < 15 && hostcache[n].name[i-1] > '8')
 				{
 					hostcache[n].name[i] = '0';

@@ -21,8 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <cmath>
 #include "quakedef.hpp"
+#include <array>
 
-constexpr const char * svc_strings[] =
+constexpr std::array svc_strings =
 {
 	"svc_bad",
 	"svc_nop",
@@ -760,6 +761,7 @@ void CL_ParseServerMessage ()
 			continue;
 		}
 
+
 		SHOWNET(svc_strings[cmd]);
 	
 	// other commands
@@ -791,6 +793,7 @@ void CL_ParseServerMessage ()
 			
 		case svc_disconnect:
 			Host_EndGame ("Server disconnected\n");
+
 
 		case svc_print:
 			Con_Printf ("%s", MSG_ReadString ());

@@ -176,13 +176,13 @@ void Key_Console (int key)
 
 	if (key == K_TAB)
 	{	// command completion
-		std::string cmd = Cmd_CompleteCommand (key_lines[edit_line]+1);
+		std::string_view cmd = Cmd_CompleteCommand (key_lines[edit_line]+1);
 		if (cmd.empty())
 			cmd = Cvar_CompleteVariable (key_lines[edit_line]+1);
 
 		if (!cmd.empty())
 		{
-			Q_strcpy (key_lines[edit_line]+1, cmd.c_str());
+			Q_strcpy (key_lines[edit_line]+1, cmd.data());
 			key_linepos = cmd.length()+1;
 			key_lines[edit_line][key_linepos] = ' ';
 			key_linepos++;

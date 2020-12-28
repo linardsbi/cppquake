@@ -501,7 +501,7 @@ while (true)
 					(a->vector[2] == b->vector[2]);
 		break;
 	case OP_EQ_S:
-	    if (getStringByOffset(a->string).length() == 0) break;
+	    if (getStringByOffset(a->string).empty()) break;
 		c->_float = !Q_strcmp(getStringByOffset(a->string),getStringByOffset(b->string));
 		break;
 	case OP_EQ_E:

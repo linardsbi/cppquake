@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ===============================================================================
 */
 
-auto PF_VarString (int	first) -> std::string
+auto PF_VarString (int first) -> std::string
 {
 	std::string out;
 
@@ -41,6 +41,7 @@ auto PF_VarString (int	first) -> std::string
 	{
 	    out += getGlobalString(OFS_PARM0+i*3);
 	}
+	//out += " boi";
 
 	return out;
 }
@@ -894,20 +895,22 @@ void PF_ftos ()
 		sprintf (pr_string_temp, "%d",(int)v);
 	else
 		sprintf (pr_string_temp, "%5.1f",v);
-	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+	G_INT(OFS_RETURN) = getOffsetByString(pr_string_temp);
+//	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
 }
 
 void PF_fabs ()
 {
 	float	v = NAN;
 	v = G_FLOAT(OFS_PARM0);
-	G_FLOAT(OFS_RETURN) = fabs(v);
+	G_FLOAT(OFS_RETURN) = std::fabs(v);
 }
 
 void PF_vtos ()
 {
 	sprintf (pr_string_temp, "'%5.1f %5.1f %5.1f'", G_VECTOR(OFS_PARM0)[0], G_VECTOR(OFS_PARM0)[1], G_VECTOR(OFS_PARM0)[2]);
-	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+	G_INT(OFS_RETURN) = getOffsetByString(pr_string_temp);
+//	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
 }
 
 #ifdef QUAKE2
@@ -989,7 +992,7 @@ void PF_Find ()
 	int e = G_EDICTNUM(OFS_PARM0);
 	std::string_view s = getGlobalString(OFS_PARM2);
 
-	if (s.length() == 0)
+	if (s.empty())
 		PR_RunError ("PF_Find: bad search string");
 		
 	for (e++ ; e < sv.num_edicts ; e++)
@@ -1000,7 +1003,7 @@ void PF_Find ()
 
 		auto t = getEdictString(G_INT(OFS_PARM1), ed);
 
-		if (t.length() == 0)
+		if (t.empty())
 			continue;
 		if (!Q_strcmp(t,s))
 		{
@@ -1032,7 +1035,7 @@ void PF_precache_sound ()
 	std::string_view s = getGlobalString(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 
-	if (s.length() == 0) {
+	if (s.empty()) {
         PR_RunError ("Bad string");
 	}
 	
@@ -1058,7 +1061,7 @@ void PF_precache_model ()
 	std::string_view s = getGlobalString(OFS_PARM0);
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 
-    if (s.length() == 0) {
+    if (s.empty()) {
         PR_RunError ("Bad string");
     }
 
