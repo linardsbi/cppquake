@@ -205,7 +205,7 @@ D_SCDump
 	for (auto test = sc_base ; test ; test = test->next)
 	{
 		if (test == sc_rover)
-			Sys_Printf ("ROVER:\n");
+            sysPrintf("ROVER:\n");
 		printf ("%p : %li bytes     %i width\n",test, test->size, test->width);
 	}
 }

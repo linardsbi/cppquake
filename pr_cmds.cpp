@@ -1617,7 +1617,7 @@ void PF_changelevel ()
 		return;
 	svs.changelevel_issued = true;
 
-	Cbuf_AddText (va("changelevel %s\n", getGlobalString(OFS_PARM0).data()));
+	Cbuf_AddText (va("changelevel %s\n", getGlobalString(OFS_PARM0)));
 #endif
 }
 

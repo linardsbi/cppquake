@@ -2102,7 +2102,7 @@ void M_ModemConfig_Key (int key)
 
 		if (modemConfig_cursor == 4)
 		{
-			(*SetModemConfig) (0, va ("%c", modemConfig_dialing), modemConfig_clear, modemConfig_init, modemConfig_hangup);
+			(*SetModemConfig) (0, va ("{:c}", modemConfig_dialing).data(), modemConfig_clear, modemConfig_init, modemConfig_hangup);
 			m_entersound = true;
 			M_Menu_SerialConfig_f ();
 		}

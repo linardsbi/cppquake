@@ -38,7 +38,7 @@ The game starts with a Cbuf_AddText ("exec quake.rc\n"); Cbuf_Execute ();
 void Cbuf_Init ();
 // allocates an initial text buffer that will grow as needed
 
-void Cbuf_AddText (const char *text);
+void Cbuf_AddText (std::string_view text);
 // as new commands are generated from the console or keybindings,
 // the text is added to the end of the command buffer.
 
@@ -93,7 +93,7 @@ auto Cmd_CompleteCommand (std::string_view partial) -> std::string_view;
 
 int		Cmd_Argc ();
 char	*Cmd_Argv (int arg);
-char	*Cmd_Args ();
+const char	*Cmd_Args ();
 // The functions that execute commands get their parameters with these
 // functions. Cmd_Argv () will return an empty string, not a NULL
 // if arg > argc, so string operations are allways safe.
@@ -102,11 +102,11 @@ int Cmd_CheckParm (char *parm);
 // Returns the position (1 to argc-1) in the command's argument list
 // where the given parameter apears, or 0 if not present
 
-void Cmd_TokenizeString (char *text);
+void Cmd_TokenizeString (const char *text);
 // Takes a null terminated string.  Does not need to be /n terminated.
 // breaks the string up into arg tokens.
 
-void	Cmd_ExecuteString (char *text, cmd_source_t src);
+void	Cmd_ExecuteString (std::string_view text, cmd_source_t src);
 // Parses a single line of text into arguments and tries to execute it.
 // The text can come from the command buffer, a remote client, or stdin.
 

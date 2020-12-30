@@ -1,7 +1,7 @@
 
 bin_PROGRAMS = sdlquake
 
-sdlquake_LDADD = @MATHLIB@ @INETLIB@
+sdlquake_LDADD = @MATHLIB@ @INETLIB@ @LIBFMT@
 
 sdlquake_SOURCES =		\
 	adivtab.hpp		\

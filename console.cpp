@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <unistd.h>
 #endif
 #include <fcntl.h>
+#include <fmt/format.h>
 #include "quakedef.hpp"
 
 int 		con_linewidth;
@@ -352,7 +353,7 @@ void Con_Print (char *txt)
 Con_DebugLog
 ================
 */
-void Con_DebugLog(char *file, char *fmt, ...)
+void Con_DebugLog(std::string_view file, char *fmt, ...)
 {
     va_list argptr; 
     static char data[1024];
@@ -361,10 +362,11 @@ void Con_DebugLog(char *file, char *fmt, ...)
     va_start(argptr, fmt);
     vsprintf(data, fmt, argptr);
     va_end(argptr);
-    fd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    fd = open(file.data(), O_WRONLY | O_CREAT | O_APPEND, 0666);
     write(fd, data, strlen(data));
     close(fd);
 }
+
 
 
 /*
@@ -387,7 +389,7 @@ void Con_Printf (const char *fmt, ...)
 	va_end (argptr);
 	
 // also echo to debugging console
-	Sys_Printf ("%s", msg);	// also echo to debugging console
+    sysPrintf("{}", msg);	// also echo to debugging console
 
 // log all messages to file
 	if (con_debuglog)

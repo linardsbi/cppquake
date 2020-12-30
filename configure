@@ -590,6 +590,7 @@ ICONOBJ
 SDL_LIBS
 SDL_CFLAGS
 SDL_CONFIG
+LIBFMT
 INETLIB
 MATHLIB
 target_os
@@ -5017,16 +5018,20 @@ case "$target" in
     *-*-mingw32*)
         MATHLIB=""
         INETLIB="-lwsock32"
+        LIBFMT=""
         ;;
     *-*-beos*)
         MATHLIB=""
         INETLIB=""
+        LIBFMT=""
         ;;
     *)
         MATHLIB="-lm"
         INETLIB=""
+	    LIBFMT="-lfmt"
         ;;
 esac
+
 
 
 
@@ -5271,7 +5276,7 @@ rm -f core conftest.err conftest.$ac_objext \
   rm -f conf.sdltest
 
 CFLAGS="$CFLAGS $SDL_CFLAGS -DSDL"
-LIBS="$LIBS $SDL_LIBS"
+LIBS="$LIBS $SDL_LIBS -L./lib/"
 
 case "$target" in
     *-*-mingw32*)
@@ -5296,9 +5301,9 @@ if test x$enable_asm = xyes; then
 fi
 
 CFLAGS="$CFLAGS -DELF"
-CXXFLAGS="$CXXFLAGS -DSDL -std=c++2a -Og -I/usr/include/SDL"
-LDFLAGS="$LDFLAGS"
-CCASFLAGS="$CCASFLAGS -Og"
+CXXFLAGS="$CXXFLAGS -DSDL -std=c++2a -I/usr/include/SDL -L./lib/ -lfmt"
+LDFLAGS="$LDFLAGS "
+CCASFLAGS="$CCASFLAGS "
 
 # Finally create all the generated files
 ac_config_files="$ac_config_files Makefile"

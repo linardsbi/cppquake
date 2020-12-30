@@ -9,12 +9,13 @@
 
 
 auto findStringByName(std::string_view str) {
-    return std::find_if(edictStrings.begin(), edictStrings.end(), [str](const auto& eString) {
+    return std::find_if(edictStrings.begin(), edictStrings.end(), [str](const auto &eString) {
         return eString.name == str;
     });
 }
+
 auto findStringByOffset(const unsigned long offset) {
-    return std::find_if(edictStrings.begin(), edictStrings.end(), [offset](const auto& eString) {
+    return std::find_if(edictStrings.begin(), edictStrings.end(), [offset](const auto &eString) {
         return eString.offset == offset;
     });
 }
@@ -47,17 +48,19 @@ auto getOffsetByString(std::string_view name) -> unsigned long {
 }
 
 auto getGlobalString(unsigned long offset) -> std::string_view {
-    return getStringByOffset(*(string_t *)&pr_globals[offset]);
+    return getStringByOffset(*(string_t *) &pr_globals[offset]);
 }
-auto getEdictString(unsigned long offset, edict_s* edict) -> std::string_view {
-    return getStringByOffset(*(string_t *)&((float*)&edict->v)[offset]);
+
+auto getEdictString(unsigned long offset, edict_s *edict) -> std::string_view {
+    return getStringByOffset(*(string_t *) &((float *) &edict->v)[offset]);
 }
+
 auto getGlobalStringOffsetPair(unsigned long offset) -> NameOffsetPair {
-    return *findStringByOffset(*(string_t *)&pr_globals[offset]);
+    return *findStringByOffset(*(string_t *) &pr_globals[offset]);
 }
 
 auto findFunctionByName(std::string_view name) {
-    return std::find_if(edictFunctions.begin(), edictFunctions.end(), [&name](const auto& item) {
+    return std::find_if(edictFunctions.begin(), edictFunctions.end(), [&name](const auto &item) {
         return getStringByOffset(item.s_name) == name;
     });
 }
@@ -78,6 +81,7 @@ auto getFunctionByNameOffset(unsigned long offset) -> dfunction_t {
 auto getFunctionOffsetFromName(std::string_view name) -> unsigned long {
     return std::distance(edictFunctions.begin(), findFunctionByName(name));
 }
+
 /*
 =============
 NewString
@@ -86,16 +90,13 @@ NewString
 
 auto fixNewLines(std::string_view string) {
     std::string newstring = string.data();
-    for (std::size_t i=0, l = string.length(); i< l ; i++)
-    {
-        if (string[i] == '\\' && i < l-1)
-        {
+    for (std::size_t i = 0, l = newstring.length(); i < l; i++) {
+        if (string[i] == '\\' && i < l - 1) {
             i++;
             if (string[i] == 'n') {
                 newstring[i - 1] = ' ';
                 newstring[i] = '\n';
-            }
-            else
+            } else
                 newstring[i] = '\\';
         }
     }
@@ -103,8 +104,7 @@ auto fixNewLines(std::string_view string) {
 }
 
 // going to have to clear all strings that were allocated after level change
-auto newString(std::string_view string) -> unsigned long
-{
+auto newString(std::string_view string) -> unsigned long {
     auto lastIt = --edictStrings.end();
     auto offset = lastIt->offset + lastIt->name.length() + 1; // I might not be adding something..
     edictStrings.emplace_back(fixNewLines(string), offset);

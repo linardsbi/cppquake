@@ -51,9 +51,9 @@ cachepic_t	menu_cachepics[MAX_CACHED_PICS];
 int			menu_numcachepics;
 
 
-qpic_t	*Draw_PicFromWad (char *name)
+qpic_t	*Draw_PicFromWad (std::string_view name)
 {
-	return getLumpName<qpic_t *>(name);
+	return getLumpName<qpic_t *>(const_cast<char*>(name.data())); //fixme
 }
 
 /*

@@ -650,7 +650,7 @@ void ED_WriteGlobals (FILE *f)
 ED_ParseGlobals
 =============
 */
-void ED_ParseGlobals (char *data)
+void ED_ParseGlobals (const char *data)
 {
 	char	keyname[64];
 	ddef_t	*key = nullptr;
@@ -800,7 +800,7 @@ ed should be a properly initialized empty edict.
 Used for initial level load and for savegames.
 ====================
 */
-auto ED_ParseEdict (char *data, edict_t *ent) -> char *
+auto ED_ParseEdict (const char *data, edict_t *ent) -> const char *
 {
 	qboolean	anglehack = false;
 	qboolean	init = false;
@@ -898,7 +898,7 @@ Used for both fresh maps and savegame loads.  A fresh map would also need
 to call ED_CallSpawnFunctions () to let the objects initialize themselves.
 ================
 */
-void ED_LoadFromFile (char *data)
+void ED_LoadFromFile (const char *data)
 {	
 	edict_t		*ent = nullptr;
 	int			inhibit = 0;

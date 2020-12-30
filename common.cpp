@@ -38,7 +38,7 @@ qboolean        com_modified;   // set true if using non-id files
 
 qboolean		proghack;
 
-int             static_registered = 1;  // only for startup check, then set
+qboolean        static_registered = true;  // only for startup check, then set
 
 qboolean		msg_suppress_1 = false;
 
@@ -771,7 +771,7 @@ void SZ_Write (sizebuf_t *buf, const void *data, std::size_t length)
 	Q_memcpy (SZGetSpace<void*>(buf,length),data,length);
 }
 
-void SZ_Print (sizebuf_t *buf, char *data)
+void SZ_Print (sizebuf_t *buf, const char *data)
 {
 	int             len;
 	
@@ -897,7 +897,7 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-auto COM_Parse (char *data) -> char *
+auto COM_Parse (const char *data) -> const char *
 {
 	int             c;
 	int             len;
@@ -1006,7 +1006,7 @@ void COM_CheckRegistered ()
 	int                     i;
 
 	COM_OpenFile("gfx/pop.lmp", &h);
-	static_registered = 0;
+	static_registered = false;
 
 	if (h == -1)
 	{
@@ -1028,7 +1028,7 @@ void COM_CheckRegistered ()
 	
 	Cvar_Set ("cmdline", com_cmdline);
 	Cvar_Set ("registered", "1");
-	static_registered = 1;
+	static_registered = true;
 	Con_Printf ("Playing registered version.\n");
 }
 
@@ -1149,27 +1149,6 @@ void COM_Init ([[maybe_unused]] char *basedir)
 }
 
 
-/*
-============
-va
-
-does a varargs printf into a temp buffer, so I don't need to have
-varargs versions of all text functions.
-FIXME: make this buffer size safe someday
-============
-*/
-auto va(const char *format, ...) -> char    *
-{
-	va_list         argptr;
-	static char             string[1024];
-	
-	va_start (argptr, format);
-	vsprintf (string, format,argptr);
-	va_end (argptr);
-
-	return string;  
-}
-
 
 /// just for debugging
 auto     memsearch (const byte *start, int count, int search) -> int
@@ -1280,11 +1259,11 @@ void COM_WriteFile (char *filename, void *data, int len)
 	handle = Sys_FileOpenWrite (name);
 	if (handle == -1)
 	{
-		Sys_Printf ("COM_WriteFile: failed on %s\n", name);
+        sysPrintf("COM_WriteFile: failed on {}\n", name);
 		return;
 	}
-	
-	Sys_Printf ("COM_WriteFile: %s\n", name);
+
+    sysPrintf("COM_WriteFile: {}\n", name);
 	Sys_FileWrite (handle, data, len);
 	Sys_FileClose (handle);
 }
@@ -1355,8 +1334,7 @@ Sets com_filesize and one of handle or file
 */
 auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
 {
-	Sys_Printf ("PackFile: %s\n",filename.data());
-	searchpath_t    *search;
+    sysPrintf("PackFile: {}\n", filename);
 	char            netpath[MAX_OSPATH];
 	char            cachepath[MAX_OSPATH];
 	pack_t          *pak;
@@ -1371,10 +1349,10 @@ auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
 //
 // search through the path, one element at a time
 //
-	search = com_searchpaths;
+	auto search = com_searchpaths;
 	if (proghack)
 	{	// gross hack to use quake 1 progs with quake 2 maps
-		if (!Q_strcmp(filename, "progs.dat"))
+		if (filename == "progs.dat")
 			search = search->next;
 	}
 
@@ -1386,9 +1364,9 @@ auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
 		// look through all the pak file elements
 			pak = search->pack;
 			for (i=0 ; i<pak->numfiles ; i++)
-				if (!Q_strcmp (pak->files[i].name, filename))
+				if (pak->files[i].name == filename)
 				{       // found it!
-					Sys_Printf ("PackFile: %s : %s\n",pak->filename, filename.data());
+                    sysPrintf("PackFile: {} : {}\n", pak->filename, filename);
 					if (handle)
 					{
 						*handle = pak->handle;
@@ -1439,9 +1417,9 @@ auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
 				if (cachetime < findtime)
 					COM_CopyFile (netpath, cachepath);
 				//strcpy (netpath, cachepath);
-			}	
+			}
 
-			Sys_Printf ("FindFile: %s\n",netpath);
+            sysPrintf("FindFile: {}\n", netpath);
 			com_filesize = Sys_FileOpenRead (netpath, &i);
 			if (handle)
 				*handle = i;
@@ -1454,8 +1432,8 @@ auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
 		}
 		
 	}
-	
-	Sys_Printf ("FindFile: can't find %s\n", filename.data());
+
+    sysPrintf("FindFile: can't find {}\n", filename);
 	
 	if (handle)
 		*handle = -1;
@@ -1608,7 +1586,7 @@ Loads the header and directory, adding the files at the beginning
 of the list so they override previous pack files.
 =================
 */
-auto COM_LoadPackFile (char *packfile) -> pack_t *
+auto COM_LoadPackFile (const char *packfile) -> pack_t *
 {
 	dpackheader_t   header;
 	int                             i;
@@ -1678,20 +1656,19 @@ Sets com_gamedir, adds the directory to the head of the path,
 then loads and adds pak1.pak pak2.pak ... 
 ================
 */
-void COM_AddGameDirectory (char *dir)
+void COM_AddGameDirectory (std::string_view dir)
 {
 	int                             i;
 	searchpath_t    *search;
 	pack_t                  *pak;
-	char                    pakfile[MAX_OSPATH];
 
-	strcpy (com_gamedir, dir);
+	strcpy (com_gamedir, dir.data());
 
 //
 // add the directory to the search path
 //
 	search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));
-	strcpy (search->filename, dir);
+	strcpy (search->filename, dir.data());
 	search->next = com_searchpaths;
 	com_searchpaths = search;
 
@@ -1700,8 +1677,8 @@ void COM_AddGameDirectory (char *dir)
 //
 	for (i=0 ; ; i++)
 	{
-		sprintf (pakfile, "%s/pak%i.pak", dir, i);
-		pak = COM_LoadPackFile (pakfile);
+	    auto pakfile = fmt::sprintf("%s/pak%i.pak", dir, i);
+		pak = COM_LoadPackFile (pakfile.c_str());
 		if (!pak)
 			break;
 		search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));

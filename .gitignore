@@ -5,5 +5,7 @@ autom4te.cache
 .vscode
 .idea
 Makefile
+Makefile.in
 .deps/
 config.log
+config.status

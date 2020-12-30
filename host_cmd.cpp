@@ -566,7 +566,7 @@ void Host_Loadgame_f ()
 	FILE	*f = nullptr;
 	char	mapname[MAX_QPATH];
 	float	time = NAN, tfloat = NAN;
-	char	str[32768], *start = nullptr;
+	char	str[32768];
 	int		i = 0, r = 0;
 	edict_t	*ent = nullptr;
 	int		entnum = 0;
@@ -666,8 +666,9 @@ void Host_Loadgame_f ()
 		if (i == sizeof(str)-1)
 			Sys_Error ("Loadgame buffer overflow");
 		str[i] = 0;
-		start = str;
-		start = COM_Parse(str);
+		std::string_view start = COM_Parse(str); // fixme might break something
+//		start = str;
+//		start = COM_Parse(str);
 		if (!com_token[0])
 			break;		// end of file
 		if (strcmp(com_token,"{") != 0)
@@ -675,7 +676,7 @@ void Host_Loadgame_f ()
 			
 		if (entnum == -1)
 		{	// parse the global vars
-			ED_ParseGlobals (start);
+			ED_ParseGlobals (start.data());
 		}
 		else
 		{	// parse an edict
@@ -683,7 +684,7 @@ void Host_Loadgame_f ()
 			ent = EDICT_NUM(entnum);
 			memset (&ent->v, 0, progs->entityfields * 4);
 			ent->free = false;
-			ED_ParseEdict (start, ent);
+			ED_ParseEdict (start.data(), ent);
 	
 		// link it into the bsp tree
 			if (!ent->free)
@@ -1011,7 +1012,6 @@ void Host_Say(qboolean teamonly)
 	client_t *save = nullptr;
 	int		j = 0;
 	char	*p = nullptr;
-	char	text[64]; // todo: was unsigned
 	qboolean	fromServer = false;
 
 	if (cmd_source == src_command)
@@ -1033,39 +1033,38 @@ void Host_Say(qboolean teamonly)
 
 	save = host_client;
 
-	p = Cmd_Args();
-// remove quotes if present
-	if (*p == '"')
-	{
-		p++;
-		p[Q_strlen(p)-1] = 0;
-	}
+    std::string text = [fromServer, &save](std::string_view args) {
+        std::string output;
+        output.reserve(args.size()); // optional, avoids buffer reallocations in the loop
+        for(char arg : args)
+            if(arg != '"') output += arg; // remove quotes
+        return fromServer ?
+                fmt::sprintf("%c<%s> ", 1, hostname.string) + output + "\n" :
+                fmt::sprintf ("%c%s: ", 1, save->name) + output + "\n";
+    }(Cmd_Args());
 
 // turn on color set 1
-	if (!fromServer)
-		sprintf (text, "%c%s: ", 1, save->name.c_str());
-	else
-		sprintf (text, "%c<%s> ", 1, hostname.string.c_str());
+//	if (!fromServer)
+//		sprintf (text, "%c%s: ", 1, save->name.c_str());
+//	else
+//		sprintf (text, "%c<%s> ", 1, hostname.string.c_str());
 
-	j = sizeof(text) - 2 - Q_strlen(text);  // -2 for /n and null terminator
-	if (Q_strlen(p) > j)
-		p[j] = 0;
-
-	strcat (text, p);
-	strcat (text, "\n");
+//	j = sizeof(text) - 2 - Q_strlen(text);  // -2 for /n and null terminator
+//	if (Q_strlen(p) > j)
+//		p[j] = 0;
 
 	for (j = 0, client = svs.clients; j < svs.maxclients; j++, client++)
 	{
 		if (!client || !client->active || !client->spawned)
 			continue;
-		if (teamplay.value && teamonly && client->edict->v.team != save->edict->v.team)
+		if (teamplay.value != 0 && teamonly && client->edict->v.team != save->edict->v.team)
 			continue;
 		host_client = client;
-		SV_ClientPrintf("%s", text);
+		SV_ClientPrintf("%s", text.c_str());
 	}
 	host_client = save;
 
-	Sys_Printf("%s", &text[1]);
+    sysPrintf("{}", &text[1]);
 }
 
 
@@ -1092,25 +1091,26 @@ void Host_Tell_f()
 	if (Cmd_Argc () < 3)
 		return;
 
-    std::string text{host_client->name + ": "};
-
-	auto p = Cmd_Args();
+    std::string text = [](std::string_view args) {
+        std::string output;
+        output.reserve(args.size()); // optional, avoids buffer reallocations in the loop
+        for(char arg : args)
+            if(arg != '"') output += arg; // remove quotes
+        return host_client->name + ": " + output + "\n";
+    }(Cmd_Args());
 
 // remove quotes if present
-	if (*p == '"')
-	{
-		p++;
-		p[Q_strlen(p)-1] = 0;
-	}
-
+//	if (*p == '"')
+//	{
+//		p++;
+//		p[Q_strlen(p)-1] = 0;
+//	}
+//
 // check length & truncate if necessary
-
-	if (auto j = text.length() - 2 - text.length(); Q_strlen(p) > j) { // -2 for /n and null terminator
-        p[j] = 0;
-	}
-
-	text += p;
-    text += "\n";
+//
+//    if (auto j = sizeof (text.data()) - 2 - text.length(); Q_strlen(p) > j) { // -2 for /n and null terminator
+//        p[j] = 0;
+//	}
 
 	const auto save = host_client;
     auto client = svs.clients;
@@ -1317,7 +1317,7 @@ void Host_Spawn_f ()
 		PR_ExecuteProgram (pr_global_struct->ClientConnect);
 
 		if ((Sys_FloatTime() - host_client->netconnection->connecttime) <= sv.time)
-			Sys_Printf ("%s entered the game\n", host_client->name.c_str());
+            sysPrintf("{} entered the game\n", host_client->name);
 
 		PR_ExecuteProgram (pr_global_struct->PutClientInServer);	
 	}

@@ -246,13 +246,11 @@ Writes key bindings and archived cvars to config.cfg
 */
 void Host_WriteConfiguration ()
 {
-	FILE	*f = nullptr;
-
 // dedicated servers initialize the host but don't parse and set the
 // config.cfg cvars
 	if (host_initialized & !isDedicated)
 	{
-		f = fopen (va("%s/config.cfg",com_gamedir), "w");
+		auto f = fopen (va("%s/config.cfg",com_gamedir).c_str(), "w");
 		if (!f)
 		{
 			Con_Printf ("Couldn't write config.cfg.\n");
@@ -365,7 +363,7 @@ void SV_DropClient (qboolean crash)
 			pr_global_struct->self = saveSelf;
 		}
 
-		Sys_Printf ("Client %s removed\n",host_client->name.c_str());
+        sysPrintf("Client {} removed\n", host_client->name);
 	}
 
 // break the net connection
@@ -760,7 +758,7 @@ void Host_Frame (float time)
 			c++;
 	}
 
-	Sys_Printf("serverprofile: %2i clients %2i msec\n",  c,  m);
+    sysPrintf("serverprofile: {2:d} clients {2:d} msec\n", c, m);
 }
 
 //============================================================================
@@ -919,7 +917,7 @@ void Host_Init (quakeparms_t *parms)
 
 	host_initialized = true;
 
-	Sys_Printf ("========Quake Initialized=========\n");
+    sysPrintf("========Quake Initialized=========\n");
 }
 
 

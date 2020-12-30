@@ -36,5 +36,5 @@ void Draw_TileClear (int x, int y, int w, int h);
 void Draw_Fill (int x, int y, int w, int h, int c);
 void Draw_FadeScreen ();
 void Draw_String (int x, int y, char *str);
-qpic_t *Draw_PicFromWad (char *name);
+qpic_t *Draw_PicFromWad (std::string_view name);
 qpic_t *Draw_CachePic (std::string_view path);

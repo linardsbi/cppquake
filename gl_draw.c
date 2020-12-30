@@ -181,7 +181,7 @@ byte		menuplyr_pixels[4096];
 int		pic_texels;
 int		pic_count;
 
-qpic_t *Draw_PicFromWad (char *name)
+qpic_t *Draw_PicFromWad (struct std::basic_string_view<char> name)
 {
 	qpic_t	*p;
 	glpic_t	*gl;

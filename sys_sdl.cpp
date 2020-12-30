@@ -25,6 +25,7 @@
 
 #include "quakedef.hpp"
 
+
 qboolean			isDedicated;
 
 char basedir[] = ".";
@@ -41,18 +42,6 @@ void Sys_DebugNumber(int y, int val)
 {
 }
 
-void Sys_Printf (const char *fmt, ...)
-{
-	va_list		argptr;
-	char		text[1024];
-	
-	va_start (argptr,fmt);
-	vsprintf (text,fmt,argptr);
-	va_end (argptr);
-	fprintf(stderr, "%s", text);
-	
-	//Con_Print (text);
-}
 
 void Sys_Quit ()
 {
@@ -159,7 +148,7 @@ static auto Qfilelength (FILE *f) -> int
 	return end;
 }
 
-auto Sys_FileOpenRead (char *path, int *hndl) -> int
+auto Sys_FileOpenRead (const char *path, int *hndl) -> int
 {
 	FILE	*f = nullptr;
 	int		i = 0;

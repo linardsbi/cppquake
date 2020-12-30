@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // sys.h -- non-portable functions
 #ifndef SYS_H
 #define SYS_H
-
+#include <fmt/format.h>
 //
 // file IO
 //
@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // returns the file size
 // return -1 if file is not present
 // the file should be in BINARY mode for stupid OSs that care
-int Sys_FileOpenRead (char *path, int *hndl);
+int Sys_FileOpenRead (const char *path, int *hndl);
 
 int Sys_FileOpenWrite (char *path);
 void Sys_FileClose (int handle);
@@ -51,7 +51,12 @@ void Sys_DebugLog(char *file, char *fmt, ...);
 void Sys_Error (const char *error, ...);
 // an error will cause the entire program to exit
 
-void Sys_Printf (const char *fmt, ...);
+template <typename S, typename... Args>
+void sysPrintf (const S& fmt, Args&&... args)
+{
+    fmt::print(stderr, fmt, args...);
+    //Con_Print (text);
+}
 // send text to the console
 
 void Sys_Quit (void);

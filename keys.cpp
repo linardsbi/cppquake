@@ -391,7 +391,7 @@ auto Key_KeynumToString (int keynum) -> char *
 Key_SetBinding
 ===================
 */
-void Key_SetBinding (int keynum, char *binding)
+void Key_SetBinding (int keynum, const char *binding)
 {
 	char	*newChar = nullptr;
 	int		l = 0;

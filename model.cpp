@@ -798,7 +798,7 @@ void Mod_LoadFaces (lump_t *l)
 	// lighting info
 
 		for (i=0 ; i<MAXLIGHTMAPS ; i++)
-			out->styles[i] = in->styles[i];
+			out->styles[i] = static_cast<byte>(in->styles[i]);
 		i = static_cast<decltype(i)>(LittleLong(in->lightofs));
 		if (i == -1)
 			out->samples = nullptr;
@@ -931,7 +931,7 @@ void Mod_LoadLeafs (lump_t *l)
 		out->efrags = nullptr;
 		
 		for (j=0 ; j<4 ; j++)
-			out->ambient_sound_level[j] = in->ambient_level[j];
+			out->ambient_sound_level[j] = static_cast<byte>(in->ambient_level[j]);
 	}	
 }
 

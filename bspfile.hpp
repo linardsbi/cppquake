@@ -136,8 +136,8 @@ typedef struct
 
 
 
-#define	CONTENTS_EMPTY		-1
-#define	CONTENTS_SOLID		-2
+#define	CONTENTS_EMPTY		(-1)
+#define	CONTENTS_SOLID		(-2)
 #define	CONTENTS_WATER		-3
 #define	CONTENTS_SLIME		-4
 #define	CONTENTS_LAVA		-5

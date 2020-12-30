@@ -84,19 +84,15 @@ Cbuf_AddText
 Adds command text at the end of the buffer
 ============
 */
-void Cbuf_AddText (const char *text)
+void Cbuf_AddText (std::string_view text)
 {
-	int		l = 0;
-	
-	l = Q_strlen (text);
-
-	if (cmd_text.cursize + l >= cmd_text.maxsize)
+	if (cmd_text.cursize + text.length() >= cmd_text.maxsize)
 	{
 		Con_Printf ("Cbuf_AddText: overflow\n");
 		return;
 	}
 
-	SZ_Write (&cmd_text, text, Q_strlen (text));
+	SZ_Write (&cmd_text, text.data(), text.length());
 }
 
 
@@ -413,8 +409,8 @@ using cmd_function_t = struct cmd_function_s
 
 static	int			cmd_argc;
 static	char		*cmd_argv[MAX_ARGS];
-static	char		*cmd_null_string = "";
-static	char		*cmd_args = nullptr;
+static	char		cmd_null_string[] = "";
+static const char *cmd_args = nullptr;
 
 cmd_source_t	cmd_source;
 
@@ -466,7 +462,7 @@ auto Cmd_Argv (int arg) -> char	*
 Cmd_Args
 ============
 */
-auto Cmd_Args () -> char		*
+auto Cmd_Args () -> const char		*
 {
 	return cmd_args;
 }
@@ -479,7 +475,7 @@ Cmd_TokenizeString
 Parses the given string into command line tokens.
 ============
 */
-void Cmd_TokenizeString (char *text)
+void Cmd_TokenizeString (const char *text)
 {
 	int		i = 0;
 	
@@ -604,13 +600,13 @@ A complete command line has been parsed, so try to execute it
 FIXME: lookupnoadd the token to speed search?
 ============
 */
-void	Cmd_ExecuteString (char *text, cmd_source_t src)
+void	Cmd_ExecuteString (std::string_view text, cmd_source_t src)
 {	
 	cmd_function_t	*cmd = nullptr;
 	cmdalias_t		*a = nullptr;
 
 	cmd_source = src;
-	Cmd_TokenizeString (text);
+	Cmd_TokenizeString (text.data());
 			
 // execute the command line
 	if (!Cmd_Argc())

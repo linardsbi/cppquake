@@ -35,18 +35,22 @@ case "$target" in
     *-*-mingw32*)
         MATHLIB=""
         INETLIB="-lwsock32"
+        LIBFMT=""
         ;;
     *-*-beos*)
         MATHLIB=""
         INETLIB=""
+        LIBFMT=""
         ;;
     *)
         MATHLIB="-lm"
         INETLIB=""
+	    LIBFMT="-lfmt"
         ;;
 esac
 AC_SUBST(MATHLIB)
 AC_SUBST(INETLIB)
+AC_SUBST(LIBFMT)
 
 dnl Check for SDL
 SDL_VERSION=1.0.1
@@ -55,7 +59,7 @@ AM_PATH_SDL($SDL_VERSION,
             AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
 )
 CFLAGS="$CFLAGS $SDL_CFLAGS -DSDL"
-LIBS="$LIBS $SDL_LIBS"
+LIBS="$LIBS $SDL_LIBS -L./lib/"
 
 dnl Set up the icon object file, for Mingw32
 case "$target" in
@@ -77,10 +81,10 @@ if test x$enable_asm = xyes; then
     CFLAGS="$CFLAGS -DUSE_ASM"
 fi
 
-CFLAGS="$CFLAGS -DELF -m32"
-CXXFLAGS="$CXXFLAGS -DSDL -m32 -std=c++2a -I/usr/include/SDL"
-LDFLAGS="$LDFLAGS -m32"
-CCASFLAGS="$CCASFLAGS -m32"
+CFLAGS="$CFLAGS -DELF"
+CXXFLAGS="$CXXFLAGS -DSDL -std=c++2a -I/usr/include/SDL -L./lib/ -lfmt"
+LDFLAGS="$LDFLAGS "
+CCASFLAGS="$CCASFLAGS "
 
 # Finally create all the generated files
 AC_OUTPUT([

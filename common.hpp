@@ -21,12 +21,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define COMMON_H
 
 // comndef.h  -- general definitions
+#include <string_view>
+#include <fmt/printf.h>
 
 #include "sys.hpp"
 #include "console.hpp"
 #include "quakedef.hpp"
-
-#include <string_view>
 
 #if !defined BYTE_DEFINED
 typedef unsigned char 		byte;
@@ -51,7 +51,7 @@ void SZ_Free (sizebuf_t *buf);
 void SZ_Clear (sizebuf_t *buf);
 //void *SZ_GetSpace (sizebuf_t *buf, int length);
 void SZ_Write (sizebuf_t *buf, const void *data, std::size_t length);
-void SZ_Print (sizebuf_t *buf, char *data);	// strcats onto the sizebuf
+void SZ_Print (sizebuf_t *buf, const char *data);	// strcats onto the sizebuf
 
 //============================================================================
 
@@ -149,7 +149,7 @@ float Q_atof (const char *str);
 extern	char		com_token[1024];
 extern	qboolean	com_eof;
 
-char *COM_Parse (char *data);
+const char *COM_Parse (const char *data);
 
 
 extern	int		com_argc;
@@ -164,7 +164,18 @@ void COM_InitArgv (int argc, char **argv);
 void COM_FileBase (std::string_view in, char *out);
 void COM_DefaultExtension (char *path, char *extension);
 
-char	*va(const char *format, ...);
+/*
+============
+va
+
+does a varargs printf into a temp buffer, so I don't need to have
+varargs versions of all text functions.
+============
+*/
+template <typename S, typename... Args>
+std::string va(const S& fmt, Args&&... args) {
+    return fmt::sprintf(fmt, args...);
+}
 // does a varargs printf into a temp buffer
 
 
