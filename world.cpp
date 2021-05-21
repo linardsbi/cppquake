@@ -659,7 +659,7 @@ auto SV_RecursiveHullCheck (hull_t *hull, int num, float p1f, float p2f, vec3_t 
 		return false;
 
 #ifdef PARANOID
-	if (SV_HullPointContents (sv_hullmodel, mid, node->children[side])
+	if (SV_HullPointContents (hull, node->children[side], mid)
 	== CONTENTS_SOLID)
 	{
 		Con_Printf ("mid PointInHullSolid\n");

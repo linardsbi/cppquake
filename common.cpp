@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.hpp"
 #include <string_view>
 #include <array>
+#include <cstdio>
 
 #define NUM_SAFE_ARGVS  7
 ;
@@ -224,39 +225,10 @@ void Q_strcat (char *dest, char *src)
 auto Q_strcmp (std::string_view s1, std::string_view s2) -> bool {
     return s1.compare(s2);
 }
-//int Q_strcmp (char *s1, char *s2)
-//{
-//	while (1)
-//	{
-//		if (*s1 != *s2)
-//			return -1;              // strings not equal
-//		if (!*s1)
-//			return 0;               // strings are equal
-//		s1++;
-//		s2++;
-//	}
-//
-//	return -1;
-//}
+
 auto Q_strncmp (std::string_view s1, std::string_view s2, const std::size_t count) -> bool {
 	return s1.compare(0, count, s2, 0, count);
 }
-//int Q_strncmp (char *s1, char *s2, int count)
-//{
-//	while (true)
-//	{
-//		if (!count--)
-//			return 0;
-//		if (*s1 != *s2)
-//			return -1;              // strings not equal
-//		if (!*s1)
-//			return 0;               // strings are equal
-//		s1++;
-//		s2++;
-//	}
-//
-//	return -1;
-//}
 
 auto Q_strncasecmp (const char *s1, const char *s2, int n) -> int
 {
@@ -574,17 +546,18 @@ void MSG_WriteFloat (sizebuf_t *sb, float f)
 
 void MSG_WriteString (sizebuf_t *sb, std::string_view s)
 {
-    SZ_Write (sb, reinterpret_cast<const void*>(s.data()), s.length()+1);
+    SZ_Write (sb, reinterpret_cast<const void*>(s.cbegin()), s.length()+1);
 }
 
 void MSG_WriteCoord (sizebuf_t *sb, float f)
 {
-	MSG_WriteShort (sb, (int)(f*8));
+	MSG_WriteShort (sb, static_cast<short>((f * 8)));
 }
 
 void MSG_WriteAngle (sizebuf_t *sb, float f)
 {
-	MSG_WriteByte (sb, ((int)f*256/360) & 255);
+//    printf("angle: %d\n", ((int)f *256/360) & 255);
+	MSG_WriteByte (sb, ((int)f *256/360) & 255);
 }
 
 //
@@ -602,17 +575,14 @@ void MSG_BeginReading ()
 // returns -1 and sets msg_badread if no more characters are available
 auto MSG_ReadChar () -> int
 {
-    int     c;
-
     if (msg_readcount+1 > net_message.cursize)
     {
         msg_badread = true;
         return -1;
     }
 
-    c = (signed char)net_message.data[msg_readcount];
+    char c = (char)net_message.data[msg_readcount];
     msg_readcount++;
-
     return c;
 }
 
@@ -707,12 +677,12 @@ auto MSG_ReadString () -> char *
 
 auto MSG_ReadCoord () -> float
 {
-    return MSG_ReadShort() * (1.0/8);
+    return static_cast<float>(MSG_ReadShort()) * (1.0f/8.f);
 }
 
 auto MSG_ReadAngle () -> float
 {
-    return MSG_ReadChar() * (360.0/256);
+    return static_cast<float>(MSG_ReadChar()) * (360.0f/256.f);
 }
 
 
@@ -768,20 +738,18 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 
 void SZ_Write (sizebuf_t *buf, const void *data, std::size_t length)
 {
-	Q_memcpy (SZGetSpace<void*>(buf,length),data,length);
+	std::memcpy(SZGetSpace<void*>(buf,length),data,length);
 }
 
 void SZ_Print (sizebuf_t *buf, const char *data)
 {
-	int             len;
-	
-	len = Q_strlen(data)+1;
+	auto len = strlen(data)+1;
 
 // byte * cast to keep VC++ happy
 	if (buf->data[buf->cursize-1])
-		Q_memcpy ((byte *)SZGetSpace<void*>(buf, len),data,len); // no trailing 0
+		std::memcpy ((byte *)SZGetSpace<void*>(buf, len),data,len); // no trailing 0
 	else
-		Q_memcpy ((byte *)SZGetSpace<void*>(buf, len-1)-1,data,len); // write over trailing 0
+		std::memcpy ((byte *)SZGetSpace<void*>(buf, len-1)-1,data,len); // write over trailing 0
 }
 
 
@@ -1111,14 +1079,12 @@ COM_Init
 */
 void COM_Init ([[maybe_unused]] char *basedir)
 {
-	constexpr byte    swaptest[2] = {1,0};
-
-// set the byte swapping variables in a portable manner 
+// set the byte swapping variables in a portable manner
 #ifdef SDL
 	// This is necessary because egcs 1.1.1 mis-compiles swaptest with -O2
 	if constexpr ( SDL_BYTEORDER == SDL_LIL_ENDIAN )
 #else
-	if constexpr ( *(short *)swaptest == 1)
+	if constexpr ( __LITTLE_ENDIAN__ )
 #endif
 	{
 		bigendien = false;
@@ -1599,7 +1565,7 @@ auto COM_LoadPackFile (const char *packfile) -> pack_t *
 
 	if (Sys_FileOpenRead (packfile, &packhandle) == -1)
 	{
-//              Con_Printf ("Couldn't open %s\n", packfile);
+	    Con_Printf ("Couldn't open %s\n", packfile);
 		return nullptr;
 	}
 	Sys_FileRead (packhandle, (void *)&header, sizeof(header));

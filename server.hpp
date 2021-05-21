@@ -54,7 +54,7 @@ struct server_t
 	char		*model_precache[MAX_MODELS]{};	// NULL terminated
 	struct model_s	*models[MAX_MODELS]{};
 	char		*sound_precache[MAX_SOUNDS]{};	// NULL terminated
-	char		*lightstyles[MAX_LIGHTSTYLES]{""};
+	char		*lightstyles[MAX_LIGHTSTYLES]{};
 	int			num_edicts{};
 	int			max_edicts{};
 	edict_t		*edicts{};			// can NOT be array indexed, because
@@ -69,7 +69,7 @@ struct server_t
 	byte		reliable_datagram_buf[MAX_DATAGRAM]{};
 
 	sizebuf_t	signon{};
-	byte		signon_buf[8192];
+	byte		signon_buf[8192]{};
 } ;
 
 

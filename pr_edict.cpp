@@ -744,11 +744,11 @@ auto	ED_ParseEpair (void *base, ddef_t *key, std::string_view s) -> qboolean
 		break;
 		
 	case ev_float:
-		*(float *)d = atof (s.data());
+		*(float *)d = strtof(s.cbegin(), nullptr);
 		break;
 		
 	case ev_vector:
-		strcpy (string, s.data());
+		strncpy (string, s.data(), s.length());
 		v = string;
 		w = string;
 		for (i=0 ; i<3 ; i++)
@@ -756,13 +756,13 @@ auto	ED_ParseEpair (void *base, ddef_t *key, std::string_view s) -> qboolean
 			while (*v && *v != ' ')
 				v++;
 			*v = 0;
-			((float *)d)[i] = atof (w);
+			((float *)d)[i] = strtof (w, nullptr);
 			w = v = v+1;
 		}
 		break;
 		
 	case ev_entity:
-		*(int *)d = EDICT_TO_PROG(EDICT_NUM(atoi (s.data())));
+		*(int *)d = EDICT_TO_PROG(EDICT_NUM(strtol (s.data(), nullptr, 10)));
 		break;
 		
 	case ev_field:

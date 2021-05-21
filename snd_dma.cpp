@@ -300,7 +300,7 @@ auto S_FindName (std::string_view name) -> sfx_t *
 		Sys_Error ("S_FindName: out of sfx_t");
 	
 	auto sfx = &known_sfx[i];
-	strcpy (sfx->name, name.data());
+	strncpy (sfx->name, name.data(), name.length());
 
 	num_sfx++;
 	

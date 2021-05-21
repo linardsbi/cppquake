@@ -60,7 +60,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 typedef struct
 {
-	int		fileofs, filelen;
+	int		fileofs{0};
+    unsigned filelen{0};
 } lump_t;
 
 #define	LUMP_ENTITIES	0
@@ -83,23 +84,23 @@ typedef struct
 
 typedef struct
 {
-	float		mins[3], maxs[3];
-	float		origin[3];
-	int			headnode[MAX_MAP_HULLS];
-	int			visleafs;		// not including the solid leaf 0
-	int			firstface, numfaces;
+	float		mins[3]{}, maxs[3]{};
+	float		origin[3]{};
+	int			headnode[MAX_MAP_HULLS]{};
+	int			visleafs{};		// not including the solid leaf 0
+	int			firstface{}, numfaces{};
 } dmodel_t;
 
 typedef struct
 {
-	int			version;	
+	int			version{};
 	lump_t		lumps[HEADER_LUMPS];
 } dheader_t;
 
 typedef struct
 {
-	int			nummiptex;
-	int			dataofs[4];		// [nummiptex]
+	int			nummiptex{};
+	int			dataofs[4]{};		// [nummiptex]
 } dmiptexlump_t;
 
 #define	MIPLEVELS	4

@@ -805,7 +805,7 @@ localcmd (string)
 */
 void PF_localcmd ()
 {
-	Cbuf_AddText (getGlobalString(OFS_PARM0).data());
+	Cbuf_AddText (getGlobalString(OFS_PARM0));
 }
 
 /*

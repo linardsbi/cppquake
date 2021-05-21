@@ -1386,8 +1386,7 @@ void M_Keys_Draw ()
 {
 	int		i = 0, l = 0;
 	int		keys[2];
-	char	*name = nullptr;
-	int		x = 0, y = 0;
+	int		y = 0;
 	qpic_t	*p = nullptr;
 
 	p = Draw_CachePic ("gfx/ttl_cstm.lmp");
@@ -1415,9 +1414,9 @@ void M_Keys_Draw ()
 		}
 		else
 		{
-			name = Key_KeynumToString (keys[0]);
-			M_Print (140, y, name);
-			x = strlen(name) * 8;
+			std::string_view name = Key_KeynumToString (keys[0]);
+			M_Print (140, y, name.data());
+			const auto x = name.length() * 8;
 			if (keys[1] != -1)
 			{
 				M_Print (140 + x + 8, y, "or");

@@ -430,7 +430,6 @@ SV_WriteEntitiesToClient
 void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 {
 	int		e = 0, i = 0;
-	int		bits = 0;
 	byte	*pvs = nullptr;
 	vec3_t	org;
 	float	miss = NAN;
@@ -472,7 +471,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 		}
 
 // send an update
-		bits = 0;
+		int bits = 0;
 		
 		for (i=0 ; i<3 ; i++)
 		{
@@ -517,7 +516,7 @@ void SV_WriteEntitiesToClient (edict_t	*clent, sizebuf_t *msg)
 	//
 	// write the message
 	//
-		MSG_WriteByte (msg,bits | U_SIGNAL);
+		MSG_WriteByte (msg,static_cast<byte>(bits | U_SIGNAL));
 		
 		if (bits & U_MOREBITS)
 			MSG_WriteByte (msg, bits>>8);

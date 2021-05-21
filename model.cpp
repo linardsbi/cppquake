@@ -366,11 +366,9 @@ void Mod_LoadTextures (lump_t *l)
 		return;
 	}
 	m = (dmiptexlump_t *)(mod_base + l->fileofs);
-	
-	m->nummiptex = static_cast<decltype(m->nummiptex)>(LittleLong (m->nummiptex));
-	
+
 	loadmodel->numtextures = m->nummiptex;
-	loadmodel->textures = hunkAllocName<decltype(loadmodel->textures)> (m->nummiptex * sizeof(*loadmodel->textures) , loadname);
+	loadmodel->textures = hunkAllocName<decltype(loadmodel->textures)> (loadmodel->numtextures * sizeof(*loadmodel->textures) , loadname);
 
 	for (i=0 ; i<m->nummiptex ; i++)
 	{
@@ -553,24 +551,18 @@ Mod_LoadVertexes
 */
 void Mod_LoadVertexes (lump_t *l)
 {
-	dvertex_t	*in = nullptr;
-	mvertex_t	*out = nullptr;
-	int			i = 0, count = 0;
-
-	in = reinterpret_cast<dvertex_t	*>(mod_base + l->fileofs);
+	auto *in = reinterpret_cast<dvertex_t	*>(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 		Sys_Error ("MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
-	count = l->filelen / sizeof(*in);
-	out = hunkAllocName<decltype(out)> ( count*sizeof(*out), loadname);	
+	auto count = l->filelen / sizeof(*in);
+	auto *out = hunkAllocName<mvertex_t*> ( count*sizeof(mvertex_t), loadname);
 
 	loadmodel->vertexes = out;
 	loadmodel->numvertexes = count;
 
-	for ( i=0 ; i<count ; i++, in++, out++)
+	for (std::size_t i=0 ; i<count ; i++, in++, out++)
 	{
-		out->position[0] = LittleFloat (in->point[0]);
-		out->position[1] = LittleFloat (in->point[1]);
-		out->position[2] = LittleFloat (in->point[2]);
+        std::memcpy(out, in, sizeof(mvertex_t));
 	}
 }
 
@@ -848,14 +840,14 @@ Mod_LoadNodes
 */
 void Mod_LoadNodes (lump_t *l)
 {
-	int			i = 0, j = 0, count = 0, p = 0;
+	int			i = 0, j = 0, p = 0;
 	dnode_t		*in = nullptr;
 	mnode_t 	*out = nullptr;
 
 	in = reinterpret_cast<decltype(in)>(mod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
 		Sys_Error ("MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
-	count = l->filelen / sizeof(*in);
+	const auto count = l->filelen / sizeof(*in);
 	out = hunkAllocName<decltype(out)> ( count*sizeof(*out), loadname);	
 
 	loadmodel->nodes = out;
@@ -872,8 +864,8 @@ void Mod_LoadNodes (lump_t *l)
 		p = static_cast<decltype(p)>(LittleLong(in->planenum));
 		out->plane = loadmodel->planes + p;
 
-		out->firstsurface = LittleShort (in->firstface);
-		out->numsurfaces = LittleShort (in->numfaces);
+		out->firstsurface = in->firstface;
+		out->numsurfaces = in->numfaces;
 		
 		for (j=0 ; j<2 ; j++)
 		{
@@ -920,8 +912,8 @@ void Mod_LoadLeafs (lump_t *l)
 		out->contents = p;
 
 		out->firstmarksurface = loadmodel->marksurfaces +
-			LittleShort(in->firstmarksurface);
-		out->nummarksurfaces = LittleShort(in->nummarksurfaces);
+			in->firstmarksurface;
+		out->nummarksurfaces = in->nummarksurfaces;
 		
 		p = static_cast<decltype(p)>(LittleLong(in->visofs));
 		if (p == -1)
@@ -981,9 +973,10 @@ void Mod_LoadClipnodes (lump_t *l)
 
 	for (i=0 ; i<count ; i++, out++, in++)
 	{
-		out->planenum = static_cast<decltype(out->planenum)>(LittleLong(in->planenum));
-		out->children[0] = LittleShort(in->children[0]);
-		out->children[1] = LittleShort(in->children[1]);
+        std::memcpy(out, in, sizeof(dclipnode_t));
+//		out->planenum = static_cast<decltype(out->planenum)>(LittleLong(in->planenum));
+//		out->children[0] = LittleShort(in->children[0]);
+//		out->children[1] = LittleShort(in->children[1]);
 	}
 }
 
@@ -1074,8 +1067,7 @@ void Mod_LoadSurfedges (lump_t *l)
 	loadmodel->surfedges = out;
 	loadmodel->numsurfedges = count;
 
-	for ( i=0 ; i<count ; i++)
-		out[i] = LittleLong (in[i]);
+    std::memcpy(out, in, sizeof(int) * count);
 }
 
 /*

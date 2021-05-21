@@ -364,7 +364,7 @@ given keynum.
 FIXME: handle quote special (general escape sequence?)
 ===================
 */
-auto Key_KeynumToString (int keynum) -> char *
+auto Key_KeynumToString (int keynum) -> const char *
 {
 	keyname_t	*kn = nullptr;	
 	static	char	tinystr[2];

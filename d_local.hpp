@@ -35,16 +35,16 @@ constexpr int SURFCACHE_SIZE_AT_320X200 = 600*1024;
 
 typedef struct surfcache_s
 {
-	struct surfcache_s	*next;
-	struct surfcache_s 	**owner;		// NULL is an empty chunk of memory
-	int					lightadj[MAXLIGHTMAPS]; // checked for strobe flush
-	int					dlight;
-	long				size;		// including header
-	unsigned			width;
-	unsigned			height;		// DEBUG only needed for debug
-    [[maybe_unused]] float				mipscale;
-	struct texture_s	*texture;	// checked for animating textures
-	byte				data[4];	// width*height elements
+	struct surfcache_s	*next{nullptr};
+	struct surfcache_s 	**owner{nullptr};		// NULL is an empty chunk of memory
+	int					lightadj[MAXLIGHTMAPS]{}; // checked for strobe flush
+	int					dlight{};
+	long				size{};		// including header
+	unsigned			width{};
+	unsigned			height{};		// DEBUG only needed for debug
+    [[maybe_unused]] float				mipscale{};
+	struct texture_s	*texture{};	// checked for animating textures
+	byte				data[4]{};	// width*height elements
 } surfcache_t;
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
