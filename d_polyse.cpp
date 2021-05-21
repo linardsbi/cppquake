@@ -77,7 +77,7 @@ edgetable	edgetables[12] = {
 // FIXME: some of these can become statics
 int				a_sstepxfrac, a_tstepxfrac, r_lstepx, a_ststepxwhole;
 int				r_sstepx, r_tstepx, r_lstepy, r_sstepy, r_tstepy;
-int				r_zistepx, r_zistepy;
+unsigned				r_zistepx, r_zistepy;
 int				d_aspancount, d_countextrastep;
 
 spanpackage_t			*a_spans;
@@ -85,12 +85,12 @@ spanpackage_t			*d_pedgespanpackage;
 static int				ystart;
 byte					*d_pdest, *d_ptex;
 short					*d_pz;
-int						d_sfrac, d_tfrac, d_light, d_zi;
+unsigned						d_sfrac, d_tfrac, d_light, d_zi;
 int						d_ptexextrastep, d_sfracextrastep;
 int						d_tfracextrastep, d_lightextrastep, d_pdestextrastep;
 int						d_lightbasestep, d_pdestbasestep, d_ptexbasestep;
 int						d_sfracbasestep, d_tfracbasestep;
-int						d_ziextrastep, d_zibasestep;
+unsigned						d_ziextrastep, d_zibasestep;
 int						d_pzextrastep, d_pzbasestep;
 
 typedef struct {
@@ -618,7 +618,7 @@ void D_PolysetDrawSpans8 (spanpackage_t *pspanpackage)
 	byte	*lptex;
 	int		lsfrac, ltfrac;
 	int		llight;
-	int		lzi;
+	unsigned		lzi;
 	short	*lpz;
 
 	do

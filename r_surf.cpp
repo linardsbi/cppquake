@@ -25,9 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 drawsurf_t	r_drawsurf;
 
-int				lightleft, sourcesstep, blocksize, sourcetstep;
-int				lightdelta, lightdeltastep;
-int				lightright, lightleftstep, lightrightstep, blockdivshift;
+unsigned				lightleft, sourcesstep, blocksize, sourcetstep;
+unsigned				lightdelta, lightdeltastep;
+unsigned				lightright, lightleftstep, lightrightstep, blockdivshift;
 unsigned		blockdivmask;
 void			*prowdestbase;
 unsigned char	*pbasesource;
@@ -35,7 +35,7 @@ int				surfrowbytes;	// used by ASM files
 unsigned		*r_lightptr;
 int				r_stepback;
 int				r_lightwidth;
-int				r_numhblocks, r_numvblocks;
+unsigned				r_numhblocks, r_numvblocks;
 unsigned char	*r_source, *r_sourcemax;
 
 void R_DrawSurfaceBlock8_mip0 ();
@@ -343,7 +343,7 @@ R_DrawSurfaceBlock8_mip0
 */
 void R_DrawSurfaceBlock8_mip0 ()
 {
-	int				v = 0, i = 0, b = 0, lightstep = 0, lighttemp = 0, light = 0;
+	unsigned				v = 0, lightstep = 0, lighttemp = 0, light = 0;
 	unsigned char	pix = 0, *psource = nullptr, *prowdest = nullptr;
 
 	psource = pbasesource;
@@ -359,14 +359,14 @@ void R_DrawSurfaceBlock8_mip0 ()
 		lightleftstep = (r_lightptr[0] - lightleft) >> 4;
 		lightrightstep = (r_lightptr[1] - lightright) >> 4;
 
-		for (i=0 ; i<16 ; i++)
+		for (std::uint8_t i=0 ; i<16 ; i++)
 		{
 			lighttemp = lightleft - lightright;
 			lightstep = lighttemp >> 4;
 
 			light = lightright;
 
-			for (b=15; b>=0; b--)
+			for (std::int8_t b=15; b>=0; b--)
 			{
 				pix = psource[b];
 				prowdest[b] = ((unsigned char *)vid.colormap)
@@ -393,13 +393,13 @@ R_DrawSurfaceBlock8_mip1
 */
 void R_DrawSurfaceBlock8_mip1 ()
 {
-	int				v = 0, i = 0, b = 0, lightstep = 0, lighttemp = 0, light = 0;
+	unsigned				lightstep = 0, lighttemp = 0, light = 0;
 	unsigned char	pix = 0, *psource = nullptr, *prowdest = nullptr;
 
 	psource = pbasesource;
     prowdest = static_cast<unsigned char*>(prowdestbase);
 
-	for (v=0 ; v<r_numvblocks ; v++)
+	for (unsigned v=0 ; v<r_numvblocks ; v++)
 	{
 	// FIXME: make these locals?
 	// FIXME: use delta rather than both right and left, like ASM?
@@ -409,14 +409,14 @@ void R_DrawSurfaceBlock8_mip1 ()
 		lightleftstep = (r_lightptr[0] - lightleft) >> 3;
 		lightrightstep = (r_lightptr[1] - lightright) >> 3;
 
-		for (i=0 ; i<8 ; i++)
+		for (std::uint8_t i=0 ; i<8 ; i++)
 		{
 			lighttemp = lightleft - lightright;
 			lightstep = lighttemp >> 3;
 
 			light = lightright;
 
-			for (b=7; b>=0; b--)
+			for (std::int8_t b=7; b>=0; b--)
 			{
 				pix = psource[b];
 				prowdest[b] = ((unsigned char *)vid.colormap)
@@ -443,13 +443,13 @@ R_DrawSurfaceBlock8_mip2
 */
 void R_DrawSurfaceBlock8_mip2 ()
 {
-	int				v = 0, i = 0, b = 0, lightstep = 0, lighttemp = 0, light = 0;
+	unsigned				lightstep = 0, lighttemp = 0, light = 0;
 	unsigned char	pix = 0, *psource = nullptr, *prowdest = nullptr;
 
 	psource = pbasesource;
     prowdest = static_cast<unsigned char*>(prowdestbase);
 
-	for (v=0 ; v<r_numvblocks ; v++)
+	for (unsigned v=0 ; v<r_numvblocks ; v++)
 	{
 	// FIXME: make these locals?
 	// FIXME: use delta rather than both right and left, like ASM?
@@ -459,14 +459,14 @@ void R_DrawSurfaceBlock8_mip2 ()
 		lightleftstep = (r_lightptr[0] - lightleft) >> 2;
 		lightrightstep = (r_lightptr[1] - lightright) >> 2;
 
-		for (i=0 ; i<4 ; i++)
+		for (std::uint8_t i=0 ; i<4 ; i++)
 		{
 			lighttemp = lightleft - lightright;
 			lightstep = lighttemp >> 2;
 
 			light = lightright;
 
-			for (b=3; b>=0; b--)
+			for (std::int8_t b=3; b>=0; b--)
 			{
 				pix = psource[b];
 				prowdest[b] = ((unsigned char *)vid.colormap)
@@ -493,13 +493,13 @@ R_DrawSurfaceBlock8_mip3
 */
 void R_DrawSurfaceBlock8_mip3 ()
 {
-	int				v = 0, i = 0, b = 0, lightstep = 0, lighttemp = 0, light = 0;
+	unsigned				lightstep = 0, lighttemp = 0, light = 0;
 	unsigned char	pix = 0, *psource = nullptr, *prowdest = nullptr;
 
 	psource = pbasesource;
     prowdest = static_cast<unsigned char*>(prowdestbase);
 
-	for (v=0 ; v<r_numvblocks ; v++)
+	for (unsigned v=0 ; v<r_numvblocks ; v++)
 	{
 	// FIXME: make these locals?
 	// FIXME: use delta rather than both right and left, like ASM?
@@ -509,14 +509,14 @@ void R_DrawSurfaceBlock8_mip3 ()
 		lightleftstep = (r_lightptr[0] - lightleft) >> 1;
 		lightrightstep = (r_lightptr[1] - lightright) >> 1;
 
-		for (i=0 ; i<2 ; i++)
+		for (std::uint8_t i=0 ; i<2 ; i++)
 		{
 			lighttemp = lightleft - lightright;
 			lightstep = lighttemp >> 1;
 
 			light = lightright;
 
-			for (b=1; b>=0; b--)
+			for (std::int8_t b=1; b>=0; b--)
 			{
 				pix = psource[b];
 				prowdest[b] = ((unsigned char *)vid.colormap)
