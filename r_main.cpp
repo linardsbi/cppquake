@@ -366,17 +366,17 @@ void R_ViewChanged (vrect_t *pvrect, int lineadj, float aspect)
 
 	R_SetVrect (pvrect, &r_refdef.vrect, lineadj);
 
-	r_refdef.horizontalFieldOfView = 2.0 * tan (r_refdef.fov_x/360*M_PI);
+	r_refdef.horizontalFieldOfView = 2.0f * tan (r_refdef.fov_x/360*M_PI);
 	r_refdef.fvrectx = (float)r_refdef.vrect.x;
-	r_refdef.fvrectx_adj = (float)r_refdef.vrect.x - 0.5;
+	r_refdef.fvrectx_adj = (float)r_refdef.vrect.x - 0.5f;
 	r_refdef.vrect_x_adj_shift20 = (r_refdef.vrect.x<<20) + (1<<19) - 1;
 	r_refdef.fvrecty = (float)r_refdef.vrect.y;
-	r_refdef.fvrecty_adj = (float)r_refdef.vrect.y - 0.5;
+	r_refdef.fvrecty_adj = (float)r_refdef.vrect.y - 0.5f;
 	r_refdef.vrectright = r_refdef.vrect.x + r_refdef.vrect.width;
 	r_refdef.vrectright_adj_shift20 = (r_refdef.vrectright<<20) + (1<<19) - 1;
 	r_refdef.fvrectright = (float)r_refdef.vrectright;
-	r_refdef.fvrectright_adj = (float)r_refdef.vrectright - 0.5;
-	r_refdef.vrectrightedge = (float)r_refdef.vrectright - 0.99;
+	r_refdef.fvrectright_adj = (float)r_refdef.vrectright - 0.5f;
+	r_refdef.vrectrightedge = (float)r_refdef.vrectright - 0.99f;
 	r_refdef.vrectbottom = r_refdef.vrect.y + r_refdef.vrect.height;
 	r_refdef.fvrectbottom = (float)r_refdef.vrectbottom;
 	r_refdef.fvrectbottom_adj = (float)r_refdef.vrectbottom - 0.5;

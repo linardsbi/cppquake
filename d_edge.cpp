@@ -229,7 +229,7 @@ void D_DrawSurfaces ()
 			// effectively at infinity distance from the viewpoint
 				d_zistepu = 0;
 				d_zistepv = 0;
-				d_ziorigin = -0.9;
+				d_ziorigin = -0.9f;
 
 				D_DrawSolidSurface (s, (int)r_clearcolor.value & 0xFF);
 				D_DrawZSpans (s->spans);
@@ -301,7 +301,7 @@ void D_DrawSurfaces ()
 				pcurrentcache = D_CacheSurface (pface, miplevel);
 
 				cacheblock = (pixel_t *)pcurrentcache->data;
-				cachewidth = pcurrentcache->width;
+				cachewidth = static_cast<int>(pcurrentcache->width);
 
 				D_CalcGradients (pface);
 

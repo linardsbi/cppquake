@@ -38,9 +38,8 @@ auto     D_SurfaceCacheForRes (int width, int height) -> int
 
 	if (COM_CheckParm ("-surfcachesize"))
 	{
-		size = Q_atoi(com_argv[COM_CheckParm("-surfcachesize")+1]) * 1024;
-		return size;
-	}
+		return 	static_cast<int>(strtol(com_argv[COM_CheckParm("-surfcachesize")+1], nullptr, 10) * 1024);
+    }
 	
 	const auto pix = width*height;
 	if (pix > 64000)

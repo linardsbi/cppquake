@@ -234,9 +234,9 @@ void Cmd_StuffCmds_f ()
 	{
 		if (!com_argv[i])
 			continue;		// NEXTSTEP nulls out -NXHost
-		Q_strcat (text,com_argv[i]);
+		strcat (text,com_argv[i]);
 		if (i != com_argc-1)
-			Q_strcat (text, " ");
+			strcat (text, " ");
 	}
 	
 // pull out the commands
@@ -253,8 +253,8 @@ void Cmd_StuffCmds_f ()
                 c = text[j];
                 text[j] = 0;
 
-                Q_strcat (build, text+i);
-                Q_strcat (build, "\n");
+                strcat (build, text+i);
+                strcat (build, "\n");
                 text[j] = c;
                 i = j-1;
 			}
@@ -679,7 +679,7 @@ where the given parameter apears, or 0 if not present
 ================
 */
 
-auto Cmd_CheckParm (char *parm) -> int
+[[maybe_unused]] auto Cmd_CheckParm (char *parm) -> int
 {
 	int i = 0;
 	

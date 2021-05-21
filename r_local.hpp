@@ -184,7 +184,7 @@ extern	model_t		*cl_worldmodel;
 extern int		*pfrustum_indexes[4];
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
-#define	NEAR_CLIP	0.01
+#define	NEAR_CLIP	0.01f
 
 extern int			ubasestep, errorterm, erroradjustup, erroradjustdown;
 extern int			vstartscan;

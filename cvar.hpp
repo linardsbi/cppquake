@@ -56,8 +56,8 @@ interface from being ambiguous.
 
 typedef struct cvar_s
 {
-	std::string name{};
-	std::string string{};
+	std::string name;
+	std::string string;
 	qboolean archive{};		// set to true to cause it to be saved to vars.rc
 	qboolean server{};		// notifies players when changed
 	float	value{};

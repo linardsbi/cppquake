@@ -98,7 +98,7 @@ const char	*Cmd_Args ();
 // functions. Cmd_Argv () will return an empty string, not a NULL
 // if arg > argc, so string operations are allways safe.
 
-int Cmd_CheckParm (char *parm);
+[[maybe_unused]] int Cmd_CheckParm (char *parm);
 // Returns the position (1 to argc-1) in the command's argument list
 // where the given parameter apears, or 0 if not present
 

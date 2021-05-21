@@ -88,7 +88,7 @@ cvar_t	temp1 = {"temp1","0"};
 Host_EndGame
 ================
 */
-void Host_EndGame (char *message, ...)
+void Host_EndGame (const char *message, ...)
 {
 	va_list		argptr;
 	char		string[1024];
@@ -167,7 +167,7 @@ void	Host_FindMaxClients ()
 		cls.state = ca_dedicated;
 		if (i != (com_argc - 1))
 		{
-			svs.maxclients = Q_atoi (com_argv[i+1]);
+			svs.maxclients = static_cast<int>(strtol(com_argv[i+1], nullptr, 10));
 		}
 		else
 			svs.maxclients = 8;
@@ -181,7 +181,7 @@ void	Host_FindMaxClients ()
 		if (cls.state == ca_dedicated)
 			Sys_Error ("Only one of -dedicated or -listen can be specified");
 		if (i != (com_argc - 1))
-			svs.maxclients = Q_atoi (com_argv[i+1]);
+			svs.maxclients = static_cast<int>(strtol(com_argv[i+1], nullptr, 10));
 		else
 			svs.maxclients = 8;
 	}
@@ -787,7 +787,7 @@ void Host_InitVCR (quakeparms_t *parms)
 			Sys_Error("Invalid signature in vcr file\n");
 
 		Sys_FileRead (vcrFile, &com_argc, sizeof(int));
-		com_argv = static_cast<char **>(malloc(com_argc * sizeof(char *)));
+		com_argv = static_cast<const char **>(malloc(com_argc * sizeof(char *)));
 		com_argv[0] = parms->argv[0];
 		for (i = 0; i < com_argc; i++)
 		{
@@ -849,7 +849,7 @@ void Host_Init (quakeparms_t *parms)
 		Sys_Error ("Only %4.1f megs of memory available, can't execute game", parms->memsize / (float)0x100000);
 
 	com_argc = parms->argc;
-	com_argv = parms->argv;
+	com_argv = reinterpret_cast<const char **>(parms->argv);
 
 	Memory_Init (parms->membase, parms->memsize);
 	Cbuf_Init ();

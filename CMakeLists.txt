@@ -2,30 +2,38 @@ cmake_minimum_required(VERSION 3.19)
 project(sdlquake)
 
 find_package(SDL REQUIRED)
+message("Found SDL: ${SDL_LIBRARY}\nInclude dirs: ${SDL_INCLUDE_DIRS}")
 find_package(fmt REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 set(LIB_FOLDER lib)
 
-if(CMAKE_BUILD_TYPE)
+if (CMAKE_BUILD_TYPE)
     string(TOUPPER "${CMAKE_BUILD_TYPE}" _upper_build_type)
     set(BUILD_${_upper_build_type} 1)
-endif()
+endif ()
 
 if (BUILD_DEBUG)
-    add_compile_options("-Og" "-Wall" "-Wextra" "-Wpedantic" "-Wconversion" "-fsanitize=address,leak,undefined")
-    set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address,leak,undefined")
+    add_compile_options("-Og" "-Wall" "-Wextra" "-Wpedantic" "-Wconversion" "-fsanitize=address,leak,undefined" "-fno-omit-frame-pointer")
+    set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address,leak,undefined -fno-omit-frame-pointer")
     set(DEBUG_DEFINES "-DPARANOID")
-else()
+else ()
     add_compile_options("-O3")
-endif()
+endif ()
 
-message("Found SDL: ${SDL_LIBRARY}\nInclude dirs: ${SDL_INCLUDE_DIRS}")
+if (WIN32)
+    # TODO
+    message("No Windows support as of yet")
+    set(PLATFORM_DEFINES "-D_UNIX=0")
+elseif (UNIX)
+    set(PLATFORM_DEFINES "-D_UNIX=1")
+endif ()
+
 
 include_directories(.)
 include_directories(${SDL_INCLUDE_DIRS} ${LIB_FOLDER})
 
-add_definitions(-DSDL ${DEBUG_DEFINES})
+add_definitions(-DSDL ${DEBUG_DEFINES} ${PLATFORM_DEFINES})
 
 add_executable(sdlquake
         adivtab.hpp
@@ -156,7 +164,7 @@ add_executable(sdlquake
         view.hpp
         wad.cpp
         wad.hpp
-#        winquake.hpp
+        #        winquake.hpp
         world.cpp
         world.hpp
         zone.cpp

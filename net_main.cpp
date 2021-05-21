@@ -826,7 +826,7 @@ void NET_Init ()
 	if (i)
 	{
 		if (i < com_argc-1)
-			DEFAULTnet_hostport = Q_atoi (com_argv[i+1]);
+			DEFAULTnet_hostport = static_cast<int>(strtol(com_argv[i+1], nullptr, 10));
 		else
 			Sys_Error ("NET_Init: you must specify a number after -port");
 	}

@@ -398,10 +398,10 @@ void R_AliasSetUpTransform (int trivial_accept)
 		for (i=0 ; i<4 ; i++)
 		{
 			aliastransform[0][i] *= aliasxscale *
-					(1.0 / ((float)0x8000 * 0x10000));
+					(1.0f / ((float)0x8000 * 0x10000));
 			aliastransform[1][i] *= aliasyscale *
-					(1.0 / ((float)0x8000 * 0x10000));
-			aliastransform[2][i] *= 1.0 / ((float)0x8000 * 0x10000);
+					(1.0f / ((float)0x8000 * 0x10000));
+			aliastransform[2][i] *= 1.0f / ((float)0x8000 * 0x10000);
 
 		}
 	}

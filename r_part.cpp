@@ -50,7 +50,7 @@ void R_InitParticles ()
 
 	if (i)
 	{
-		r_numparticles = (int)(Q_atoi(com_argv[i+1]));
+		r_numparticles = static_cast<int>(strtol(com_argv[i+1], nullptr, 10));
 		if (r_numparticles < ABSOLUTE_MIN_PARTICLES)
 			r_numparticles = ABSOLUTE_MIN_PARTICLES;
 	}
