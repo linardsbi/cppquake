@@ -153,7 +153,7 @@ const char *COM_Parse (const char *data);
 
 
 extern	int		com_argc;
-extern	char	**com_argv;
+extern	const char	**com_argv;
 
 int COM_CheckParm (std::string_view parm);
 void COM_Init (char *path);

@@ -23,13 +23,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <string_view>
 #include <array>
 #include <cstdio>
+#include <sstream>
 
 #define NUM_SAFE_ARGVS  7
 ;
-static char* largv[MAX_NUM_ARGVS + NUM_SAFE_ARGVS + 1] = {};
+static const char* largv[MAX_NUM_ARGVS + NUM_SAFE_ARGVS + 1] = {};
 static char argvdummy[] = " ";
 
-static constexpr char     *safeargvs[NUM_SAFE_ARGVS] =
+static constexpr const char     *safeargvs[NUM_SAFE_ARGVS] =
 	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
 
 cvar_t  registered = {"registered","0"};
@@ -51,7 +52,7 @@ void COM_InitFilesystem ();
 
 char	com_token[1024];
 int		com_argc;
-char	**com_argv;
+const char	**com_argv = nullptr;
 
 #define CMDLINE_LENGTH	256
 char	com_cmdline[CMDLINE_LENGTH];
@@ -792,7 +793,7 @@ void COM_StripExtension (char *in, char *out)
 COM_FileExtension
 ============
 */
-auto COM_FileExtension (char *in) -> char *
+auto COM_FileExtension (const char *in) -> const char *
 {
 	static char exten[8];
 	int             i;
@@ -1217,12 +1218,9 @@ The filename will be prefixed by the current game directory
 */
 void COM_WriteFile (char *filename, void *data, int len)
 {
-	int             handle;
-	char    name[MAX_OSPATH];
-	
-	sprintf (name, "%s/%s", com_gamedir, filename);
+	const auto name = fmt::sprintf ("%s/%s", com_gamedir, filename);
 
-	handle = Sys_FileOpenWrite (name);
+	const auto handle = Sys_FileOpenWrite (name.c_str());
 	if (handle == -1)
 	{
         sysPrintf("COM_WriteFile: failed on {}\n", name);
@@ -1266,7 +1264,7 @@ Copies a file over from the net to the local cache, creating any directories
 needed.  This is for the convenience of developers using ISDN from home.
 ===========
 */
-void COM_CopyFile (char *netpath, char *cachepath)
+void COM_CopyFile (const char *netpath, char *cachepath)
 {
 	int             in, out;
 
@@ -1301,8 +1299,6 @@ Sets com_filesize and one of handle or file
 auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
 {
     sysPrintf("PackFile: {}\n", filename);
-	char            netpath[MAX_OSPATH];
-	char            cachepath[MAX_OSPATH];
 	pack_t          *pak;
 	int                     i;
 	int                     findtime, cachetime;
@@ -1358,41 +1354,40 @@ auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
 					continue;
 			}
 			
-			sprintf (netpath, "%s/%s",search->filename, filename.data());
-			
+			auto netpath = fmt::sprintf("%s/%s",search->filename, filename);
+
 			findtime = Sys_FileTime (netpath);
 			if (findtime == -1)
 				continue;
-				
-		// see if the file needs to be updated in the cache
-			if (!com_cachedir[0])
-				strcpy (cachepath, netpath);
-			else
-			{	
-#if defined(_WIN32)
-				if ((strlen(netpath) < 2) || (netpath[1] != ':'))
-					sprintf (cachepath,"%s%s", com_cachedir, netpath);
-				else
-					sprintf (cachepath,"%s%s", com_cachedir, netpath+2);
-#else
-				sprintf (cachepath,"%s/%s", com_cachedir, netpath);
-#endif
 
-				cachetime = Sys_FileTime (cachepath);
-			
-				if (cachetime < findtime)
-					COM_CopyFile (netpath, cachepath);
-				//strcpy (netpath, cachepath);
-			}
+            // see if the file needs to be updated in the cache
+			[&]() {
+                if (!com_cachedir[0]) return;
+
+                std::stringstream temp;
+                if constexpr(!_UNIX) {
+                    if (netpath.length() < 2 || (netpath[1] != ':')) {
+                        temp << com_cachedir << netpath;
+                    } else {
+                        temp << com_cachedir << netpath.substr(2);
+                    }
+                } else {
+                    temp << com_cachedir << '/' << netpath;
+                }
+                cachetime = Sys_FileTime (temp.view());
+                if (cachetime < findtime)
+                    COM_CopyFile (netpath.data(), temp.str().data());
+
+			}();
 
             sysPrintf("FindFile: {}\n", netpath);
-			com_filesize = Sys_FileOpenRead (netpath, &i);
+			com_filesize = Sys_FileOpenRead (netpath.c_str(), &i);
 			if (handle)
 				*handle = i;
 			else
 			{
 				Sys_FileClose (i);
-				*file = fopen (netpath, "rb");
+				*file = fopen (netpath.c_str(), "rb");
 			}
 			return com_filesize;
 		}
@@ -1738,18 +1733,19 @@ void COM_InitFilesystem ()
 		com_searchpaths = nullptr;
 		while (++i < com_argc)
 		{
-			if (!com_argv[i] || com_argv[i][0] == '+' || com_argv[i][0] == '-')
+		    std::string_view currentArg = com_argv[i];
+			if (currentArg.empty() || currentArg[0] == '+' || currentArg[0] == '-')
 				break;
 			
 			search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));
-			if ( !strcmp(COM_FileExtension(com_argv[i]), "pak") )
+			if ( currentArg.ends_with(".pak") )
 			{
 				search->pack = COM_LoadPackFile (com_argv[i]);
 				if (!search->pack)
 					Sys_Error ("Couldn't load packfile: %s", com_argv[i]);
 			}
 			else
-				strcpy (search->filename, com_argv[i]);
+				strncpy (search->filename, com_argv[i], currentArg.length());
 			search->next = com_searchpaths;
 			com_searchpaths = search;
 		}

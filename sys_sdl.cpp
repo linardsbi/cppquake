@@ -11,7 +11,7 @@
 #include <cstring>
 #include <cctype>
 #include <cerrno>
-#include <iostream>
+#include <filesystem>
 #ifndef __WIN32__
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -43,7 +43,7 @@ void Sys_DebugNumber(int y, int val)
 }
 
 
-void Sys_Quit ()
+[[noreturn]]void Sys_Quit ()
 {
 	Host_Shutdown();
 	exit(0);
@@ -167,7 +167,7 @@ auto Sys_FileOpenRead (const char *path, int *hndl) -> int
 	return Qfilelength(f);
 }
 
-auto Sys_FileOpenWrite (char *path) -> int
+auto Sys_FileOpenWrite (const char *path) -> int
 {
 	FILE	*f = nullptr;
 	int		i = 0;
@@ -224,21 +224,12 @@ auto Sys_FileWrite (int handle, const void *src, int count) -> int
 	return 0;
 }
 
-auto	Sys_FileTime (char *path) -> int
+auto	Sys_FileTime (std::string_view path) -> int
 {
-	FILE	*f = nullptr;
-	
-	f = fopen(path, "rb");
-	if (f)
-	{
-		fclose(f);
-		return 1;
-	}
-	
-	return -1;
+	return std::filesystem::exists(path) ? 1 : -1;
 }
 
-void Sys_mkdir (char *path)
+void Sys_mkdir (const char *path)
 {
 #ifdef __WIN32__
     mkdir (path);
