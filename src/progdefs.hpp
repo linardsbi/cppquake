@@ -23,7 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef QUAKE2
 #include "progdefs.q2"
 #else
+
 #include "progdefs.q1"
+
 #endif
 
 #endif

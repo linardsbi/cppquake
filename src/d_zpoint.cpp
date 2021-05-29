@@ -28,20 +28,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 D_DrawZPoint
 =====================
 */
-void D_DrawZPoint ()
-{
-	byte	*pdest = nullptr;
-	short	*pz = nullptr;
-	int		izi = 0;
-	
-	pz = d_pzbuffer + (d_zwidth * r_zpointdesc.v) + r_zpointdesc.u;
-	pdest = d_viewbuffer + d_scantable[r_zpointdesc.v] + r_zpointdesc.u;
-	izi = (int)(r_zpointdesc.zi * 0x8000);
+void D_DrawZPoint() {
+    byte *pdest = nullptr;
+    short *pz = nullptr;
+    int izi = 0;
 
-	if (*pz <= izi)
-	{
-		*pz = izi;
-		*pdest = r_zpointdesc.color;
-	}
+    pz = d_pzbuffer + (d_zwidth * r_zpointdesc.v) + r_zpointdesc.u;
+    pdest = d_viewbuffer + d_scantable[r_zpointdesc.v] + r_zpointdesc.u;
+    izi = (int) (r_zpointdesc.zi * 0x8000);
+
+    if (*pz <= izi) {
+        *pz = izi;
+        *pdest = r_zpointdesc.color;
+    }
 }
 

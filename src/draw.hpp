@@ -21,20 +21,34 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // draw.h -- these are the only functions outside the refresh allowed
 // to touch the vid buffer
 
-extern	qpic_t		*draw_disc;	// also used on sbar
+extern qpic_t *draw_disc;    // also used on sbar
 
-void Draw_Init ();
-void Draw_Character (int x, int y, int num);
-[[maybe_unused]] void Draw_DebugChar (char num);
-void Draw_Pic (int x, int y, qpic_t *pic);
-void Draw_TransPic (int x, int y, qpic_t *pic);
-void Draw_TransPicTranslate (int x, int y, qpic_t *pic, const byte *translation);
-void Draw_ConsoleBackground (int lines);
-void Draw_BeginDisc ();
-void Draw_EndDisc ();
-void Draw_TileClear (int x, int y, int w, int h);
-void Draw_Fill (int x, int y, int w, int h, int c);
-void Draw_FadeScreen ();
-void Draw_String (int x, int y, char *str);
-qpic_t *Draw_PicFromWad (std::string_view name);
-qpic_t *Draw_CachePic (std::string_view path);
+void Draw_Init();
+
+void Draw_Character(int x, int y, int num);
+
+[[maybe_unused]] void Draw_DebugChar(char num);
+
+void Draw_Pic(int x, int y, qpic_t *pic);
+
+void Draw_TransPic(int x, int y, qpic_t *pic);
+
+void Draw_TransPicTranslate(int x, int y, qpic_t *pic, const byte *translation);
+
+void Draw_ConsoleBackground(int lines);
+
+void Draw_BeginDisc();
+
+void Draw_EndDisc();
+
+void Draw_TileClear(int x, int y, int w, int h);
+
+void Draw_Fill(int x, int y, int w, int h, int c);
+
+void Draw_FadeScreen();
+
+void Draw_String(int x, int y, char *str);
+
+qpic_t *Draw_PicFromWad(std::string_view name);
+
+qpic_t *Draw_CachePic(std::string_view path);

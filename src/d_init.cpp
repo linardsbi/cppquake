@@ -22,22 +22,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.hpp"
 #include "d_local.hpp"
 
-#define NUM_MIPS	4
+#define NUM_MIPS    4
 
-cvar_t	d_subdiv16 = {"d_subdiv16", "1"};
-cvar_t	d_mipcap = {"d_mipcap", "0"};
-cvar_t	d_mipscale = {"d_mipscale", "1"};
+cvar_t d_subdiv16 = {"d_subdiv16", "1"};
+cvar_t d_mipcap = {"d_mipcap", "0"};
+cvar_t d_mipscale = {"d_mipscale", "1"};
 
-surfcache_t		*d_initial_rover;
-qboolean		d_roverwrapped;
-int				d_minmip;
-float			d_scalemip[NUM_MIPS-1];
+surfcache_t *d_initial_rover;
+qboolean d_roverwrapped;
+int d_minmip;
+float d_scalemip[NUM_MIPS - 1];
 
-static float	basemip[NUM_MIPS-1] = {1.0f, 0.5f*0.8f, 0.25f*0.8f};
+static float basemip[NUM_MIPS - 1] = {1.0f, 0.5f * 0.8f, 0.25f * 0.8f};
 
-extern int			d_aflatcolor;
+extern int d_aflatcolor;
 
-void (*d_drawspans) (espan_t *pspan);
+void (*d_drawspans)(espan_t *pspan);
 
 
 /*
@@ -45,20 +45,19 @@ void (*d_drawspans) (espan_t *pspan);
 D_Init
 ===============
 */
-void D_Init ()
-{
+void D_Init() {
 
-	r_skydirect = 1;
+    r_skydirect = 1;
 
-	Cvar_RegisterVariable (&d_subdiv16);
-	Cvar_RegisterVariable (&d_mipcap);
-	Cvar_RegisterVariable (&d_mipscale);
+    Cvar_RegisterVariable(&d_subdiv16);
+    Cvar_RegisterVariable(&d_mipcap);
+    Cvar_RegisterVariable(&d_mipscale);
 
-	r_drawpolys = false;
-	r_worldpolysbacktofront = false;
-	r_recursiveaffinetriangles = true;
-	r_pixbytes = 1;
-	r_aliasuvscale = 1.0;
+    r_drawpolys = false;
+    r_worldpolysbacktofront = false;
+    r_recursiveaffinetriangles = true;
+    r_pixbytes = 1;
+    r_aliasuvscale = 1.0;
 }
 
 
@@ -67,8 +66,7 @@ void D_Init ()
 D_CopyRects
 ===============
 */
-void D_CopyRects (vrect_t *prects, int transparent)
-{
+void D_CopyRects(vrect_t *prects, int transparent) {
 
 // this function is only required if the CPU doesn't have direct access to the
 // back buffer, and there's some driver interface function that the driver
@@ -76,8 +74,8 @@ void D_CopyRects (vrect_t *prects, int transparent)
 // console); Quake will then draw into wherever the driver points vid.buffer
 // and will call this function before swapping buffers
 
-	UNUSED(prects);
-	UNUSED(transparent);
+    UNUSED(prects);
+    UNUSED(transparent);
 }
 
 
@@ -86,9 +84,8 @@ void D_CopyRects (vrect_t *prects, int transparent)
 D_EnableBackBufferAccess
 ===============
 */
-void D_EnableBackBufferAccess ()
-{
-	VID_LockBuffer ();
+void D_EnableBackBufferAccess() {
+    VID_LockBuffer ();
 }
 
 
@@ -97,8 +94,7 @@ void D_EnableBackBufferAccess ()
 D_TurnZOn
 ===============
 */
-void D_TurnZOn ()
-{
+void D_TurnZOn() {
 // not needed for software version
 }
 
@@ -108,9 +104,8 @@ void D_TurnZOn ()
 D_DisableBackBufferAccess
 ===============
 */
-void D_DisableBackBufferAccess ()
-{
-	VID_UnlockBuffer ();
+void D_DisableBackBufferAccess() {
+    VID_UnlockBuffer ();
 }
 
 
@@ -119,42 +114,41 @@ void D_DisableBackBufferAccess ()
 D_SetupFrame
 ===============
 */
-void D_SetupFrame ()
-{
-	int		i = 0;
+void D_SetupFrame() {
+    int i = 0;
 
-	if (r_dowarp)
-		d_viewbuffer = r_warpbuffer;
-	else
-		d_viewbuffer = vid.buffer;
+    if (r_dowarp)
+        d_viewbuffer = r_warpbuffer;
+    else
+        d_viewbuffer = vid.buffer;
 
-	if (r_dowarp)
-		screenwidth = WARP_WIDTH;
-	else
-		screenwidth = vid.rowbytes;
+    if (r_dowarp)
+        screenwidth = WARP_WIDTH;
+    else
+        screenwidth = vid.rowbytes;
 
-	d_roverwrapped = false;
-	d_initial_rover = sc_rover;
+    d_roverwrapped = false;
+    d_initial_rover = sc_rover;
 
-	d_minmip = d_mipcap.value;
-	if (d_minmip > 3)
-		d_minmip = 3;
-	else if (d_minmip < 0)
-		d_minmip = 0;
+    d_minmip = d_mipcap.value;
+    if (d_minmip > 3)
+        d_minmip = 3;
+    else if (d_minmip < 0)
+        d_minmip = 0;
 
-	for (i=0 ; i<(NUM_MIPS-1) ; i++)
-		d_scalemip[i] = basemip[i] * d_mipscale.value;
+    for (i = 0; i < (NUM_MIPS - 1); i++)
+        d_scalemip[i] = basemip[i] * d_mipscale.value;
 
-#if	id386
-				if (d_subdiv16.value)
-					d_drawspans = D_DrawSpans16;
-				else
-					d_drawspans = D_DrawSpans8;
+#if    id386
+    if (d_subdiv16.value)
+        d_drawspans = D_DrawSpans16;
+    else
+        d_drawspans = D_DrawSpans8;
 #else
-				d_drawspans = D_DrawSpans8;
+    d_drawspans = D_DrawSpans8;
 #endif
 
-	d_aflatcolor = 0;
+    d_aflatcolor = 0;
 }
 
 
@@ -163,11 +157,10 @@ void D_SetupFrame ()
 D_UpdateRects
 ===============
 */
-void D_UpdateRects (vrect_t *prect)
-{
+void D_UpdateRects(vrect_t *prect) {
 
 // the software driver draws these directly to the vid buffer
 
-	UNUSED(prect);
+    UNUSED(prect);
 }
 

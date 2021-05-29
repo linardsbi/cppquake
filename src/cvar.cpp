@@ -20,7 +20,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // cvar.c -- dynamic variable tracking
 
 #include "quakedef.hpp"
-cvar_t	*cvar_vars;
+
+cvar_t *cvar_vars;
 constexpr std::string_view cvar_null_string = "";
 
 /*
@@ -28,13 +29,12 @@ constexpr std::string_view cvar_null_string = "";
 Cvar_FindVar
 ============
 */
-cvar_t *Cvar_FindVar (std::string_view var_name)
-{
-	for (auto var=cvar_vars ; var ; var=var->next)
-		if (var_name == var->name)
-			return var;
+cvar_t *Cvar_FindVar(std::string_view var_name) {
+    for (auto var = cvar_vars; var; var = var->next)
+        if (var_name == var->name)
+            return var;
 
-	return nullptr;
+    return nullptr;
 }
 
 /*
@@ -42,12 +42,11 @@ cvar_t *Cvar_FindVar (std::string_view var_name)
 Cvar_VariableValue
 ============
 */
-float	Cvar_VariableValue (std::string_view var_name)
-{
-    cvar_t	*var = Cvar_FindVar (var_name);
-	if (!var)
-		return 0;
-	return Q_atof (var->string.c_str());
+float Cvar_VariableValue(std::string_view var_name) {
+    cvar_t *var = Cvar_FindVar(var_name);
+    if (!var)
+        return 0;
+    return Q_atof(var->string.c_str());
 }
 
 
@@ -56,12 +55,11 @@ float	Cvar_VariableValue (std::string_view var_name)
 Cvar_VariableString
 ============
 */
-auto Cvar_VariableString (std::string_view var_name) -> std::string_view
-{
-    cvar_t * var = Cvar_FindVar (var_name);
-	if (!var)
-		return cvar_null_string;
-	return var->string;
+auto Cvar_VariableString(std::string_view var_name) -> std::string_view {
+    cvar_t *var = Cvar_FindVar(var_name);
+    if (!var)
+        return cvar_null_string;
+    return var->string;
 }
 
 
@@ -70,17 +68,16 @@ auto Cvar_VariableString (std::string_view var_name) -> std::string_view
 Cvar_CompleteVariable
 ============
 */
-auto Cvar_CompleteVariable (std::string_view partial) -> std::string_view
-{
-	if (partial.empty())
-		return cvar_null_string;
-		
-// check functions
-	for (auto cvar=cvar_vars ; cvar ; cvar=cvar->next)
-		if (!Q_strncmp (partial,cvar->name, partial.length()))
-			return cvar->name;
+auto Cvar_CompleteVariable(std::string_view partial) -> std::string_view {
+    if (partial.empty())
+        return cvar_null_string;
 
-	return cvar_null_string;
+// check functions
+    for (auto cvar = cvar_vars; cvar; cvar = cvar->next)
+        if (!Q_strncmp(partial, cvar->name, partial.length()))
+            return cvar->name;
+
+    return cvar_null_string;
 }
 
 
@@ -90,25 +87,22 @@ Cvar_Set
 ============
 */
 // see if this will work with string_view parameters
-void Cvar_Set (std::string_view var_name, std::string_view value)
-{
-	auto var = Cvar_FindVar (var_name);
-	if (!var)
-	{	// there is an error in C code if this happens
-		Con_Printf ("Cvar_Set: variable %s not found\n", var_name);
-		return;
-	}
+void Cvar_Set(std::string_view var_name, std::string_view value) {
+    auto var = Cvar_FindVar(var_name);
+    if (!var) {    // there is an error in C code if this happens
+        Con_Printf("Cvar_Set: variable %s not found\n", var_name);
+        return;
+    }
 
-	auto changed = var->string != value;
-	
-	var->string = value;
-	var->value = Q_atof (var->string.c_str());
+    auto changed = var->string != value;
 
-	if (var->server && changed)
-	{
-		if (sv.active)
-			SV_BroadcastPrintf ("\"%s\" changed to \"%s\"\n", var->name.data(), var->string.data());
-	}
+    var->string = value;
+    var->value = Q_atof(var->string.c_str());
+
+    if (var->server && changed) {
+        if (sv.active)
+            SV_BroadcastPrintf("\"%s\" changed to \"%s\"\n", var->name.data(), var->string.data());
+    }
 }
 
 /*
@@ -116,12 +110,11 @@ void Cvar_Set (std::string_view var_name, std::string_view value)
 Cvar_SetValue
 ============
 */
-void Cvar_SetValue (std::string_view var_name, float value)
-{
-	char	val[32];
-	
-	sprintf (val, "%f",value);
-	Cvar_Set (var_name, val);
+void Cvar_SetValue(std::string_view var_name, float value) {
+    char val[32];
+
+    sprintf(val, "%f", value);
+    Cvar_Set(var_name, val);
 }
 
 
@@ -132,28 +125,25 @@ Cvar_RegisterVariable
 Adds a freestanding variable to the variable list.
 ============
 */
-void Cvar_RegisterVariable (cvar_t *variable)
-{
+void Cvar_RegisterVariable(cvar_t *variable) {
 
 // first check to see if it has allready been defined
-	if (Cvar_FindVar (variable->name))
-	{
-		Con_Printf ("Can't register variable %s, allready defined\n", variable->name.c_str());
-		return;
-	}
-	
-// check for overlap with a command
-	if (Cmd_Exists (variable->name))
-	{
-		Con_Printf ("Cvar_RegisterVariable: %s is a command\n", variable->name.c_str());
-		return;
-	}
+    if (Cvar_FindVar(variable->name)) {
+        Con_Printf("Can't register variable %s, allready defined\n", variable->name.c_str());
+        return;
+    }
 
-	variable->value = Q_atof (variable->string.c_str());
-	
+// check for overlap with a command
+    if (Cmd_Exists(variable->name)) {
+        Con_Printf("Cvar_RegisterVariable: %s is a command\n", variable->name.c_str());
+        return;
+    }
+
+    variable->value = Q_atof(variable->string.c_str());
+
 // link the variable in
-	variable->next = cvar_vars;
-	cvar_vars = variable;
+    variable->next = cvar_vars;
+    cvar_vars = variable;
 }
 
 /*
@@ -163,22 +153,20 @@ Cvar_Command
 Handles variable inspection and changing from the console
 ============
 */
-qboolean	Cvar_Command ()
-{
+qboolean Cvar_Command() {
 // check variables
-	auto v = Cvar_FindVar (Cmd_Argv(0));
-	if (!v)
-		return false;
-		
-// perform a variable print or set
-	if (Cmd_Argc() == 1)
-	{
-		Con_Printf ("\"%s\" is \"%s\"\n", v->name.c_str(), v->string.c_str());
-		return true;
-	}
+    auto v = Cvar_FindVar(Cmd_Argv(0));
+    if (!v)
+        return false;
 
-	Cvar_Set (v->name, Cmd_Argv(1));
-	return true;
+// perform a variable print or set
+    if (Cmd_Argc() == 1) {
+        Con_Printf("\"%s\" is \"%s\"\n", v->name.c_str(), v->string.c_str());
+        return true;
+    }
+
+    Cvar_Set(v->name, Cmd_Argv(1));
+    return true;
 }
 
 
@@ -190,10 +178,9 @@ Writes lines containing "set variable value" for all variables
 with the archive flag set to true.
 ============
 */
-void Cvar_WriteVariables (FILE *f)
-{
-	for (auto var = cvar_vars ; var ; var = var->next)
-		if (var->archive)
-			fprintf (f, "%s \"%s\"\n", var->name.c_str(), var->string.c_str());
+void Cvar_WriteVariables(FILE *f) {
+    for (auto var = cvar_vars; var; var = var->next)
+        if (var->archive)
+            fprintf(f, "%s \"%s\"\n", var->name.c_str(), var->string.c_str());
 }
 

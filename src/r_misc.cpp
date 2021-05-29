@@ -29,15 +29,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 R_CheckVariables
 ===============
 */
-void R_CheckVariables ()
-{
-	static float	oldbright;
+void R_CheckVariables() {
+    static float oldbright;
 
-	if (r_fullbright.value != oldbright)
-	{
-		oldbright = r_fullbright.value;
-		D_FlushCaches ();	// so all lighting changes
-	}
+    if (r_fullbright.value != oldbright) {
+        oldbright = r_fullbright.value;
+        D_FlushCaches();    // so all lighting changes
+    }
 }
 
 
@@ -48,15 +46,14 @@ Show
 Debugging use
 ============
 */
-void Show ()
-{
-	vrect_t	vr;
+void Show() {
+    vrect_t vr;
 
-	vr.x = vr.y = 0;
-	vr.width = vid.width;
-	vr.height = vid.height;
-	vr.pnext = nullptr;
-	VID_Update (&vr);
+    vr.x = vr.y = 0;
+    vr.width = vid.width;
+    vr.height = vid.height;
+    vr.pnext = nullptr;
+    VID_Update(&vr);
 }
 
 
@@ -67,38 +64,36 @@ R_TimeRefresh_f
 For program optimization
 ====================
 */
-void R_TimeRefresh_f ()
-{
-	int			i = 0;
-	float		start = NAN, stop = NAN, time = NAN;
-	int			startangle = 0;
-	vrect_t		vr;
+void R_TimeRefresh_f() {
+    int i = 0;
+    float start = NAN, stop = NAN, time = NAN;
+    int startangle = 0;
+    vrect_t vr;
 
-	startangle = r_refdef.viewangles[1];
-	
-	start = Sys_FloatTime ();
-	for (i=0 ; i<128 ; i++)
-	{
-		r_refdef.viewangles[1] = i/128.0*360.0;
+    startangle = r_refdef.viewangles[1];
 
-		VID_LockBuffer ();
+    start = Sys_FloatTime();
+    for (i = 0; i < 128; i++) {
+        r_refdef.viewangles[1] = i / 128.0 * 360.0;
 
-		R_RenderView ();
+        VID_LockBuffer ();
 
-		VID_UnlockBuffer ();
+        R_RenderView();
 
-		vr.x = r_refdef.vrect.x;
-		vr.y = r_refdef.vrect.y;
-		vr.width = r_refdef.vrect.width;
-		vr.height = r_refdef.vrect.height;
-		vr.pnext = nullptr;
-		VID_Update (&vr);
-	}
-	stop = Sys_FloatTime ();
-	time = stop-start;
-	Con_Printf ("%f seconds (%f fps)\n", time, 128/time);
-	
-	r_refdef.viewangles[1] = startangle;
+        VID_UnlockBuffer ();
+
+        vr.x = r_refdef.vrect.x;
+        vr.y = r_refdef.vrect.y;
+        vr.width = r_refdef.vrect.width;
+        vr.height = r_refdef.vrect.height;
+        vr.pnext = nullptr;
+        VID_Update(&vr);
+    }
+    stop = Sys_FloatTime();
+    time = stop - start;
+    Con_Printf("%f seconds (%f fps)\n", time, 128 / time);
+
+    r_refdef.viewangles[1] = startangle;
 }
 
 
@@ -109,34 +104,31 @@ R_LineGraph
 Only called by R_DisplayTime
 ================
 */
-void R_LineGraph (int x, int y, int h)
-{
-	int		i = 0;
-	byte	*dest = nullptr;
-	int		s = 0;
+void R_LineGraph(int x, int y, int h) {
+    int i = 0;
+    byte *dest = nullptr;
+    int s = 0;
 
 // FIXME: should be disabled on no-buffer adapters, or should be in the driver
-	
-	x += r_refdef.vrect.x;
-	y += r_refdef.vrect.y;
-	
-	dest = vid.buffer + vid.rowbytes*y + x;
-	
-	s = r_graphheight.value;
-	
-	if (h>s)
-		h = s;
-		
-	for (i=0 ; i<h ; i++, dest -= vid.rowbytes*2)
-	{
-		dest[0] = 0xff;
-		*(dest-vid.rowbytes) = 0x30;
-	}
-	for ( ; i<s ; i++, dest -= vid.rowbytes*2)
-	{
-		dest[0] = 0x30;
-		*(dest-vid.rowbytes) = 0x30;
-	}
+
+    x += r_refdef.vrect.x;
+    y += r_refdef.vrect.y;
+
+    dest = vid.buffer + vid.rowbytes * y + x;
+
+    s = r_graphheight.value;
+
+    if (h > s)
+        h = s;
+
+    for (i = 0; i < h; i++, dest -= vid.rowbytes * 2) {
+        dest[0] = 0xff;
+        *(dest - vid.rowbytes) = 0x30;
+    }
+    for (; i < s; i++, dest -= vid.rowbytes * 2) {
+        dest[0] = 0x30;
+        *(dest - vid.rowbytes) = 0x30;
+    }
 }
 
 /*
@@ -146,44 +138,43 @@ R_TimeGraph
 Performance monitoring tool
 ==============
 */
-#define	MAX_TIMINGS		100
+#define    MAX_TIMINGS        100
 extern float mouse_x, mouse_y;
-void R_TimeGraph ()
-{
-	static	int		timex;
-	int		a = 0;
-	float	r_time2 = NAN;
-	static byte	r_timings[MAX_TIMINGS];
-	int		x = 0;
-	
-	r_time2 = Sys_FloatTime ();
 
-	a = (r_time2-r_time1)/0.01;
+void R_TimeGraph() {
+    static int timex;
+    int a = 0;
+    float r_time2 = NAN;
+    static byte r_timings[MAX_TIMINGS];
+    int x = 0;
+
+    r_time2 = Sys_FloatTime();
+
+    a = (r_time2 - r_time1) / 0.01;
 //a = fabs(mouse_y * 0.05);
 //a = (int)((r_refdef.vieworg[2] + 1024)/1)%(int)r_graphheight.value;
 //a = fabs(velocity[0])/20;
 //a = ((int)fabs(origin[0])/8)%20;
 //a = (cl.idealpitch + 30)/5;
-	r_timings[timex] = a;
-	a = timex;
+    r_timings[timex] = a;
+    a = timex;
 
-	if (r_refdef.vrect.width <= MAX_TIMINGS)
-		x = r_refdef.vrect.width-1;
-	else
-		x = r_refdef.vrect.width -
-				(r_refdef.vrect.width - MAX_TIMINGS)/2;
-	do
-	{
-		R_LineGraph (x, r_refdef.vrect.height-2, r_timings[a]);
-		if (x==0)
-			break;		// screen too small to hold entire thing
-		x--;
-		a--;
-		if (a == -1)
-			a = MAX_TIMINGS-1;
-	} while (a != timex);
+    if (r_refdef.vrect.width <= MAX_TIMINGS)
+        x = r_refdef.vrect.width - 1;
+    else
+        x = r_refdef.vrect.width -
+            (r_refdef.vrect.width - MAX_TIMINGS) / 2;
+    do {
+        R_LineGraph(x, r_refdef.vrect.height - 2, r_timings[a]);
+        if (x == 0)
+            break;        // screen too small to hold entire thing
+        x--;
+        a--;
+        if (a == -1)
+            a = MAX_TIMINGS - 1;
+    } while (a != timex);
 
-	timex = (timex+1)%MAX_TIMINGS;
+    timex = (timex + 1) % MAX_TIMINGS;
 }
 
 
@@ -192,18 +183,17 @@ void R_TimeGraph ()
 R_PrintTimes
 =============
 */
-void R_PrintTimes ()
-{
-	float	r_time2 = NAN;
-	float		ms = NAN;
+void R_PrintTimes() {
+    float r_time2 = NAN;
+    float ms = NAN;
 
-	r_time2 = Sys_FloatTime ();
+    r_time2 = Sys_FloatTime();
 
-	ms = 1000* (r_time2 - r_time1);
-	
-	Con_Printf ("%5.1f ms %3i/%3i/%3i poly %3i surf\n",
-				ms, c_faceclip, r_polycount, r_drawnpolycount, c_surf);
-	c_surf = 0;
+    ms = 1000 * (r_time2 - r_time1);
+
+    Con_Printf("%5.1f ms %3i/%3i/%3i poly %3i surf\n",
+               ms, c_faceclip, r_polycount, r_drawnpolycount, c_surf);
+    c_surf = 0;
 }
 
 
@@ -212,23 +202,22 @@ void R_PrintTimes ()
 R_PrintDSpeeds
 =============
 */
-void R_PrintDSpeeds ()
-{
-	float	ms = NAN, dp_time = NAN, r_time2 = NAN, rw_time = NAN, db_time = NAN, se_time = NAN, de_time = NAN, dv_time = NAN;
+void R_PrintDSpeeds() {
+    float ms = NAN, dp_time = NAN, r_time2 = NAN, rw_time = NAN, db_time = NAN, se_time = NAN, de_time = NAN, dv_time = NAN;
 
-	r_time2 = Sys_FloatTime ();
+    r_time2 = Sys_FloatTime();
 
-	dp_time = (dp_time2 - dp_time1) * 1000;
-	rw_time = (rw_time2 - rw_time1) * 1000;
-	db_time = (db_time2 - db_time1) * 1000;
-	se_time = (se_time2 - se_time1) * 1000;
-	de_time = (de_time2 - de_time1) * 1000;
-	dv_time = (dv_time2 - dv_time1) * 1000;
-	ms = (r_time2 - r_time1) * 1000;
+    dp_time = (dp_time2 - dp_time1) * 1000;
+    rw_time = (rw_time2 - rw_time1) * 1000;
+    db_time = (db_time2 - db_time1) * 1000;
+    se_time = (se_time2 - se_time1) * 1000;
+    de_time = (de_time2 - de_time1) * 1000;
+    dv_time = (dv_time2 - dv_time1) * 1000;
+    ms = (r_time2 - r_time1) * 1000;
 
-	Con_Printf ("%3i %4.1fp %3iw %4.1fb %3is %4.1fe %4.1fv\n",
-				(int)ms, dp_time, (int)rw_time, db_time, (int)se_time, de_time,
-				dv_time);
+    Con_Printf("%3i %4.1fp %3iw %4.1fb %3is %4.1fe %4.1fv\n",
+               (int) ms, dp_time, (int) rw_time, db_time, (int) se_time, de_time,
+               dv_time);
 }
 
 
@@ -237,32 +226,28 @@ void R_PrintDSpeeds ()
 R_PrintAliasStats
 =============
 */
-void R_PrintAliasStats ()
-{
-	Con_Printf ("%3i polygon model drawn\n", r_amodels_drawn);
+void R_PrintAliasStats() {
+    Con_Printf("%3i polygon model drawn\n", r_amodels_drawn);
 }
 
 
-void WarpPalette ()
-{
-	int		i = 0,j = 0;
-	byte	newpalette[768];
-	int		basecolor[3];
-	
-	basecolor[0] = 130;
-	basecolor[1] = 80;
-	basecolor[2] = 50;
+void WarpPalette() {
+    int i = 0, j = 0;
+    byte newpalette[768];
+    int basecolor[3];
+
+    basecolor[0] = 130;
+    basecolor[1] = 80;
+    basecolor[2] = 50;
 
 // pull the colors halfway to bright brown
-	for (i=0 ; i<256 ; i++)
-	{
-		for (j=0 ; j<3 ; j++)
-		{
-			newpalette[i*3+j] = (host_basepal[i*3+j] + basecolor[j])/2;
-		}
-	}
-	
-	VID_ShiftPalette (newpalette);
+    for (i = 0; i < 256; i++) {
+        for (j = 0; j < 3; j++) {
+            newpalette[i * 3 + j] = (host_basepal[i * 3 + j] + basecolor[j]) / 2;
+        }
+    }
+
+    VID_ShiftPalette(newpalette);
 }
 
 
@@ -271,40 +256,37 @@ void WarpPalette ()
 R_TransformFrustum
 ===================
 */
-void R_TransformFrustum ()
-{
-	int		i = 0;
-	vec3_t	v, v2;
-	
-	for (i=0 ; i<4 ; i++)
-	{
-		v[0] = screenedge[i].normal[2];
-		v[1] = -screenedge[i].normal[0];
-		v[2] = screenedge[i].normal[1];
+void R_TransformFrustum() {
+    int i = 0;
+    vec3_t v, v2;
 
-		v2[0] = v[1]*vright[0] + v[2]*vup[0] + v[0]*vpn[0];
-		v2[1] = v[1]*vright[1] + v[2]*vup[1] + v[0]*vpn[1];
-		v2[2] = v[1]*vright[2] + v[2]*vup[2] + v[0]*vpn[2];
+    for (i = 0; i < 4; i++) {
+        v[0] = screenedge[i].normal[2];
+        v[1] = -screenedge[i].normal[0];
+        v[2] = screenedge[i].normal[1];
 
-		VectorCopy (v2, view_clipplanes[i].normal);
+        v2[0] = v[1] * vright[0] + v[2] * vup[0] + v[0] * vpn[0];
+        v2[1] = v[1] * vright[1] + v[2] * vup[1] + v[0] * vpn[1];
+        v2[2] = v[1] * vright[2] + v[2] * vup[2] + v[0] * vpn[2];
 
-		view_clipplanes[i].dist = DotProduct (modelorg, v2);
-	}
+        VectorCopy (v2, view_clipplanes[i].normal);
+
+        view_clipplanes[i].dist = DotProduct (modelorg, v2);
+    }
 }
 
 
-#if	!id386
+#if    !id386
 
 /*
 ================
 TransformVector
 ================
 */
-void TransformVector (vec3_t in, vec3_t out)
-{
-	out[0] = DotProduct(in,vright);
-	out[1] = DotProduct(in,vup);
-	out[2] = DotProduct(in,vpn);		
+void TransformVector(vec3_t in, vec3_t out) {
+    out[0] = DotProduct(in, vright);
+    out[1] = DotProduct(in, vup);
+    out[2] = DotProduct(in, vpn);
 }
 
 #endif
@@ -315,14 +297,13 @@ void TransformVector (vec3_t in, vec3_t out)
 R_TransformPlane
 ================
 */
-void R_TransformPlane (mplane_t *p, float *normal, float *dist)
-{
-	float	d = NAN;
-	
-	d = DotProduct (r_origin, p->normal);
-	*dist = p->dist - d;
+void R_TransformPlane(mplane_t *p, float *normal, float *dist) {
+    float d = NAN;
+
+    d = DotProduct (r_origin, p->normal);
+    *dist = p->dist - d;
 // TODO: when we have rotating entities, this will need to use the view matrix
-	TransformVector (p->normal, normal);
+    TransformVector(p->normal, normal);
 }
 
 
@@ -331,32 +312,26 @@ void R_TransformPlane (mplane_t *p, float *normal, float *dist)
 R_SetUpFrustumIndexes
 ===============
 */
-void R_SetUpFrustumIndexes ()
-{
-	int		i = 0, j = 0, *pindex = nullptr;
+void R_SetUpFrustumIndexes() {
+    int i = 0, j = 0, *pindex = nullptr;
 
-	pindex = r_frustum_indexes;
+    pindex = r_frustum_indexes;
 
-	for (i=0 ; i<4 ; i++)
-	{
-		for (j=0 ; j<3 ; j++)
-		{
-			if (view_clipplanes[i].normal[j] < 0)
-			{
-				pindex[j] = j;
-				pindex[j+3] = j+3;
-			}
-			else
-			{
-				pindex[j] = j+3;
-				pindex[j+3] = j;
-			}
-		}
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 3; j++) {
+            if (view_clipplanes[i].normal[j] < 0) {
+                pindex[j] = j;
+                pindex[j + 3] = j + 3;
+            } else {
+                pindex[j] = j + 3;
+                pindex[j + 3] = j;
+            }
+        }
 
-	// FIXME: do just once at start
-		pfrustum_indexes[i] = pindex;
-		pindex += 6;
-	}
+        // FIXME: do just once at start
+        pfrustum_indexes[i] = pindex;
+        pindex += 6;
+    }
 }
 
 
@@ -365,160 +340,147 @@ void R_SetUpFrustumIndexes ()
 R_SetupFrame
 ===============
 */
-void R_SetupFrame ()
-{
-	int				edgecount = 0;
-	vrect_t			vrect;
-	float			w = NAN, h = NAN;
+void R_SetupFrame() {
+    int edgecount = 0;
+    vrect_t vrect;
+    float w = NAN, h = NAN;
 
 // don't allow cheats in multiplayer
-	if (cl.maxclients > 1)
-	{
-		Cvar_Set ("r_draworder", "0");
-		Cvar_Set ("r_fullbright", "0");
-		Cvar_Set ("r_ambient", "0");
-		Cvar_Set ("r_drawflat", "0");
-	}
+    if (cl.maxclients > 1) {
+        Cvar_Set("r_draworder", "0");
+        Cvar_Set("r_fullbright", "0");
+        Cvar_Set("r_ambient", "0");
+        Cvar_Set("r_drawflat", "0");
+    }
 
-	if (r_numsurfs.value)
-	{
-		if ((surface_p - surfaces) > r_maxsurfsseen)
-			r_maxsurfsseen = surface_p - surfaces;
+    if (r_numsurfs.value) {
+        if ((surface_p - surfaces) > r_maxsurfsseen)
+            r_maxsurfsseen = surface_p - surfaces;
 
-		Con_Printf ("Used %d of %d surfs; %d max\n", surface_p - surfaces,
-				surf_max - surfaces, r_maxsurfsseen);
-	}
+        Con_Printf("Used %d of %d surfs; %d max\n", surface_p - surfaces,
+                   surf_max - surfaces, r_maxsurfsseen);
+    }
 
-	if (r_numedges.value)
-	{
-		edgecount = edge_p - r_edges;
+    if (r_numedges.value) {
+        edgecount = edge_p - r_edges;
 
-		if (edgecount > r_maxedgesseen)
-			r_maxedgesseen = edgecount;
+        if (edgecount > r_maxedgesseen)
+            r_maxedgesseen = edgecount;
 
-		Con_Printf ("Used %d of %d edges; %d max\n", edgecount,
-				r_numallocatededges, r_maxedgesseen);
-	}
+        Con_Printf("Used %d of %d edges; %d max\n", edgecount,
+                   r_numallocatededges, r_maxedgesseen);
+    }
 
-	r_refdef.ambientlight = r_ambient.value;
+    r_refdef.ambientlight = r_ambient.value;
 
-	if (r_refdef.ambientlight < 0)
-		r_refdef.ambientlight = 0;
+    if (r_refdef.ambientlight < 0)
+        r_refdef.ambientlight = 0;
 
-	if (!sv.active)
-		r_draworder.value = 0;	// don't let cheaters look behind walls
-		
-	R_CheckVariables ();
-	
-	R_AnimateLight ();
+    if (!sv.active)
+        r_draworder.value = 0;    // don't let cheaters look behind walls
 
-	r_framecount++;
+    R_CheckVariables();
 
-	numbtofpolys = 0;
+    R_AnimateLight();
+
+    r_framecount++;
+
+    numbtofpolys = 0;
 
 // debugging
 #if 0
-r_refdef.vieworg[0]=  80;
-r_refdef.vieworg[1]=      64;
-r_refdef.vieworg[2]=      40;
-r_refdef.viewangles[0]=    0;
-r_refdef.viewangles[1]=    46.763641357;
-r_refdef.viewangles[2]=    0;
+    r_refdef.vieworg[0]=  80;
+    r_refdef.vieworg[1]=      64;
+    r_refdef.vieworg[2]=      40;
+    r_refdef.viewangles[0]=    0;
+    r_refdef.viewangles[1]=    46.763641357;
+    r_refdef.viewangles[2]=    0;
 #endif
 
 // build the transformation matrix for the given view angles
-	VectorCopy (r_refdef.vieworg, modelorg);
-	VectorCopy (r_refdef.vieworg, r_origin);
+    VectorCopy (r_refdef.vieworg, modelorg);
+    VectorCopy (r_refdef.vieworg, r_origin);
 
-	AngleVectors (r_refdef.viewangles, vpn, vright, vup);
+    AngleVectors(r_refdef.viewangles, vpn, vright, vup);
 
 // current viewleaf
-	r_oldviewleaf = r_viewleaf;
-	r_viewleaf = Mod_PointInLeaf (r_origin, cl.worldmodel);
+    r_oldviewleaf = r_viewleaf;
+    r_viewleaf = Mod_PointInLeaf(r_origin, cl.worldmodel);
 
-	r_dowarpold = r_dowarp;
-	r_dowarp = r_waterwarp.value && (r_viewleaf->contents <= CONTENTS_WATER);
+    r_dowarpold = r_dowarp;
+    r_dowarp = r_waterwarp.value && (r_viewleaf->contents <= CONTENTS_WATER);
 
-	if ((r_dowarp != r_dowarpold) || r_viewchanged || lcd_x.value)
-	{
-		if (r_dowarp)
-		{
-			if ((vid.width <= vid.maxwarpwidth) &&
-				(vid.height <= vid.maxwarpheight))
-			{
-				vrect.x = 0;
-				vrect.y = 0;
-				vrect.width = vid.width;
-				vrect.height = vid.height;
+    if ((r_dowarp != r_dowarpold) || r_viewchanged || lcd_x.value) {
+        if (r_dowarp) {
+            if ((vid.width <= vid.maxwarpwidth) &&
+                (vid.height <= vid.maxwarpheight)) {
+                vrect.x = 0;
+                vrect.y = 0;
+                vrect.width = vid.width;
+                vrect.height = vid.height;
 
-				R_ViewChanged (&vrect, sb_lines, vid.aspect);
-			}
-			else
-			{
-				w = vid.width;
-				h = vid.height;
+                R_ViewChanged(&vrect, sb_lines, vid.aspect);
+            } else {
+                w = vid.width;
+                h = vid.height;
 
-				if (w > vid.maxwarpwidth)
-				{
-					h *= (float)vid.maxwarpwidth / w;
-					w = vid.maxwarpwidth;
-				}
+                if (w > vid.maxwarpwidth) {
+                    h *= (float) vid.maxwarpwidth / w;
+                    w = vid.maxwarpwidth;
+                }
 
-				if (h > vid.maxwarpheight)
-				{
-					h = vid.maxwarpheight;
-					w *= (float)vid.maxwarpheight / h;
-				}
+                if (h > vid.maxwarpheight) {
+                    h = vid.maxwarpheight;
+                    w *= (float) vid.maxwarpheight / h;
+                }
 
-				vrect.x = 0;
-				vrect.y = 0;
-				vrect.width = (int)w;
-				vrect.height = (int)h;
+                vrect.x = 0;
+                vrect.y = 0;
+                vrect.width = (int) w;
+                vrect.height = (int) h;
 
-				R_ViewChanged (&vrect,
-							   (int)((float)sb_lines * (h/(float)vid.height)),
-							   vid.aspect * (h / w) *
-								 ((float)vid.width / (float)vid.height));
-			}
-		}
-		else
-		{
-			vrect.x = 0;
-			vrect.y = 0;
-			vrect.width = vid.width;
-			vrect.height = vid.height;
+                R_ViewChanged(&vrect,
+                              (int) ((float) sb_lines * (h / (float) vid.height)),
+                              vid.aspect * (h / w) *
+                              ((float) vid.width / (float) vid.height));
+            }
+        } else {
+            vrect.x = 0;
+            vrect.y = 0;
+            vrect.width = vid.width;
+            vrect.height = vid.height;
 
-			R_ViewChanged (&vrect, sb_lines, vid.aspect);
-		}
+            R_ViewChanged(&vrect, sb_lines, vid.aspect);
+        }
 
-		r_viewchanged = false;
-	}
+        r_viewchanged = false;
+    }
 
 // start off with just the four screen edge clip planes
-	R_TransformFrustum ();
+    R_TransformFrustum();
 
 // save base values
-	VectorCopy (vpn, base_vpn);
-	VectorCopy (vright, base_vright);
-	VectorCopy (vup, base_vup);
-	VectorCopy (modelorg, base_modelorg);
+    VectorCopy (vpn, base_vpn);
+    VectorCopy (vright, base_vright);
+    VectorCopy (vup, base_vup);
+    VectorCopy (modelorg, base_modelorg);
 
-	R_SetSkyFrame ();
+    R_SetSkyFrame();
 
-	R_SetUpFrustumIndexes ();
+    R_SetUpFrustumIndexes();
 
-	r_cache_thrash = false;
+    r_cache_thrash = false;
 
 // clear frame counts
-	c_faceclip = 0;
-	d_spanpixcount = 0;
-	r_polycount = 0;
-	r_drawnpolycount = 0;
-	r_wholepolycount = 0;
-	r_amodels_drawn = 0;
-	r_outofsurfaces = 0;
-	r_outofedges = 0;
+    c_faceclip = 0;
+    d_spanpixcount = 0;
+    r_polycount = 0;
+    r_drawnpolycount = 0;
+    r_wholepolycount = 0;
+    r_amodels_drawn = 0;
+    r_outofsurfaces = 0;
+    r_outofedges = 0;
 
-	D_SetupFrame ();
+    D_SetupFrame();
 }
 

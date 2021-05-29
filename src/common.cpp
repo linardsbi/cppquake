@@ -27,58 +27,52 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define NUM_SAFE_ARGVS  7
 ;
-static const char* largv[MAX_NUM_ARGVS + NUM_SAFE_ARGVS + 1] = {};
+static const char *largv[MAX_NUM_ARGVS + NUM_SAFE_ARGVS + 1] = {};
 static char argvdummy[] = " ";
 
-static constexpr const char     *safeargvs[NUM_SAFE_ARGVS] =
-	{"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
+static constexpr const char *safeargvs[NUM_SAFE_ARGVS] =
+        {"-stdvid", "-nolan", "-nosound", "-nocdaudio", "-nojoy", "-nomouse", "-dibonly"};
 
-cvar_t  registered = {"registered","0"};
-cvar_t  cmdline = {"cmdline","0", false, true};
+cvar_t registered = {"registered", "0"};
+cvar_t cmdline = {"cmdline", "0", false, true};
 
-qboolean        com_modified;   // set true if using non-id files
+qboolean com_modified;   // set true if using non-id files
 
-qboolean		proghack;
+qboolean proghack;
 
-qboolean        static_registered = true;  // only for startup check, then set
+qboolean static_registered = true;  // only for startup check, then set
 
-qboolean		msg_suppress_1 = false;
+qboolean msg_suppress_1 = false;
 
-void COM_InitFilesystem ();
+void COM_InitFilesystem();
 
 // if a packfile directory differs from this, it is assumed to be hacked
 #define PAK0_COUNT              339
 #define PAK0_CRC                32981
 
-char	com_token[1024];
-int		com_argc;
-const char	**com_argv = nullptr;
+char com_token[1024];
+int com_argc;
+const char **com_argv = nullptr;
 
-#define CMDLINE_LENGTH	256
-char	com_cmdline[CMDLINE_LENGTH];
+#define CMDLINE_LENGTH    256
+char com_cmdline[CMDLINE_LENGTH];
 
-qboolean		standard_quake = true, rogue, hipnotic;
+qboolean standard_quake = true, rogue, hipnotic;
 
 // this graphic needs to be in the pak file to use registered features
 constexpr std::array pop =
-{
- 0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
-,0x0000,0x0000,0x6600,0x0000,0x0000,0x0000,0x6600,0x0000
-,0x0000,0x0066,0x0000,0x0000,0x0000,0x0000,0x0067,0x0000
-,0x0000,0x6665,0x0000,0x0000,0x0000,0x0000,0x0065,0x6600
-,0x0063,0x6561,0x0000,0x0000,0x0000,0x0000,0x0061,0x6563
-,0x0064,0x6561,0x0000,0x0000,0x0000,0x0000,0x0061,0x6564
-,0x0064,0x6564,0x0000,0x6469,0x6969,0x6400,0x0064,0x6564
-,0x0063,0x6568,0x6200,0x0064,0x6864,0x0000,0x6268,0x6563
-,0x0000,0x6567,0x6963,0x0064,0x6764,0x0063,0x6967,0x6500
-,0x0000,0x6266,0x6769,0x6a68,0x6768,0x6a69,0x6766,0x6200
-,0x0000,0x0062,0x6566,0x6666,0x6666,0x6666,0x6562,0x0000
-,0x0000,0x0000,0x0062,0x6364,0x6664,0x6362,0x0000,0x0000
-,0x0000,0x0000,0x0000,0x0062,0x6662,0x0000,0x0000,0x0000
-,0x0000,0x0000,0x0000,0x0061,0x6661,0x0000,0x0000,0x0000
-,0x0000,0x0000,0x0000,0x0000,0x6500,0x0000,0x0000,0x0000
-,0x0000,0x0000,0x0000,0x0000,0x6400,0x0000,0x0000,0x0000
-};
+        {
+                0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x6600, 0x0000, 0x0000,
+                0x0000, 0x6600, 0x0000, 0x0000, 0x0066, 0x0000, 0x0000, 0x0000, 0x0000, 0x0067, 0x0000, 0x0000, 0x6665,
+                0x0000, 0x0000, 0x0000, 0x0000, 0x0065, 0x6600, 0x0063, 0x6561, 0x0000, 0x0000, 0x0000, 0x0000, 0x0061,
+                0x6563, 0x0064, 0x6561, 0x0000, 0x0000, 0x0000, 0x0000, 0x0061, 0x6564, 0x0064, 0x6564, 0x0000, 0x6469,
+                0x6969, 0x6400, 0x0064, 0x6564, 0x0063, 0x6568, 0x6200, 0x0064, 0x6864, 0x0000, 0x6268, 0x6563, 0x0000,
+                0x6567, 0x6963, 0x0064, 0x6764, 0x0063, 0x6967, 0x6500, 0x0000, 0x6266, 0x6769, 0x6a68, 0x6768, 0x6a69,
+                0x6766, 0x6200, 0x0000, 0x0062, 0x6566, 0x6666, 0x6666, 0x6666, 0x6562, 0x0000, 0x0000, 0x0000, 0x0062,
+                0x6364, 0x6664, 0x6362, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0062, 0x6662, 0x0000, 0x0000, 0x0000,
+                0x0000, 0x0000, 0x0000, 0x0061, 0x6661, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x6500,
+                0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x6400, 0x0000, 0x0000, 0x0000
+        };
 
 /*
 
@@ -105,30 +99,27 @@ The file "parms.txt" will be read out of the game directory and appended to the 
 
 
 // ClearLink is used for new headnodes
-void ClearLink (link_t *l)
-{
-	l->prev = l->next = l;
+void ClearLink(link_t *l) {
+    l->prev = l->next = l;
 }
 
-void RemoveLink (link_t *l)
-{
-	l->next->prev = l->prev;
-	l->prev->next = l->next;
+void RemoveLink(link_t *l) {
+    l->next->prev = l->prev;
+    l->prev->next = l->next;
 }
 
-void InsertLinkBefore (link_t *l, link_t *before)
-{
-	l->next = before;
-	l->prev = before->prev;
-	l->prev->next = l;
-	l->next->prev = l;
+void InsertLinkBefore(link_t *l, link_t *before) {
+    l->next = before;
+    l->prev = before->prev;
+    l->prev->next = l;
+    l->next->prev = l;
 }
-void InsertLinkAfter (link_t *l, link_t *after)
-{
-	l->next = after->next;
-	l->prev = after;
-	l->prev->next = l;
-	l->next->prev = l;
+
+void InsertLinkAfter(link_t *l, link_t *after) {
+    l->next = after->next;
+    l->prev = after;
+    l->prev->next = l;
+    l->next->prev = l;
 }
 
 /*
@@ -139,263 +130,229 @@ void InsertLinkAfter (link_t *l, link_t *after)
 ============================================================================
 */
 
-void Q_memset (void *dest, int fill, int count)
-{
-	int             i;
-	
-	if ( (((long)dest | count) & 3) == 0)
-	{
-		count >>= 2;
-		fill = fill | (fill<<8) | (fill<<16) | (fill<<24);
-		for (i=0 ; i<count ; i++)
-			((int *)dest)[i] = fill;
-	}
-	else
-		for (i=0 ; i<count ; i++)
-			((byte *)dest)[i] = fill;
+void Q_memset(void *dest, int fill, int count) {
+    int i;
+
+    if ((((long) dest | count) & 3) == 0) {
+        count >>= 2;
+        fill = fill | (fill << 8) | (fill << 16) | (fill << 24);
+        for (i = 0; i < count; i++)
+            ((int *) dest)[i] = fill;
+    } else
+        for (i = 0; i < count; i++)
+            ((byte *) dest)[i] = fill;
 }
 
-void Q_memcpy (void *dest, const void *src, int count)
-{
-	int             i;
-	
-	if (( ( (long)dest | (long)src | count) & 3) == 0 )
-	{
-		count>>=2;
-		for (i=0 ; i<count ; i++)
-			((int *)dest)[i] = ((int *)src)[i];
-	}
-	else
-		for (i=0 ; i<count ; i++)
-			((byte *)dest)[i] = ((byte *)src)[i];
+void Q_memcpy(void *dest, const void *src, int count) {
+    int i;
+
+    if ((((long) dest | (long) src | count) & 3) == 0) {
+        count >>= 2;
+        for (i = 0; i < count; i++)
+            ((int *) dest)[i] = ((int *) src)[i];
+    } else
+        for (i = 0; i < count; i++)
+            ((byte *) dest)[i] = ((byte *) src)[i];
 }
 
-auto Q_memcmp (void *m1, void *m2, int count) -> int
-{
-	while(count)
-	{
-		count--;
-		if (((byte *)m1)[count] != ((byte *)m2)[count])
-			return -1;
-	}
-	return 0;
+auto Q_memcmp(void *m1, void *m2, int count) -> int {
+    while (count) {
+        count--;
+        if (((byte *) m1)[count] != ((byte *) m2)[count])
+            return -1;
+    }
+    return 0;
 }
 
-void Q_strcpy (char *dest, const char *src)
-{
-	while (*src)
-	{
-		*dest++ = *src++;
-	}
-	*dest++ = 0;
+void Q_strcpy(char *dest, const char *src) {
+    while (*src) {
+        *dest++ = *src++;
+    }
+    *dest++ = 0;
 }
 
-void Q_strncpy (char *dest, char *src, int count)
-{
-	while (*src && count--)
-	{
-		*dest++ = *src++;
-	}
-	if (count)
-		*dest++ = 0;
+void Q_strncpy(char *dest, char *src, int count) {
+    while (*src && count--) {
+        *dest++ = *src++;
+    }
+    if (count)
+        *dest++ = 0;
 }
 
-auto Q_strlen (const char *str) -> int
-{
-	int count = 0;
-	while (str[count])
-		count++;
+auto Q_strlen(const char *str) -> int {
+    int count = 0;
+    while (str[count])
+        count++;
 
-	return count;
+    return count;
 }
 
-auto Q_strrchr(char *s, char c) -> char *
-{
+auto Q_strrchr(char *s, char c) -> char * {
     int len = Q_strlen(s);
     s += len;
     while (len--)
-	if (*--s == c) return s;
+        if (*--s == c) return s;
     return nullptr;
 }
 
-void Q_strcat (char *dest, char *src)
-{
-	dest += Q_strlen(dest);
-	Q_strcpy (dest, src);
+void Q_strcat(char *dest, char *src) {
+    dest += Q_strlen(dest);
+    Q_strcpy(dest, src);
 }
-auto Q_strcmp (std::string_view s1, std::string_view s2) -> bool {
+
+auto Q_strcmp(std::string_view s1, std::string_view s2) -> bool {
     return s1.compare(s2);
 }
 
-auto Q_strncmp (std::string_view s1, std::string_view s2, const std::size_t count) -> bool {
-	return s1.compare(0, count, s2, 0, count);
+auto Q_strncmp(std::string_view s1, std::string_view s2, const std::size_t count) -> bool {
+    return s1.compare(0, count, s2, 0, count);
 }
 
-auto Q_strncasecmp (const char *s1, const char *s2, int n) -> int
-{
-	while (true)
-	{
-		auto c1 = *s1++;
-		auto c2 = *s2++;
+auto Q_strncasecmp(const char *s1, const char *s2, int n) -> int {
+    while (true) {
+        auto c1 = *s1++;
+        auto c2 = *s2++;
 
-		if (!n--)
-			return 0;               // strings are equal until end point
-		
-		if (c1 != c2)
-		{
-			if (c1 >= 'a' && c1 <= 'z')
-				c1 -= ('a' - 'A');
-			if (c2 >= 'a' && c2 <= 'z')
-				c2 -= ('a' - 'A');
-			if (c1 != c2)
-				return -1;              // strings not equal
-		}
-		if (!c1)
-			return 0;               // strings are equal
+        if (!n--)
+            return 0;               // strings are equal until end point
+
+        if (c1 != c2) {
+            if (c1 >= 'a' && c1 <= 'z')
+                c1 -= ('a' - 'A');
+            if (c2 >= 'a' && c2 <= 'z')
+                c2 -= ('a' - 'A');
+            if (c1 != c2)
+                return -1;              // strings not equal
+        }
+        if (!c1)
+            return 0;               // strings are equal
 //              s1++;
 //              s2++;
-	}
-	
-	return -1;
+    }
+
+    return -1;
 }
 
-auto Q_strcasecmp (const char *s1, const char *s2) -> int
-{
-	return Q_strncasecmp (s1, s2, 99999);
+auto Q_strcasecmp(const char *s1, const char *s2) -> int {
+    return Q_strncasecmp(s1, s2, 99999);
 }
 
-auto Q_atoi (char *str) -> int
-{
-	int             val;
-	int             sign;
-	int             c;
-	
-	if (*str == '-')
-	{
-		sign = -1;
-		str++;
-	}
-	else
-		sign = 1;
-		
-	val = 0;
+auto Q_atoi(char *str) -> int {
+    int val;
+    int sign;
+    int c;
+
+    if (*str == '-') {
+        sign = -1;
+        str++;
+    } else
+        sign = 1;
+
+    val = 0;
 
 //
 // check for hex
 //
-	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X') )
-	{
-		str += 2;
-		while (true)
-		{
-			c = *str++;
-			if (c >= '0' && c <= '9')
-				val = (val<<4) + c - '0';
-			else if (c >= 'a' && c <= 'f')
-				val = (val<<4) + c - 'a' + 10;
-			else if (c >= 'A' && c <= 'F')
-				val = (val<<4) + c - 'A' + 10;
-			else
-				return val*sign;
-		}
-	}
-	
+    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+        str += 2;
+        while (true) {
+            c = *str++;
+            if (c >= '0' && c <= '9')
+                val = (val << 4) + c - '0';
+            else if (c >= 'a' && c <= 'f')
+                val = (val << 4) + c - 'a' + 10;
+            else if (c >= 'A' && c <= 'F')
+                val = (val << 4) + c - 'A' + 10;
+            else
+                return val * sign;
+        }
+    }
+
 //
 // check for character
 //
-	if (str[0] == '\'')
-	{
-		return sign * str[1];
-	}
-	
+    if (str[0] == '\'') {
+        return sign * str[1];
+    }
+
 //
 // assume decimal
 //
-	while (true)
-	{
-		c = *str++;
-		if (c <'0' || c > '9')
-			return val*sign;
-		val = val*10 + c - '0';
-	}
-	
-	return 0;
+    while (true) {
+        c = *str++;
+        if (c < '0' || c > '9')
+            return val * sign;
+        val = val * 10 + c - '0';
+    }
+
+    return 0;
 }
 
 
-auto Q_atof (const char *str) -> float
-{
-	double			val;
-	int             sign;
-	int             c;
-	int             decimal, total;
-	
-	if (*str == '-')
-	{
-		sign = -1;
-		str++;
-	}
-	else
-		sign = 1;
-		
-	val = 0;
+auto Q_atof(const char *str) -> float {
+    double val;
+    int sign;
+    int c;
+    int decimal, total;
+
+    if (*str == '-') {
+        sign = -1;
+        str++;
+    } else
+        sign = 1;
+
+    val = 0;
 
 //
 // check for hex
 //
-	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X') )
-	{
-		str += 2;
-		while (true)
-		{
-			c = *str++;
-			if (c >= '0' && c <= '9')
-				val = (val*16) + c - '0';
-			else if (c >= 'a' && c <= 'f')
-				val = (val*16) + c - 'a' + 10;
-			else if (c >= 'A' && c <= 'F')
-				val = (val*16) + c - 'A' + 10;
-			else
-				return val*sign;
-		}
-	}
-	
+    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+        str += 2;
+        while (true) {
+            c = *str++;
+            if (c >= '0' && c <= '9')
+                val = (val * 16) + c - '0';
+            else if (c >= 'a' && c <= 'f')
+                val = (val * 16) + c - 'a' + 10;
+            else if (c >= 'A' && c <= 'F')
+                val = (val * 16) + c - 'A' + 10;
+            else
+                return val * sign;
+        }
+    }
+
 //
 // check for character
 //
-	if (str[0] == '\'')
-	{
-		return sign * str[1];
-	}
-	
+    if (str[0] == '\'') {
+        return sign * str[1];
+    }
+
 //
 // assume decimal
 //
-	decimal = -1;
-	total = 0;
-	while (true)
-	{
-		c = *str++;
-		if (c == '.')
-		{
-			decimal = total;
-			continue;
-		}
-		if (c <'0' || c > '9')
-			break;
-		val = val*10 + c - '0';
-		total++;
-	}
+    decimal = -1;
+    total = 0;
+    while (true) {
+        c = *str++;
+        if (c == '.') {
+            decimal = total;
+            continue;
+        }
+        if (c < '0' || c > '9')
+            break;
+        val = val * 10 + c - '0';
+        total++;
+    }
 
-	if (decimal == -1)
-		return val*sign;
-	while (total > decimal)
-	{
-		val /= 10;
-		total--;
-	}
-	
-	return val*sign;
+    if (decimal == -1)
+        return val * sign;
+    while (total > decimal) {
+        val /= 10;
+        total--;
+    }
+
+    return val * sign;
 }
 
 /*
@@ -407,70 +364,70 @@ auto Q_atof (const char *str) -> float
 */
 
 #ifdef SDL
+
 #include "SDL_byteorder.h"
+
 #endif
 
-qboolean        bigendien;
+qboolean bigendien;
 
-short   (*BigShort) (short l);
-short   (*LittleShort) (short l);
-int     (*BigLong) (int l);
-int     (*LittleLong) (int l);
-float   (*BigFloat) (float l);
-float   (*LittleFloat) (float l);
+short (*BigShort)(short l);
 
-auto   ShortSwap (short l) -> short
-{
-	byte    b1,b2;
+short (*LittleShort)(short l);
 
-	b1 = l&255;
-	b2 = (l>>8)&255;
+int (*BigLong)(int l);
 
-	return (b1<<8) + b2;
+int (*LittleLong)(int l);
+
+float (*BigFloat)(float l);
+
+float (*LittleFloat)(float l);
+
+auto ShortSwap(short l) -> short {
+    byte b1, b2;
+
+    b1 = l & 255;
+    b2 = (l >> 8) & 255;
+
+    return (b1 << 8) + b2;
 }
 
-auto   ShortNoSwap (short l) -> short
-{
-	return l;
+auto ShortNoSwap(short l) -> short {
+    return l;
 }
 
-constexpr auto    LongSwap (int l) -> int
-{
-	byte    b1,b2,b3,b4;
+constexpr auto LongSwap(int l) -> int {
+    byte b1, b2, b3, b4;
 
-	b1 = l&255;
-	b2 = (l>>8)&255;
-	b3 = (l>>16)&255;
-	b4 = (l>>24)&255;
+    b1 = l & 255;
+    b2 = (l >> 8) & 255;
+    b3 = (l >> 16) & 255;
+    b4 = (l >> 24) & 255;
 
-	return ((int)b1<<24) + ((int)b2<<16) + ((int)b3<<8) + b4;
+    return ((int) b1 << 24) + ((int) b2 << 16) + ((int) b3 << 8) + b4;
 }
 
-auto     LongNoSwap (int l) -> int
-{
-	return l;
+auto LongNoSwap(int l) -> int {
+    return l;
 }
 
-auto FloatSwap (float f) -> float
-{
-	union
-	{
-		float   f;
-		byte    b[4];
-	} dat1, dat2;
-	
-	
-	dat1.f = f;
-	dat2.b[0] = dat1.b[3];
-	dat2.b[1] = dat1.b[2];
-	dat2.b[2] = dat1.b[1];
-	dat2.b[3] = dat1.b[0];
-	return dat2.f;
+auto FloatSwap(float f) -> float {
+    union {
+        float f;
+        byte b[4];
+    } dat1, dat2;
+
+
+    dat1.f = f;
+    dat2.b[0] = dat1.b[3];
+    dat2.b[1] = dat1.b[2];
+    dat2.b[2] = dat1.b[1];
+    dat2.b[3] = dat1.b[0];
+    return dat2.f;
 }
 
-auto FloatNoSwap (float f) -> float
-{
-	return f;
+auto FloatNoSwap(float f) -> float {
+    return f;
 }
 
 /*
@@ -486,111 +443,97 @@ Handles byte ordering and avoids alignment errors
 // writing functions
 //
 
-void MSG_WriteChar (sizebuf_t *sb, int c)
-{
-	
+void MSG_WriteChar(sizebuf_t *sb, int c) {
+
 #ifdef PARANOID
-	if (c < -128 || c > 127)
-		Sys_Error ("MSG_WriteChar: range error");
+    if (c < -128 || c > 127)
+        Sys_Error("MSG_WriteChar: range error");
 #endif
 
-    byte    *buf = SZGetSpace<decltype(buf)> (sb, 1);
-	buf[0] = c;
+    byte *buf = SZGetSpace<decltype(buf)>(sb, 1);
+    buf[0] = c;
 }
 
-void MSG_WriteByte (sizebuf_t *sb, int c)
-{
+void MSG_WriteByte(sizebuf_t *sb, int c) {
 #ifdef PARANOID
-	if (c < 0 || c > 255)
-		Sys_Error ("MSG_WriteByte: range error");
+    if (c < 0 || c > 255)
+        Sys_Error("MSG_WriteByte: range error");
 #endif
 
-    byte    *buf = SZGetSpace<decltype(buf)> (sb, 1);
-	buf[0] = c;
+    byte *buf = SZGetSpace<decltype(buf)>(sb, 1);
+    buf[0] = c;
 }
 
-void MSG_WriteShort (sizebuf_t *sb, short c)
-{
+void MSG_WriteShort(sizebuf_t *sb, short c) {
 #ifdef PARANOID
-	if (c < ((short)0x8000) || c > (short)0x7fff)
-		Sys_Error ("MSG_WriteShort: range error");
+    if (c < ((short) 0x8000) || c > (short) 0x7fff)
+        Sys_Error("MSG_WriteShort: range error");
 #endif
 
-    byte    *buf = SZGetSpace<decltype(buf)> (sb, 2);
-	buf[0] = c&0xff;
-	buf[1] = c>>8;
+    byte *buf = SZGetSpace<decltype(buf)>(sb, 2);
+    buf[0] = c & 0xff;
+    buf[1] = c >> 8;
 }
 
-void MSG_WriteLong (sizebuf_t *sb, int c)
-{
-    byte    *buf = SZGetSpace<decltype(buf)> (sb, 4);
-	buf[0] = c&0xff;
-	buf[1] = (c>>8)&0xff;
-	buf[2] = (c>>16)&0xff;
-	buf[3] = c>>24;
+void MSG_WriteLong(sizebuf_t *sb, int c) {
+    byte *buf = SZGetSpace<decltype(buf)>(sb, 4);
+    buf[0] = c & 0xff;
+    buf[1] = (c >> 8) & 0xff;
+    buf[2] = (c >> 16) & 0xff;
+    buf[3] = c >> 24;
 }
 
-void MSG_WriteFloat (sizebuf_t *sb, float f)
-{
-	union
-	{
-		float   f;
-		int     l;
-	} dat{};
-	
-	
-	dat.f = f;
-	dat.l = LittleLong (dat.l);
+void MSG_WriteFloat(sizebuf_t *sb, float f) {
+    union {
+        float f;
+        int l;
+    } dat{};
 
-	SZ_Write (sb, &dat.l, 4);
+
+    dat.f = f;
+    dat.l = LittleLong(dat.l);
+
+    SZ_Write(sb, &dat.l, 4);
 }
 
-void MSG_WriteString (sizebuf_t *sb, std::string_view s)
-{
-    SZ_Write (sb, reinterpret_cast<const void*>(s.cbegin()), s.length()+1);
+void MSG_WriteString(sizebuf_t *sb, std::string_view s) {
+    SZ_Write(sb, reinterpret_cast<const void *>(s.cbegin()), s.length() + 1);
 }
 
-void MSG_WriteCoord (sizebuf_t *sb, float f)
-{
-	MSG_WriteShort (sb, static_cast<short>((f * 8)));
+void MSG_WriteCoord(sizebuf_t *sb, float f) {
+    MSG_WriteShort(sb, static_cast<short>((f * 8)));
 }
 
-void MSG_WriteAngle (sizebuf_t *sb, float f)
-{
+void MSG_WriteAngle(sizebuf_t *sb, float f) {
 //    printf("angle: %d\n", ((int)f *256/360) & 255);
-	MSG_WriteByte (sb, ((int)f *256/360) & 255);
+    MSG_WriteByte(sb, ((int) f * 256 / 360) & 255);
 }
 
 //
 // reading functions
 //
-int                     msg_readcount;
-qboolean        msg_badread;
+int msg_readcount;
+qboolean msg_badread;
 
-void MSG_BeginReading ()
-{
-	msg_readcount = 0;
-	msg_badread = false;
+void MSG_BeginReading() {
+    msg_readcount = 0;
+    msg_badread = false;
 }
 
 // returns -1 and sets msg_badread if no more characters are available
-auto MSG_ReadChar () -> int
-{
-    if (msg_readcount+1 > net_message.cursize)
-    {
+auto MSG_ReadChar() -> int {
+    if (msg_readcount + 1 > net_message.cursize) {
         msg_badread = true;
         return -1;
     }
 
-    char c = (char)net_message.data[msg_readcount];
+    char c = (char) net_message.data[msg_readcount];
     msg_readcount++;
     return c;
 }
 
-auto MSG_ReadByte () -> int
-{
-    if (msg_readcount+1 > net_message.cursize)
-    {
+auto MSG_ReadByte() -> int {
+    if (msg_readcount + 1 > net_message.cursize) {
         msg_badread = true;
         return -1;
     }
@@ -598,120 +541,108 @@ auto MSG_ReadByte () -> int
     return net_message.data[msg_readcount++];
 }
 
-auto MSG_ReadShort () -> int
-{
-    int     c;
+auto MSG_ReadShort() -> int {
+    int c;
 
-    if (msg_readcount+2 > net_message.cursize)
-    {
+    if (msg_readcount + 2 > net_message.cursize) {
         msg_badread = true;
         return -1;
     }
 
-    c = (short)(net_message.data[msg_readcount]
-                + (net_message.data[msg_readcount+1]<<8));
+    c = (short) (net_message.data[msg_readcount]
+                 + (net_message.data[msg_readcount + 1] << 8));
 
     msg_readcount += 2;
 
     return c;
 }
 
-auto MSG_ReadLong () -> int
-{
-    int     c;
+auto MSG_ReadLong() -> int {
+    int c;
 
-    if (msg_readcount+4 > net_message.cursize)
-    {
+    if (msg_readcount + 4 > net_message.cursize) {
         msg_badread = true;
         return -1;
     }
 
     c = net_message.data[msg_readcount]
-        + (net_message.data[msg_readcount+1]<<8)
-        + (net_message.data[msg_readcount+2]<<16)
-        + (net_message.data[msg_readcount+3]<<24);
+        + (net_message.data[msg_readcount + 1] << 8)
+        + (net_message.data[msg_readcount + 2] << 16)
+        + (net_message.data[msg_readcount + 3] << 24);
 
     msg_readcount += 4;
 
     return c;
 }
 
-auto MSG_ReadFloat () -> float
-{
-    union
-    {
-        byte    b[4];
-        float   f;
-        int     l;
+auto MSG_ReadFloat() -> float {
+    union {
+        byte b[4];
+        float f;
+        int l;
     } dat{};
 
-    dat.b[0] =      net_message.data[msg_readcount];
-    dat.b[1] =      net_message.data[msg_readcount+1];
-    dat.b[2] =      net_message.data[msg_readcount+2];
-    dat.b[3] =      net_message.data[msg_readcount+3];
+    dat.b[0] = net_message.data[msg_readcount];
+    dat.b[1] = net_message.data[msg_readcount + 1];
+    dat.b[2] = net_message.data[msg_readcount + 2];
+    dat.b[3] = net_message.data[msg_readcount + 3];
     msg_readcount += 4;
 
-    dat.l = LittleLong (dat.l);
+    dat.l = LittleLong(dat.l);
 
     return dat.f;
 }
 
-auto MSG_ReadString () -> char *
-{
-    static char     string[2048];
-    int             l,c;
+auto MSG_ReadString() -> char * {
+    static char string[2048];
+    int l, c;
 
     l = 0;
-    do
-    {
-        c = MSG_ReadChar ();
+    do {
+        c = MSG_ReadChar();
         if (c == -1 || c == 0)
             break;
         string[l] = c;
         l++;
-    } while (l < sizeof(string)-1);
+    } while (l < sizeof(string) - 1);
 
     string[l] = 0;
 
     return string;
 }
 
-auto MSG_ReadCoord () -> float
-{
-    return static_cast<float>(MSG_ReadShort()) * (1.0f/8.f);
+auto MSG_ReadCoord() -> float {
+    return static_cast<float>(MSG_ReadShort()) * (1.0f / 8.f);
 }
 
-auto MSG_ReadAngle () -> float
-{
-    return static_cast<float>(MSG_ReadChar()) * (360.0f/256.f);
+auto MSG_ReadAngle() -> float {
+    return static_cast<float>(MSG_ReadChar()) * (360.0f / 256.f);
 }
 
 
 
 //===========================================================================
 
-void SZ_Alloc (sizebuf_t *buf, int startsize)
-{
-	if (startsize < 256)
-		startsize = 256;
-	buf->data = hunkAllocName<decltype(buf->data)> (startsize, "sizebuf");
-	buf->maxsize = startsize;
-	buf->cursize = 0;
+void SZ_Alloc(sizebuf_t *buf, int startsize) {
+    if (startsize < 256)
+        startsize = 256;
+    buf->data = hunkAllocName<decltype(buf->data)>(startsize, "sizebuf");
+    buf->maxsize = startsize;
+    buf->cursize = 0;
 }
 
 
-void SZ_Free (sizebuf_t *buf)
-{
+void SZ_Free(sizebuf_t *buf) {
 //      Z_Free (buf->data);
 //      buf->data = NULL;
 //      buf->maxsize = 0;
-	buf->cursize = 0;
+    buf->cursize = 0;
 }
 
-void SZ_Clear (sizebuf_t *buf)
-{
-	buf->cursize = 0;
+void SZ_Clear(sizebuf_t *buf) {
+    buf->cursize = 0;
 }
+
 /*
 void *SZ_GetSpace (sizebuf_t *buf, int length)
 {
@@ -737,20 +668,18 @@ void *SZ_GetSpace (sizebuf_t *buf, int length)
 }
 */
 
-void SZ_Write (sizebuf_t *buf, const void *data, std::size_t length)
-{
-	std::memcpy(SZGetSpace<void*>(buf,length),data,length);
+void SZ_Write(sizebuf_t *buf, const void *data, std::size_t length) {
+    std::memcpy(SZGetSpace<void *>(buf, length), data, length);
 }
 
-void SZ_Print (sizebuf_t *buf, const char *data)
-{
-	auto len = strlen(data)+1;
+void SZ_Print(sizebuf_t *buf, const char *data) {
+    auto len = strlen(data) + 1;
 
 // byte * cast to keep VC++ happy
-	if (buf->data[buf->cursize-1])
-		std::memcpy ((byte *)SZGetSpace<void*>(buf, len),data,len); // no trailing 0
-	else
-		std::memcpy ((byte *)SZGetSpace<void*>(buf, len-1)-1,data,len); // write over trailing 0
+    if (buf->data[buf->cursize - 1])
+        std::memcpy((byte *) SZGetSpace<void *>(buf, len), data, len); // no trailing 0
+    else
+        std::memcpy((byte *) SZGetSpace<void *>(buf, len - 1) - 1, data, len); // write over trailing 0
 }
 
 
@@ -762,18 +691,16 @@ void SZ_Print (sizebuf_t *buf, const char *data)
 COM_SkipPath
 ============
 */
-[[maybe_unused]] auto COM_SkipPath (char *pathname) -> char *
-{
-	char    *last;
-	
-	last = pathname;
-	while (*pathname)
-	{
-		if (*pathname=='/')
-			last = pathname+1;
-		pathname++;
-	}
-	return last;
+[[maybe_unused]] auto COM_SkipPath(char *pathname) -> char * {
+    char *last;
+
+    last = pathname;
+    while (*pathname) {
+        if (*pathname == '/')
+            last = pathname + 1;
+        pathname++;
+    }
+    return last;
 }
 
 /*
@@ -781,11 +708,10 @@ COM_SkipPath
 COM_StripExtension
 ============
 */
-void COM_StripExtension (char *in, char *out)
-{
-	while (*in && *in != '.')
-		*out++ = *in++;
-	*out = 0;
+void COM_StripExtension(char *in, char *out) {
+    while (*in && *in != '.')
+        *out++ = *in++;
+    *out = 0;
 }
 
 /*
@@ -793,20 +719,19 @@ void COM_StripExtension (char *in, char *out)
 COM_FileExtension
 ============
 */
-auto COM_FileExtension (const char *in) -> const char *
-{
-	static char exten[8];
-	int             i;
+auto COM_FileExtension(const char *in) -> const char * {
+    static char exten[8];
+    int i;
 
-	while (*in && *in != '.')
-		in++;
-	if (!*in)
-		return "";
-	in++;
-	for (i=0 ; i<7 && *in ; i++,in++)
-		exten[i] = *in;
-	exten[i] = 0;
-	return exten;
+    while (*in && *in != '.')
+        in++;
+    if (!*in)
+        return "";
+    in++;
+    for (i = 0; i < 7 && *in; i++, in++)
+        exten[i] = *in;
+    exten[i] = 0;
+    return exten;
 }
 
 /*
@@ -814,23 +739,21 @@ auto COM_FileExtension (const char *in) -> const char *
 COM_FileBase
 ============
 */
-void COM_FileBase (std::string_view in, char *out)
-{
-	auto i = in.length() - 1;
-	while (i != 0 && in[i] != '.') {
-	    --i;
-	}
+void COM_FileBase(std::string_view in, char *out) {
+    auto i = in.length() - 1;
+    while (i != 0 && in[i] != '.') {
+        --i;
+    }
 
-	for (auto j = i;  j != 0 && in[j] != '/'; --j) {
+    for (auto j = i; j != 0 && in[j] != '/'; --j) {
         if (i - j < 2)
-            strcpy (out,"?model?");
-        else
-        {
+            strcpy(out, "?model?");
+        else {
             --i;
-            strncpy (out, in.data() + j + 1, i - j);
+            strncpy(out, in.data() + j + 1, i - j);
             out[i - j] = 0;
         }
-	}
+    }
 }
 
 
@@ -839,23 +762,21 @@ void COM_FileBase (std::string_view in, char *out)
 COM_DefaultExtension
 ==================
 */
-void COM_DefaultExtension (char *path, char *extension)
-{
-	char    *src;
+void COM_DefaultExtension(char *path, char *extension) {
+    char *src;
 //
 // if path doesn't have a .EXT, append extension
 // (extension should include the .)
 //
-	src = path + strlen(path) - 1;
+    src = path + strlen(path) - 1;
 
-	while (*src != '/' && src != path)
-	{
-		if (*src == '.')
-			return;                 // it has an extension
-		src--;
-	}
+    while (*src != '/' && src != path) {
+        if (*src == '.')
+            return;                 // it has an extension
+        src--;
+    }
 
-	strcat (path, extension);
+    strcat(path, extension);
 }
 
 
@@ -866,74 +787,66 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-auto COM_Parse (const char *data) -> const char *
-{
-	int             c;
-	int             len;
-	
-	len = 0;
-	com_token[0] = 0;
-	
-	if (!data)
-		return nullptr;
-		
+auto COM_Parse(const char *data) -> const char * {
+    int c;
+    int len;
+
+    len = 0;
+    com_token[0] = 0;
+
+    if (!data)
+        return nullptr;
+
 // skip whitespace
-skipwhite:
-	while ( (c = *data) <= ' ')
-	{
-		if (c == 0)
-			return nullptr;                    // end of file;
-		data++;
-	}
-	
+    skipwhite:
+    while ((c = *data) <= ' ') {
+        if (c == 0)
+            return nullptr;                    // end of file;
+        data++;
+    }
+
 // skip // comments
-	if (c=='/' && data[1] == '/')
-	{
-		while (*data && *data != '\n')
-			data++;
-		goto skipwhite;
-	}
-	
+    if (c == '/' && data[1] == '/') {
+        while (*data && *data != '\n')
+            data++;
+        goto skipwhite;
+    }
+
 
 // handle quoted strings specially
-	if (c == '\"')
-	{
-		data++;
-		while (true)
-		{
-			c = *data++;
-			if (c=='\"' || !c)
-			{
-				com_token[len] = 0;
-				return data;
-			}
-			com_token[len] = c;
-			len++;
-		}
-	}
+    if (c == '\"') {
+        data++;
+        while (true) {
+            c = *data++;
+            if (c == '\"' || !c) {
+                com_token[len] = 0;
+                return data;
+            }
+            com_token[len] = c;
+            len++;
+        }
+    }
 
 // parse single characters
-	if (c=='{' || c=='}'|| c==')'|| c=='(' || c=='\'' || c==':')
-	{
-		com_token[len] = c;
-		len++;
-		com_token[len] = 0;
-		return data+1;
-	}
+    if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':') {
+        com_token[len] = c;
+        len++;
+        com_token[len] = 0;
+        return data + 1;
+    }
 
 // parse a regular word
-	do
-	{
-		com_token[len] = c;
-		data++;
-		len++;
-		c = *data;
-	if (c=='{' || c=='}'|| c==')'|| c=='(' || c=='\'' || c==':')
-			break;
-	} while (c>32);
-	
-	com_token[len] = 0;
-	return data;
+    do {
+        com_token[len] = c;
+        data++;
+        len++;
+        c = *data;
+        if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':')
+            break;
+    } while (c > 32);
+
+    com_token[len] = 0;
+    return data;
 }
 
 
@@ -945,17 +858,15 @@ Returns the position (1 to argc-1) in the program's argument list
 where the given parameter apears, or 0 if not present
 ================
 */
-auto COM_CheckParm (std::string_view parm) -> int
-{
-	for (auto i=1 ; i<com_argc ; i++)
-	{
-		if (!com_argv[i])
-			continue;               // NEXTSTEP sometimes clears appkit vars.
-		if (!Q_strcmp (parm,com_argv[i]))
-			return i;
-	}
-		
-	return 0;
+auto COM_CheckParm(std::string_view parm) -> int {
+    for (auto i = 1; i < com_argc; i++) {
+        if (!com_argv[i])
+            continue;               // NEXTSTEP sometimes clears appkit vars.
+        if (!Q_strcmp(parm, com_argv[i]))
+            return i;
+    }
+
+    return 0;
 }
 
 /*
@@ -968,41 +879,39 @@ Immediately exits out if an alternate game was attempted to be started without
 being registered.
 ================
 */
-void COM_CheckRegistered ()
-{
-	int             h;
-	unsigned short  check[128];
-	int                     i;
+void COM_CheckRegistered() {
+    int h;
+    unsigned short check[128];
+    int i;
 
-	COM_OpenFile("gfx/pop.lmp", &h);
-	static_registered = false;
+    COM_OpenFile("gfx/pop.lmp", &h);
+    static_registered = false;
 
-	if (h == -1)
-	{
+    if (h == -1) {
 #if WINDED
-	Sys_Error ("This dedicated server requires a full registered copy of Quake");
+        Sys_Error ("This dedicated server requires a full registered copy of Quake");
 #endif
-		Con_Printf ("Playing shareware version.\n");
-		if (com_modified)
-			Sys_Error ("You must have the registered version to use modified games");
-		return;
-	}
+        Con_Printf("Playing shareware version.\n");
+        if (com_modified)
+            Sys_Error("You must have the registered version to use modified games");
+        return;
+    }
 
-	Sys_FileRead (h, check, sizeof(check));
-	COM_CloseFile (h);
-	
-	for (i=0 ; i<128 ; i++)
-		if (pop[i] != (unsigned short)BigShort (check[i]))
-			Sys_Error ("Corrupted data file.");
-	
-	Cvar_Set ("cmdline", com_cmdline);
-	Cvar_Set ("registered", "1");
-	static_registered = true;
-	Con_Printf ("Playing registered version.\n");
+    Sys_FileRead(h, check, sizeof(check));
+    COM_CloseFile(h);
+
+    for (i = 0; i < 128; i++)
+        if (pop[i] != (unsigned short) BigShort(check[i]))
+            Sys_Error("Corrupted data file.");
+
+    Cvar_Set("cmdline", com_cmdline);
+    Cvar_Set("registered", "1");
+    static_registered = true;
+    Con_Printf("Playing registered version.\n");
 }
 
 
-void COM_Path_f ();
+void COM_Path_f();
 
 
 /*
@@ -1010,66 +919,58 @@ void COM_Path_f ();
 COM_InitArgv
 ================
 */
-void COM_InitArgv (int argc, char **argv)
-{
-	qboolean        safe;
-	int             i, j, n;
+void COM_InitArgv(int argc, char **argv) {
+    qboolean safe;
+    int i, j, n;
 
 // reconstitute the command line for the cmdline externally visible cvar
-	n = 0;
+    n = 0;
 
-	for (j=0 ; (j<MAX_NUM_ARGVS) && (j< argc) ; j++)
-	{
-		i = 0;
+    for (j = 0; (j < MAX_NUM_ARGVS) && (j < argc); j++) {
+        i = 0;
 
-		while ((n < (CMDLINE_LENGTH - 1)) && argv[j][i])
-		{
-			com_cmdline[n++] = argv[j][i++];
-		}
+        while ((n < (CMDLINE_LENGTH - 1)) && argv[j][i]) {
+            com_cmdline[n++] = argv[j][i++];
+        }
 
-		if (n < (CMDLINE_LENGTH - 1))
-			com_cmdline[n++] = ' ';
-		else
-			break;
-	}
+        if (n < (CMDLINE_LENGTH - 1))
+            com_cmdline[n++] = ' ';
+        else
+            break;
+    }
 
-	com_cmdline[n] = 0;
+    com_cmdline[n] = 0;
 
-	safe = false;
+    safe = false;
 
-	for (com_argc=0 ; (com_argc<MAX_NUM_ARGVS) && (com_argc < argc) ;
-		 com_argc++)
-	{
-		largv[com_argc] = argv[com_argc];
-		if (!Q_strcmp ("-safe", argv[com_argc]))
-			safe = true;
-	}
+    for (com_argc = 0; (com_argc < MAX_NUM_ARGVS) && (com_argc < argc);
+         com_argc++) {
+        largv[com_argc] = argv[com_argc];
+        if (!Q_strcmp("-safe", argv[com_argc]))
+            safe = true;
+    }
 
-	if (safe)
-	{
-	// force all the safe-mode switches. Note that we reserved extra space in
-	// case we need to add these, so we don't need an overflow check
-		for (i=0 ; i<NUM_SAFE_ARGVS ; i++)
-		{
-			largv[com_argc] = safeargvs[i];
-			com_argc++;
-		}
-	}
+    if (safe) {
+        // force all the safe-mode switches. Note that we reserved extra space in
+        // case we need to add these, so we don't need an overflow check
+        for (i = 0; i < NUM_SAFE_ARGVS; i++) {
+            largv[com_argc] = safeargvs[i];
+            com_argc++;
+        }
+    }
 
-	largv[com_argc] = argvdummy;
-	com_argv = largv;
+    largv[com_argc] = argvdummy;
+    com_argv = largv;
 
-	if (COM_CheckParm ("-rogue"))
-	{
-		rogue = true;
-		standard_quake = false;
-	}
+    if (COM_CheckParm("-rogue")) {
+        rogue = true;
+        standard_quake = false;
+    }
 
-	if (COM_CheckParm ("-hipnotic"))
-	{
-		hipnotic = true;
-		standard_quake = false;
-	}
+    if (COM_CheckParm("-hipnotic")) {
+        hipnotic = true;
+        standard_quake = false;
+    }
 }
 
 
@@ -1078,54 +979,49 @@ void COM_InitArgv (int argc, char **argv)
 COM_Init
 ================
 */
-void COM_Init ([[maybe_unused]] char *basedir)
-{
+void COM_Init([[maybe_unused]] char *basedir) {
 // set the byte swapping variables in a portable manner
 #ifdef SDL
-	// This is necessary because egcs 1.1.1 mis-compiles swaptest with -O2
-	if constexpr ( SDL_BYTEORDER == SDL_LIL_ENDIAN )
+    // This is necessary because egcs 1.1.1 mis-compiles swaptest with -O2
+    if constexpr (SDL_BYTEORDER == SDL_LIL_ENDIAN)
 #else
-	if constexpr ( __LITTLE_ENDIAN__ )
+        if constexpr ( __LITTLE_ENDIAN__ )
 #endif
-	{
-		bigendien = false;
-		BigShort = ShortSwap;
-		LittleShort = ShortNoSwap;
-		BigLong = LongSwap;
-		LittleLong = LongNoSwap;
-		BigFloat = FloatSwap;
-		LittleFloat = FloatNoSwap;
-	}
-	else
-	{
-		bigendien = true;
-		BigShort = ShortNoSwap;
-		LittleShort = ShortSwap;
-		BigLong = LongNoSwap;
-		LittleLong = LongSwap;
-		BigFloat = FloatNoSwap;
-		LittleFloat = FloatSwap;
-	}
+    {
+        bigendien = false;
+        BigShort = ShortSwap;
+        LittleShort = ShortNoSwap;
+        BigLong = LongSwap;
+        LittleLong = LongNoSwap;
+        BigFloat = FloatSwap;
+        LittleFloat = FloatNoSwap;
+    } else {
+        bigendien = true;
+        BigShort = ShortNoSwap;
+        LittleShort = ShortSwap;
+        BigLong = LongNoSwap;
+        LittleLong = LongSwap;
+        BigFloat = FloatNoSwap;
+        LittleFloat = FloatSwap;
+    }
 
-	Cvar_RegisterVariable (&registered);
-	Cvar_RegisterVariable (&cmdline);
-	Cmd_AddCommand ("path", COM_Path_f);
+    Cvar_RegisterVariable(&registered);
+    Cvar_RegisterVariable(&cmdline);
+    Cmd_AddCommand("path", COM_Path_f);
 
-	COM_InitFilesystem ();
-	COM_CheckRegistered ();
+    COM_InitFilesystem();
+    COM_CheckRegistered();
 }
 
 
-
 /// just for debugging
-auto     memsearch (const byte *start, int count, int search) -> int
-{
-	int             i;
-	
-	for (i=0 ; i<count ; i++)
-		if (start[i] == search)
-			return i;
-	return -1;
+auto memsearch(const byte *start, int count, int search) -> int {
+    int i;
+
+    for (i = 0; i < count; i++)
+        if (start[i] == search)
+            return i;
+    return -1;
 }
 
 /*
@@ -1136,56 +1032,51 @@ QUAKE FILESYSTEM
 =============================================================================
 */
 
-int     com_filesize;
+int com_filesize;
 
 
 //
 // in memory
 //
 
-using packfile_t = struct
-{
-	char    name[MAX_QPATH];
-	int             filepos, filelen;
+using packfile_t = struct {
+    char name[MAX_QPATH];
+    int filepos, filelen;
 };
 
-using pack_t = struct pack_s
-{
-	char    filename[MAX_OSPATH];
-	int             handle;
-	int             numfiles;
-	packfile_t      *files;
+using pack_t = struct pack_s {
+    char filename[MAX_OSPATH];
+    int handle;
+    int numfiles;
+    packfile_t *files;
 };
 
 //
 // on disk
 //
-using dpackfile_t = struct
-{
-	char    name[56];
-	int             filepos, filelen;
+using dpackfile_t = struct {
+    char name[56];
+    int filepos, filelen;
 };
 
-using dpackheader_t = struct
-{
-	char    id[4];
-	int             dirofs;
-	int             dirlen;
+using dpackheader_t = struct {
+    char id[4];
+    int dirofs;
+    int dirlen;
 };
 
 #define MAX_FILES_IN_PACK       2048
 
-char    com_cachedir[MAX_OSPATH];
-char    com_gamedir[MAX_OSPATH];
+char com_cachedir[MAX_OSPATH];
+char com_gamedir[MAX_OSPATH];
 
-using searchpath_t = struct searchpath_s
-{
-	char    filename[MAX_OSPATH];
-	pack_t  *pack;          // only one of filename / pack will be used
-	struct searchpath_s *next;
+using searchpath_t = struct searchpath_s {
+    char filename[MAX_OSPATH];
+    pack_t *pack;          // only one of filename / pack will be used
+    struct searchpath_s *next;
 };
 
-searchpath_t    *com_searchpaths;
+searchpath_t *com_searchpaths;
 
 /*
 ============
@@ -1193,20 +1084,16 @@ COM_Path_f
 
 ============
 */
-void COM_Path_f ()
-{
-	searchpath_t    *s;
-	
-	Con_Printf ("Current search path:\n");
-	for (s=com_searchpaths ; s ; s=s->next)
-	{
-		if (s->pack)
-		{
-			Con_Printf ("%s (%i files)\n", s->pack->filename, s->pack->numfiles);
-		}
-		else
-			Con_Printf ("%s\n", s->filename);
-	}
+void COM_Path_f() {
+    searchpath_t *s;
+
+    Con_Printf("Current search path:\n");
+    for (s = com_searchpaths; s; s = s->next) {
+        if (s->pack) {
+            Con_Printf("%s (%i files)\n", s->pack->filename, s->pack->numfiles);
+        } else
+            Con_Printf("%s\n", s->filename);
+    }
 }
 
 /*
@@ -1216,20 +1103,18 @@ COM_WriteFile
 The filename will be prefixed by the current game directory
 ============
 */
-void COM_WriteFile (char *filename, void *data, int len)
-{
-	const auto name = fmt::sprintf ("%s/%s", com_gamedir, filename);
+void COM_WriteFile(char *filename, void *data, int len) {
+    const auto name = fmt::sprintf("%s/%s", com_gamedir, filename);
 
-	const auto handle = Sys_FileOpenWrite (name.c_str());
-	if (handle == -1)
-	{
+    const auto handle = Sys_FileOpenWrite(name.c_str());
+    if (handle == -1) {
         sysPrintf("COM_WriteFile: failed on {}\n", name);
-		return;
-	}
+        return;
+    }
 
     sysPrintf("COM_WriteFile: {}\n", name);
-	Sys_FileWrite (handle, data, len);
-	Sys_FileClose (handle);
+    Sys_FileWrite(handle, data, len);
+    Sys_FileClose(handle);
 }
 
 
@@ -1240,19 +1125,16 @@ COM_CreatePath
 Only used for CopyFile
 ============
 */
-void    COM_CreatePath (char *path)
-{
-	char    *ofs;
-	
-	for (ofs = path+1 ; *ofs ; ofs++)
-	{
-		if (*ofs == '/')
-		{       // create the directory
-			*ofs = 0;
-			Sys_mkdir (path);
-			*ofs = '/';
-		}
-	}
+void COM_CreatePath(char *path) {
+    char *ofs;
+
+    for (ofs = path + 1; *ofs; ofs++) {
+        if (*ofs == '/') {       // create the directory
+            *ofs = 0;
+            Sys_mkdir(path);
+            *ofs = '/';
+        }
+    }
 }
 
 
@@ -1264,28 +1146,26 @@ Copies a file over from the net to the local cache, creating any directories
 needed.  This is for the convenience of developers using ISDN from home.
 ===========
 */
-void COM_CopyFile (const char *netpath, char *cachepath)
-{
-	int             in, out;
+void COM_CopyFile(const char *netpath, char *cachepath) {
+    int in, out;
 
-	char    buf[4096];
-	
-	std::size_t remaining = Sys_FileOpenRead (netpath, &in);
-	COM_CreatePath (cachepath);     // create directories up to the cache file
-	out = Sys_FileOpenWrite (cachepath);
-	
-	for (std::size_t count = 0; remaining; remaining -= count)
-	{
-		if (remaining < sizeof(buf))
-			count = remaining;
-		else
-			count = sizeof(buf);
-		Sys_FileRead (in, buf, count);
-		Sys_FileWrite (out, buf, count);
-	}
+    char buf[4096];
 
-	Sys_FileClose (in);
-	Sys_FileClose (out);    
+    std::size_t remaining = Sys_FileOpenRead(netpath, &in);
+    COM_CreatePath(cachepath);     // create directories up to the cache file
+    out = Sys_FileOpenWrite(cachepath);
+
+    for (std::size_t count = 0; remaining; remaining -= count) {
+        if (remaining < sizeof(buf))
+            count = remaining;
+        else
+            count = sizeof(buf);
+        Sys_FileRead(in, buf, count);
+        Sys_FileWrite(out, buf, count);
+    }
+
+    Sys_FileClose(in);
+    Sys_FileClose(out);
 }
 
 /*
@@ -1296,72 +1176,61 @@ Finds the file in the search path.
 Sets com_filesize and one of handle or file
 ===========
 */
-auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
-{
+auto COM_FindFile(std::string_view filename, int *handle, FILE **file) -> int {
     sysPrintf("PackFile: {}\n", filename);
-	pack_t          *pak;
-	int                     i;
-	int                     findtime, cachetime;
+    pack_t *pak;
+    int i;
+    int findtime, cachetime;
 
-	if (file && handle)
-		Sys_Error ("COM_FindFile: both handle and file set");
-	if (!file && !handle)
-		Sys_Error ("COM_FindFile: neither handle or file set");
-		
+    if (file && handle)
+        Sys_Error("COM_FindFile: both handle and file set");
+    if (!file && !handle)
+        Sys_Error("COM_FindFile: neither handle or file set");
+
 //
 // search through the path, one element at a time
 //
-	auto search = com_searchpaths;
-	if (proghack)
-	{	// gross hack to use quake 1 progs with quake 2 maps
-		if (filename == "progs.dat")
-			search = search->next;
-	}
+    auto search = com_searchpaths;
+    if (proghack) {    // gross hack to use quake 1 progs with quake 2 maps
+        if (filename == "progs.dat")
+            search = search->next;
+    }
 
-	for ( ; search ; search = search->next)
-	{
-	// is the element a pak file?
-		if (search->pack)
-		{
-		// look through all the pak file elements
-			pak = search->pack;
-			for (i=0 ; i<pak->numfiles ; i++)
-				if (pak->files[i].name == filename)
-				{       // found it!
+    for (; search; search = search->next) {
+        // is the element a pak file?
+        if (search->pack) {
+            // look through all the pak file elements
+            pak = search->pack;
+            for (i = 0; i < pak->numfiles; i++)
+                if (pak->files[i].name == filename) {       // found it!
                     sysPrintf("PackFile: {} : {}\n", pak->filename, filename);
-					if (handle)
-					{
-						*handle = pak->handle;
-						Sys_FileSeek (pak->handle, pak->files[i].filepos);
-					}
-					else
-					{       // open a new file on the pakfile
-						*file = fopen (pak->filename, "rb");
-						if (*file)
-							fseek (*file, pak->files[i].filepos, SEEK_SET);
-					}
-					com_filesize = pak->files[i].filelen;
-					return com_filesize;
-				}
-		}
-		else
-		{               
-	// check a file in the directory tree
-			if (!static_registered)
-			{       // if not a registered version, don't ever go beyond base
-				if ( filename.find('/') != std::string::npos
-				     || filename.find('\\') != std::string::npos)
-					continue;
-			}
-			
-			auto netpath = fmt::sprintf("%s/%s",search->filename, filename);
+                    if (handle) {
+                        *handle = pak->handle;
+                        Sys_FileSeek(pak->handle, pak->files[i].filepos);
+                    } else {       // open a new file on the pakfile
+                        *file = fopen(pak->filename, "rb");
+                        if (*file)
+                            fseek(*file, pak->files[i].filepos, SEEK_SET);
+                    }
+                    com_filesize = pak->files[i].filelen;
+                    return com_filesize;
+                }
+        } else {
+            // check a file in the directory tree
+            if (!static_registered) {       // if not a registered version, don't ever go beyond base
+                if (filename.find('/') != std::string::npos
+                    || filename.find('\\') != std::string::npos)
+                    continue;
+            }
 
-			findtime = Sys_FileTime (netpath);
-			if (findtime == -1)
-				continue;
+            auto netpath = fmt::sprintf("%s/%s", search->filename, filename);
+
+            findtime = Sys_FileTime(netpath);
+            if (findtime == -1)
+                continue;
 
             // see if the file needs to be updated in the cache
-			[&]() {
+            [&]() {
                 if (!com_cachedir[0]) return;
 
                 std::stringstream temp;
@@ -1374,34 +1243,33 @@ auto COM_FindFile (std::string_view filename, int *handle, FILE **file) -> int
                 } else {
                     temp << com_cachedir << '/' << netpath;
                 }
-                cachetime = Sys_FileTime (temp.view());
+                cachetime = Sys_FileTime(temp.view());
                 if (cachetime < findtime)
-                    COM_CopyFile (netpath.data(), temp.str().data());
+                    COM_CopyFile(netpath.data(), temp.str().data());
 
-			}();
+            }();
 
             sysPrintf("FindFile: {}\n", netpath);
-			com_filesize = Sys_FileOpenRead (netpath.c_str(), &i);
-			if (handle)
-				*handle = i;
-			else
-			{
-				Sys_FileClose (i);
-				*file = fopen (netpath.c_str(), "rb");
-			}
-			return com_filesize;
-		}
-		
-	}
+            com_filesize = Sys_FileOpenRead(netpath.c_str(), &i);
+            if (handle)
+                *handle = i;
+            else {
+                Sys_FileClose(i);
+                *file = fopen(netpath.c_str(), "rb");
+            }
+            return com_filesize;
+        }
+
+    }
 
     sysPrintf("FindFile: can't find {}\n", filename);
-	
-	if (handle)
-		*handle = -1;
-	else
-		*file = nullptr;
-	com_filesize = -1;
-	return -1;
+
+    if (handle)
+        *handle = -1;
+    else
+        *file = nullptr;
+    com_filesize = -1;
+    return -1;
 }
 
 
@@ -1414,9 +1282,8 @@ returns a handle and a length
 it may actually be inside a pak file
 ===========
 */
-auto COM_OpenFile (std::string_view filename, int *handle) -> int
-{
-	return COM_FindFile (filename, handle, nullptr);
+auto COM_OpenFile(std::string_view filename, int *handle) -> int {
+    return COM_FindFile(filename, handle, nullptr);
 }
 
 /*
@@ -1427,9 +1294,8 @@ If the requested file is inside a packfile, a new FILE * will be opened
 into the file.
 ===========
 */
-auto COM_FOpenFile (char *filename, FILE **file) -> int
-{
-	return COM_FindFile (filename, nullptr, file);
+auto COM_FOpenFile(char *filename, FILE **file) -> int {
+    return COM_FindFile(filename, nullptr, file);
 }
 
 /*
@@ -1439,15 +1305,14 @@ COM_CloseFile
 If it is a pak file handle, don't really close it
 ============
 */
-void COM_CloseFile (int h)
-{
-	searchpath_t    *s;
-	
-	for (s = com_searchpaths ; s ; s=s->next)
-		if (s->pack && s->pack->handle == h)
-			return;
-			
-	Sys_FileClose (h);
+void COM_CloseFile(int h) {
+    searchpath_t *s;
+
+    for (s = com_searchpaths; s; s = s->next)
+        if (s->pack && s->pack->handle == h)
+            return;
+
+    Sys_FileClose(h);
 }
 
 
@@ -1460,81 +1325,75 @@ Allways appends a 0 byte.
 ============
 */
 cache_user_t *loadcache;
-byte    *loadbuf;
-int             loadsize;
-auto COM_LoadFile (std::string_view path, const int usehunk) -> byte *
-{
-	int             h;
-	char    base[32];
-	int             len;
+byte *loadbuf;
+int loadsize;
 
-	byte* buf = nullptr;
+auto COM_LoadFile(std::string_view path, const int usehunk) -> byte * {
+    int h;
+    char base[32];
+    int len;
+
+    byte *buf = nullptr;
 
 // look for it in the filesystem or pack files
-	len = COM_OpenFile (path, &h);
-	if (h == -1)
-		return nullptr;
-	
+    len = COM_OpenFile(path, &h);
+    if (h == -1)
+        return nullptr;
+
 // extract the filename base name for hunk tag
-	COM_FileBase (path, base);
-	
-	if (usehunk == 1)
-		buf = hunkAllocName<decltype(buf)> (len+1, base);
-	else if (usehunk == 2)
-		buf = hunkTempAlloc<decltype(buf)> (len+1);
-	else if (usehunk == 0)
-		buf = zmalloc<decltype(buf)> (len+1);
-	else if (usehunk == 3)
-		buf = cacheAlloc<decltype(buf)> (loadcache, len+1, base);
-	else if (usehunk == 4)
-	{
-		if (len+1 > loadsize)
-			buf = hunkTempAlloc<decltype(buf)> (len+1);
-		else
-			buf = loadbuf;
-	}
-	else
-		Sys_Error ("COM_LoadFile: bad usehunk");
+    COM_FileBase(path, base);
 
-	if (!buf)
-		Sys_Error ("COM_LoadFile: not enough space for %s", path);
-		
-	((byte *)buf)[len] = 0;
+    if (usehunk == 1)
+        buf = hunkAllocName<decltype(buf)>(len + 1, base);
+    else if (usehunk == 2)
+        buf = hunkTempAlloc<decltype(buf)>(len + 1);
+    else if (usehunk == 0)
+        buf = zmalloc<decltype(buf)>(len + 1);
+    else if (usehunk == 3)
+        buf = cacheAlloc<decltype(buf)>(loadcache, len + 1, base);
+    else if (usehunk == 4) {
+        if (len + 1 > loadsize)
+            buf = hunkTempAlloc<decltype(buf)>(len + 1);
+        else
+            buf = loadbuf;
+    } else
+        Sys_Error("COM_LoadFile: bad usehunk");
 
-	Draw_BeginDisc ();
-	Sys_FileRead (h, buf, len);                     
-	COM_CloseFile (h);
-	Draw_EndDisc ();
+    if (!buf)
+        Sys_Error("COM_LoadFile: not enough space for %s", path);
 
-	return buf;
+    ((byte *) buf)[len] = 0;
+
+    Draw_BeginDisc();
+    Sys_FileRead(h, buf, len);
+    COM_CloseFile(h);
+    Draw_EndDisc();
+
+    return buf;
 }
 
-auto COM_LoadHunkFile (char *path) -> byte *
-{
-	return COM_LoadFile (path, 1);
+auto COM_LoadHunkFile(char *path) -> byte * {
+    return COM_LoadFile(path, 1);
 }
 
-auto COM_LoadTempFile (char *path) -> byte *
-{
-	return COM_LoadFile (path, 2);
+auto COM_LoadTempFile(char *path) -> byte * {
+    return COM_LoadFile(path, 2);
 }
 
-void COM_LoadCacheFile (std::string_view path, cache_user_s *cu)
-{
-	loadcache = cu;
-	COM_LoadFile (path, 3);
+void COM_LoadCacheFile(std::string_view path, cache_user_s *cu) {
+    loadcache = cu;
+    COM_LoadFile(path, 3);
 }
 
 // uses temp hunk if larger than bufsize
-auto COM_LoadStackFile (char *path, void *buffer, int bufsize) -> byte *
-{
-	byte    *buf;
-	
-	loadbuf = (byte *)buffer;
-	loadsize = bufsize;
-	buf = COM_LoadFile (path, 4);
-	
-	return buf;
+auto COM_LoadStackFile(char *path, void *buffer, int bufsize) -> byte * {
+    byte *buf;
+
+    loadbuf = (byte *) buffer;
+    loadsize = bufsize;
+    buf = COM_LoadFile(path, 4);
+
+    return buf;
 }
 
 /*
@@ -1547,65 +1406,62 @@ Loads the header and directory, adding the files at the beginning
 of the list so they override previous pack files.
 =================
 */
-auto COM_LoadPackFile (const char *packfile) -> pack_t *
-{
-	dpackheader_t   header;
-	int                             i;
-	packfile_t              *newfiles;
-	int                             numpackfiles;
-	pack_t                  *pack;
-	int                             packhandle;
-	dpackfile_t             info[MAX_FILES_IN_PACK];
-	unsigned short          crc;
+auto COM_LoadPackFile(const char *packfile) -> pack_t * {
+    dpackheader_t header;
+    int i;
+    packfile_t *newfiles;
+    int numpackfiles;
+    pack_t *pack;
+    int packhandle;
+    dpackfile_t info[MAX_FILES_IN_PACK];
+    unsigned short crc;
 
-	if (Sys_FileOpenRead (packfile, &packhandle) == -1)
-	{
-	    Con_Printf ("Couldn't open %s\n", packfile);
-		return nullptr;
-	}
-	Sys_FileRead (packhandle, (void *)&header, sizeof(header));
-	if (header.id[0] != 'P' || header.id[1] != 'A'
-	|| header.id[2] != 'C' || header.id[3] != 'K')
-		Sys_Error ("%s is not a packfile", packfile);
-	header.dirofs = LittleLong (header.dirofs);
-	header.dirlen = LittleLong (header.dirlen);
+    if (Sys_FileOpenRead(packfile, &packhandle) == -1) {
+        Con_Printf("Couldn't open %s\n", packfile);
+        return nullptr;
+    }
+    Sys_FileRead(packhandle, (void *) &header, sizeof(header));
+    if (header.id[0] != 'P' || header.id[1] != 'A'
+        || header.id[2] != 'C' || header.id[3] != 'K')
+        Sys_Error("%s is not a packfile", packfile);
+    header.dirofs = LittleLong(header.dirofs);
+    header.dirlen = LittleLong(header.dirlen);
 
-	numpackfiles = header.dirlen / sizeof(dpackfile_t);
+    numpackfiles = header.dirlen / sizeof(dpackfile_t);
 
-	if (numpackfiles > MAX_FILES_IN_PACK)
-		Sys_Error ("%s has %i files", packfile, numpackfiles);
+    if (numpackfiles > MAX_FILES_IN_PACK)
+        Sys_Error("%s has %i files", packfile, numpackfiles);
 
-	if (numpackfiles != PAK0_COUNT)
-		com_modified = true;    // not the original file
+    if (numpackfiles != PAK0_COUNT)
+        com_modified = true;    // not the original file
 
-	newfiles = hunkAllocName<decltype(newfiles)> (numpackfiles * sizeof(packfile_t), "packfile");
+    newfiles = hunkAllocName<decltype(newfiles)>(numpackfiles * sizeof(packfile_t), "packfile");
 
-	Sys_FileSeek (packhandle, header.dirofs);
-	Sys_FileRead (packhandle, (void *)info, header.dirlen);
+    Sys_FileSeek(packhandle, header.dirofs);
+    Sys_FileRead(packhandle, (void *) info, header.dirlen);
 
 // crc the directory to check for modifications
-	CRC_Init (&crc);
-	for (i=0 ; i<header.dirlen ; i++)
-		CRC_ProcessByte (&crc, ((byte *)info)[i]);
-	if (crc != PAK0_CRC)
-		com_modified = true;
+    CRC_Init(&crc);
+    for (i = 0; i < header.dirlen; i++)
+        CRC_ProcessByte(&crc, ((byte *) info)[i]);
+    if (crc != PAK0_CRC)
+        com_modified = true;
 
 // parse the directory
-	for (i=0 ; i<numpackfiles ; i++)
-	{
-		strcpy (newfiles[i].name, info[i].name);
-		newfiles[i].filepos = LittleLong(info[i].filepos);
-		newfiles[i].filelen = LittleLong(info[i].filelen);
-	}
+    for (i = 0; i < numpackfiles; i++) {
+        strcpy(newfiles[i].name, info[i].name);
+        newfiles[i].filepos = LittleLong(info[i].filepos);
+        newfiles[i].filelen = LittleLong(info[i].filelen);
+    }
 
-	pack = hunkAlloc<decltype(pack)> (sizeof (pack_t));
-	strcpy (pack->filename, packfile);
-	pack->handle = packhandle;
-	pack->numfiles = numpackfiles;
-	pack->files = newfiles;
-	
-	Con_Printf ("Added packfile %s (%i files)\n", packfile, numpackfiles);
-	return pack;
+    pack = hunkAlloc<decltype(pack)>(sizeof(pack_t));
+    strcpy(pack->filename, packfile);
+    pack->handle = packhandle;
+    pack->numfiles = numpackfiles;
+    pack->files = newfiles;
+
+    Con_Printf("Added packfile %s (%i files)\n", packfile, numpackfiles);
+    return pack;
 }
 
 
@@ -1617,36 +1473,34 @@ Sets com_gamedir, adds the directory to the head of the path,
 then loads and adds pak1.pak pak2.pak ... 
 ================
 */
-void COM_AddGameDirectory (std::string_view dir)
-{
-	int                             i;
-	searchpath_t    *search;
-	pack_t                  *pak;
+void COM_AddGameDirectory(std::string_view dir) {
+    int i;
+    searchpath_t *search;
+    pack_t *pak;
 
-	strcpy (com_gamedir, dir.data());
+    strcpy(com_gamedir, dir.data());
 
 //
 // add the directory to the search path
 //
-	search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));
-	strcpy (search->filename, dir.data());
-	search->next = com_searchpaths;
-	com_searchpaths = search;
+    search = hunkAlloc<decltype(search)>(sizeof(searchpath_t));
+    strcpy(search->filename, dir.data());
+    search->next = com_searchpaths;
+    com_searchpaths = search;
 
 //
 // add any pak files in the format pak0.pak pak1.pak, ...
 //
-	for (i=0 ; ; i++)
-	{
-	    auto pakfile = fmt::sprintf("%s/pak%i.pak", dir, i);
-		pak = COM_LoadPackFile (pakfile.c_str());
-		if (!pak)
-			break;
-		search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));
-		search->pack = pak;
-		search->next = com_searchpaths;
-		com_searchpaths = search;               
-	}
+    for (i = 0;; i++) {
+        auto pakfile = fmt::sprintf("%s/pak%i.pak", dir, i);
+        pak = COM_LoadPackFile(pakfile.c_str());
+        if (!pak)
+            break;
+        search = hunkAlloc<decltype(search)>(sizeof(searchpath_t));
+        search->pack = pak;
+        search->next = com_searchpaths;
+        com_searchpaths = search;
+    }
 
 //
 // add the contents of the parms.txt file to the end of the command line
@@ -1659,100 +1513,91 @@ void COM_AddGameDirectory (std::string_view dir)
 COM_InitFilesystem
 ================
 */
-void COM_InitFilesystem ()
-{
-	int             i, j;
-	char    basedir[MAX_OSPATH];
-	searchpath_t    *search;
+void COM_InitFilesystem() {
+    int i, j;
+    char basedir[MAX_OSPATH];
+    searchpath_t *search;
 
 //
 // -basedir <path>
 // Overrides the system supplied base directory (under GAMENAME)
 //
-	i = COM_CheckParm ("-basedir");
-	if (i && i < com_argc-1)
-		strcpy (basedir, com_argv[i+1]);
-	else
-		strcpy (basedir, host_parms.basedir);
+    i = COM_CheckParm("-basedir");
+    if (i && i < com_argc - 1)
+        strcpy(basedir, com_argv[i + 1]);
+    else
+        strcpy(basedir, host_parms.basedir);
 
-	j = strlen (basedir);
+    j = strlen(basedir);
 
-	if (j > 0)
-	{
-		if ((basedir[j-1] == '\\') || (basedir[j-1] == '/'))
-			basedir[j-1] = 0;
-	}
+    if (j > 0) {
+        if ((basedir[j - 1] == '\\') || (basedir[j - 1] == '/'))
+            basedir[j - 1] = 0;
+    }
 
 //
 // -cachedir <path>
 // Overrides the system supplied cache directory (NULL or /qcache)
 // -cachedir - will disable caching.
 //
-	i = COM_CheckParm ("-cachedir");
-	if (i && i < com_argc-1)
-	{
-		if (com_argv[i+1][0] == '-')
-			com_cachedir[0] = 0;
-		else
-			strcpy (com_cachedir, com_argv[i+1]);
-	}
-	else if (host_parms.cachedir)
-		strcpy (com_cachedir, host_parms.cachedir);
-	else
-		com_cachedir[0] = 0;
+    i = COM_CheckParm("-cachedir");
+    if (i && i < com_argc - 1) {
+        if (com_argv[i + 1][0] == '-')
+            com_cachedir[0] = 0;
+        else
+            strcpy(com_cachedir, com_argv[i + 1]);
+    } else if (host_parms.cachedir)
+        strcpy(com_cachedir, host_parms.cachedir);
+    else
+        com_cachedir[0] = 0;
 
 //
 // start up with GAMENAME by default (id1)
 //
-	COM_AddGameDirectory (va("%s/" GAMENAME, basedir) );
+    COM_AddGameDirectory(va("%s/" GAMENAME, basedir));
 
-	if (COM_CheckParm ("-rogue"))
-		COM_AddGameDirectory (va("%s/rogue", basedir) );
-	if (COM_CheckParm ("-hipnotic"))
-		COM_AddGameDirectory (va("%s/hipnotic", basedir) );
+    if (COM_CheckParm("-rogue"))
+        COM_AddGameDirectory(va("%s/rogue", basedir));
+    if (COM_CheckParm("-hipnotic"))
+        COM_AddGameDirectory(va("%s/hipnotic", basedir));
 
 //
 // -game <gamedir>
 // Adds basedir/gamedir as an override game
 //
-	i = COM_CheckParm ("-game");
-	if (i && i < com_argc-1)
-	{
-		com_modified = true;
-		COM_AddGameDirectory (va("%s/%s", basedir, com_argv[i+1]));
-	}
+    i = COM_CheckParm("-game");
+    if (i && i < com_argc - 1) {
+        com_modified = true;
+        COM_AddGameDirectory(va("%s/%s", basedir, com_argv[i + 1]));
+    }
 
 //
 // -path <dir or packfile> [<dir or packfile>] ...
 // Fully specifies the exact serach path, overriding the generated one
 //
-	i = COM_CheckParm ("-path");
-	if (i)
-	{
-		com_modified = true;
-		com_searchpaths = nullptr;
-		while (++i < com_argc)
-		{
-		    std::string_view currentArg = com_argv[i];
-			if (currentArg.empty() || currentArg[0] == '+' || currentArg[0] == '-')
-				break;
-			
-			search = hunkAlloc<decltype(search)> (sizeof(searchpath_t));
-			if ( currentArg.ends_with(".pak") )
-			{
-				search->pack = COM_LoadPackFile (com_argv[i]);
-				if (!search->pack)
-					Sys_Error ("Couldn't load packfile: %s", com_argv[i]);
-			}
-			else
-				strncpy (search->filename, com_argv[i], currentArg.length());
-			search->next = com_searchpaths;
-			com_searchpaths = search;
-		}
-	}
+    i = COM_CheckParm("-path");
+    if (i) {
+        com_modified = true;
+        com_searchpaths = nullptr;
+        while (++i < com_argc) {
+            std::string_view currentArg = com_argv[i];
+            if (currentArg.empty() || currentArg[0] == '+' || currentArg[0] == '-')
+                break;
 
-	if (COM_CheckParm ("-proghack"))
-		proghack = true;
+            search = hunkAlloc<decltype(search)>(sizeof(searchpath_t));
+            if (currentArg.ends_with(".pak")) {
+                search->pack = COM_LoadPackFile(com_argv[i]);
+                if (!search->pack)
+                    Sys_Error("Couldn't load packfile: %s", com_argv[i]);
+            } else
+                strncpy(search->filename, com_argv[i], currentArg.length());
+            search->next = com_searchpaths;
+            com_searchpaths = search;
+        }
+    }
+
+    if (COM_CheckParm("-proghack"))
+        proghack = true;
 }
 
 

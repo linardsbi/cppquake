@@ -14,7 +14,7 @@ if (CMAKE_BUILD_TYPE)
 endif ()
 
 if (BUILD_DEBUG)
-    add_compile_options("-Og" "-Wall" "-Wextra" "-Wpedantic" "-Wconversion" "-fsanitize=address,leak,undefined" "-fno-omit-frame-pointer")
+    add_compile_options("-Og" "-g" "-Wall" "-Wextra" "-Wpedantic" "-Wconversion" "-fsanitize=address,leak,undefined" "-fno-omit-frame-pointer")
     set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address,leak,undefined -fno-omit-frame-pointer")
     set(DEBUG_DEFINES "-DPARANOID")
 else ()

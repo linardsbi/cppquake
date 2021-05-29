@@ -54,45 +54,44 @@ interface from being ambiguous.
 */
 #include <string>
 
-typedef struct cvar_s
-{
-	std::string name;
-	std::string string;
-	qboolean archive{};		// set to true to cause it to be saved to vars.rc
-	qboolean server{};		// notifies players when changed
-	float	value{};
-	struct cvar_s *next{};
+typedef struct cvar_s {
+    std::string name;
+    std::string string;
+    qboolean archive{};        // set to true to cause it to be saved to vars.rc
+    qboolean server{};        // notifies players when changed
+    float value{};
+    struct cvar_s *next{};
 } cvar_t;
 
-void 	Cvar_RegisterVariable (cvar_t *variable);
+void Cvar_RegisterVariable(cvar_t *variable);
 // registers a cvar that allready has the name, string, and optionally the
 // archive elements set.
 
-void 	Cvar_Set (std::string_view var_name, std::string_view value);
+void Cvar_Set(std::string_view var_name, std::string_view value);
 // equivelant to "<name> <variable>" typed at the console
 
-void	Cvar_SetValue (std::string_view var_name, float value);
+void Cvar_SetValue(std::string_view var_name, float value);
 // expands value to a string and calls Cvar_Set
 
-float	Cvar_VariableValue (std::string_view var_name);
+float Cvar_VariableValue(std::string_view var_name);
 // returns 0 if not defined or non numeric
 
-auto Cvar_VariableString (std::string_view var_name) -> std::string_view;
+auto Cvar_VariableString(std::string_view var_name) -> std::string_view;
 // returns an empty string if not defined
 
-auto Cvar_CompleteVariable (std::string_view partial) -> std::string_view;
+auto Cvar_CompleteVariable(std::string_view partial) -> std::string_view;
 // attempts to match a partial variable name for command line completion
 // returns NULL if nothing fits
 
-qboolean Cvar_Command ();
+qboolean Cvar_Command();
 // called by Cmd_ExecuteString when Cmd_Argv(0) doesn't match a known
 // command.  Returns true if the command was a variable reference that
 // was handled. (print or change)
 
-void 	Cvar_WriteVariables (FILE *f);
+void Cvar_WriteVariables(FILE *f);
 // Writes lines containing "set variable value" for all variables
 // with the archive flag set to true.
 
-cvar_t *Cvar_FindVar (std::string_view var_name);
+cvar_t *Cvar_FindVar(std::string_view var_name);
 
-extern cvar_t	*cvar_vars;
+extern cvar_t *cvar_vars;

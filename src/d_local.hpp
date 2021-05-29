@@ -26,65 +26,68 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // is a 2k-wide scan, with subdivision every 8, for 256 spans of 12 bytes each
 //
 
-#define R_SKY_SMASK	0x007F0000
-#define R_SKY_TMASK	0x007F0000
+#define R_SKY_SMASK    0x007F0000
+#define R_SKY_TMASK    0x007F0000
 
-#define DS_SPAN_LIST_END	-128
+#define DS_SPAN_LIST_END    -128
 
-constexpr int SURFCACHE_SIZE_AT_320X200 = 600*1024;
+constexpr int SURFCACHE_SIZE_AT_320X200 = 600 * 1024;
 
-typedef struct surfcache_s
-{
-	struct surfcache_s	*next{nullptr};
-	struct surfcache_s 	**owner{nullptr};		// NULL is an empty chunk of memory
-	int					lightadj[MAXLIGHTMAPS]{}; // checked for strobe flush
-	int					dlight{};
-	long				size{};		// including header
-	unsigned			width{};
-	unsigned			height{};		// DEBUG only needed for debug
-    [[maybe_unused]] float				mipscale{};
-	struct texture_s	*texture{};	// checked for animating textures
-	byte				data[4]{};	// width*height elements
+typedef struct surfcache_s {
+    struct surfcache_s *next{nullptr};
+    struct surfcache_s **owner{nullptr};        // NULL is an empty chunk of memory
+    int lightadj[MAXLIGHTMAPS]{}; // checked for strobe flush
+    int dlight{};
+    long size{};        // including header
+    unsigned width{};
+    unsigned height{};        // DEBUG only needed for debug
+    [[maybe_unused]] float mipscale{};
+    struct texture_s *texture{};    // checked for animating textures
+    byte data[4]{};    // width*height elements
 } surfcache_t;
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
-typedef struct sspan_s
-{
-	int				u, v, count;
+typedef struct sspan_s {
+    int u, v, count;
 } sspan_t;
 
-extern cvar_t	d_subdiv16;
+extern cvar_t d_subdiv16;
 
-extern float	scale_for_mip;
+extern float scale_for_mip;
 
-extern qboolean		d_roverwrapped;
-extern surfcache_t	*sc_rover;
-extern surfcache_t	*d_initial_rover;
+extern qboolean d_roverwrapped;
+extern surfcache_t *sc_rover;
+extern surfcache_t *d_initial_rover;
 
-extern float	d_sdivzstepu, d_tdivzstepu, d_zistepu;
-extern float	d_sdivzstepv, d_tdivzstepv, d_zistepv;
-extern float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
+extern float d_sdivzstepu, d_tdivzstepu, d_zistepu;
+extern float d_sdivzstepv, d_tdivzstepv, d_zistepv;
+extern float d_sdivzorigin, d_tdivzorigin, d_ziorigin;
 
-extern fixed16_t	sadjust, tadjust;
-extern fixed16_t	bbextents, bbextentt;
+extern fixed16_t sadjust, tadjust;
+extern fixed16_t bbextents, bbextentt;
 
 
-void D_DrawSpans8 (espan_t *pspans);
-void D_DrawSpans16 (espan_t *pspans);
-void D_DrawZSpans (espan_t *pspans);
-void Turbulent8 (espan_t *pspan);
-void D_SpriteDrawSpans (sspan_t *pspan);
+void D_DrawSpans8(espan_t *pspans);
 
-void D_DrawSkyScans8 (espan_t *pspan);
+void D_DrawSpans16(espan_t *pspans);
 
-[[maybe_unused]] void D_DrawSkyScans16 (espan_t *pspan);
+void D_DrawZSpans(espan_t *pspans);
 
-[[maybe_unused]] void R_ShowSubDiv ();
+void Turbulent8(espan_t *pspan);
+
+void D_SpriteDrawSpans(sspan_t *pspan);
+
+void D_DrawSkyScans8(espan_t *pspan);
+
+[[maybe_unused]] void D_DrawSkyScans16(espan_t *pspan);
+
+[[maybe_unused]] void R_ShowSubDiv();
 
 [[maybe_unused]] extern void (*prealspandrawer)();
-surfcache_t	*D_CacheSurface (msurface_t *surface, int miplevel);
 
-extern int D_MipLevelForScale (float scale);
+surfcache_t *D_CacheSurface(msurface_t *surface, int miplevel);
+
+extern int D_MipLevelForScale(float scale);
 
 #if id386
 extern void D_PolysetAff8Start ();
@@ -94,19 +97,19 @@ extern void D_PolysetAff8End ();
 extern short *d_pzbuffer;
 [[maybe_unused]] extern unsigned int d_zrowbytes, d_zwidth;
 
-[[maybe_unused]] extern int	*d_pscantable;
-extern int	d_scantable[MAXHEIGHT];
+[[maybe_unused]] extern int *d_pscantable;
+extern int d_scantable[MAXHEIGHT];
 
-extern int	d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;
+extern int d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;
 
-extern int	d_y_aspect_shift, d_pix_min, d_pix_max, d_pix_shift;
+extern int d_y_aspect_shift, d_pix_min, d_pix_max, d_pix_shift;
 
-extern pixel_t	*d_viewbuffer;
+extern pixel_t *d_viewbuffer;
 
-extern short	*zspantable[MAXHEIGHT];
+extern short *zspantable[MAXHEIGHT];
 
-extern int		d_minmip;
-extern float	d_scalemip[3];
+extern int d_minmip;
+extern float d_scalemip[3];
 
-extern void (*d_drawspans) (espan_t *pspan);
+extern void (*d_drawspans)(espan_t *pspan);
 
