@@ -202,7 +202,16 @@ void COM_InitArgv(int argc, char **argv);
 
 [[maybe_unused]] void COM_StripExtension(char *in, char *out);
 
-void COM_FileBase(std::string_view in, char *out);
+constexpr std::string_view COM_FileBase(std::string_view in) {
+    auto ext_period = in.find_last_of('.');
+    auto filename_start = in.find_last_of('/');
+    filename_start = filename_start == std::string::npos ? 0UL : filename_start;
+
+    if (ext_period - filename_start < 2)
+        return "?model?";
+
+    return in.substr(filename_start, ext_period);
+}
 
 void COM_DefaultExtension(char *path, char *extension);
 

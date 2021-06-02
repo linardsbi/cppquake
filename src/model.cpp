@@ -267,8 +267,9 @@ auto Mod_LoadModel(model_t *mod, qboolean crash) -> model_t * {
 //
 // allocate a new model
 //
-    COM_FileBase(mod->name, loadname);
 
+    const auto filename = COM_FileBase(mod->name);
+    std::strncpy(loadname, filename.cbegin(), filename.length());
     loadmodel = mod;
 
 //

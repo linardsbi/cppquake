@@ -735,29 +735,6 @@ auto COM_FileExtension(const char *in) -> const char * {
 }
 
 /*
-============
-COM_FileBase
-============
-*/
-void COM_FileBase(std::string_view in, char *out) {
-    auto i = in.length() - 1;
-    while (i != 0 && in[i] != '.') {
-        --i;
-    }
-
-    for (auto j = i; j != 0 && in[j] != '/'; --j) {
-        if (i - j < 2)
-            strcpy(out, "?model?");
-        else {
-            --i;
-            strncpy(out, in.data() + j + 1, i - j);
-            out[i - j] = 0;
-        }
-    }
-}
-
-
-/*
 ==================
 COM_DefaultExtension
 ==================
@@ -1330,7 +1307,6 @@ int loadsize;
 
 auto COM_LoadFile(std::string_view path, const int usehunk) -> byte * {
     int h;
-    char base[32];
     int len;
 
     byte *buf = nullptr;
@@ -1341,7 +1317,7 @@ auto COM_LoadFile(std::string_view path, const int usehunk) -> byte * {
         return nullptr;
 
 // extract the filename base name for hunk tag
-    COM_FileBase(path, base);
+    const auto base = COM_FileBase(path);
 
     if (usehunk == 1)
         buf = hunkAllocName<decltype(buf)>(len + 1, base);

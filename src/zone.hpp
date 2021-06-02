@@ -183,7 +183,7 @@ auto Cache_TryAlloc(int size, qboolean nobottom) -> cache_system_t *;
 void Cache_Report();
 
 template<typename MemType>
-auto hunkAllocName(int hsize, const char *name) -> MemType {
+auto hunkAllocName(int hsize, std::string_view name) -> MemType {
 #ifdef PARANOID
     Hunk_Check();
 #endif
@@ -205,7 +205,7 @@ auto hunkAllocName(int hsize, const char *name) -> MemType {
 
     h->size = size;
     h->sentinal = HUNK_SENTINAL;
-    strncpy(h->name, name, 8);
+    strncpy(h->name, name.cbegin(), 8);
 
     return reinterpret_cast<MemType>(h + 1);
 }
@@ -348,7 +348,7 @@ auto cacheCheck(cache_user_t *c) -> MemType {
 }
 
 template<typename MemType>
-auto cacheAlloc(cache_user_t *c, int size, char *name) -> MemType {
+auto cacheAlloc(cache_user_t *c, int size, std::string_view name) -> MemType {
     if (c->data)
         Sys_Error("Cache_Alloc: allready allocated");
 
@@ -362,7 +362,7 @@ auto cacheAlloc(cache_user_t *c, int size, char *name) -> MemType {
     while (true) {
         cs = Cache_TryAlloc(size, false);
         if (cs) {
-            strncpy(cs->name, name, sizeof(cs->name) - 1);
+            std::strncpy(cs->name, name.cbegin(), sizeof(cs->name) - 1);
             c->data = (void *) (cs + 1);
             cs->user = c;
             break;
