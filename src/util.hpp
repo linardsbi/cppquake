@@ -15,7 +15,7 @@ auto getGlobalString(unsigned long offset) -> std::string_view;
 
 auto getEdictString(unsigned long offset, edict_s *edict) -> std::string_view;
 
-auto getGlobalStringOffsetPair(unsigned long offset) -> NameOffsetPair;
+auto getGlobalStringOffsetPair(unsigned long offset) -> std::pair<unsigned, std::string>;
 
 auto getStringByOffset(unsigned long offset) -> std::string_view;
 
@@ -35,7 +35,9 @@ auto getFunctionByNameOffset(unsigned long offset) -> dfunction_t;
 
 auto getFunctionOffsetFromName(std::string_view name) -> unsigned long;
 
-auto toString(std::string_view v) -> std::string;
+inline auto toString(std::string_view v) -> std::string {
+    return {v.data(), v.size()};
+}
 
 auto stringExistsAtOffset(unsigned long offset) -> bool;
 

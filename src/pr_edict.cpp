@@ -35,8 +35,8 @@ globalvars_t *pr_global_struct;
 float *pr_globals;            // same as pr_global_struct
 int pr_edict_size;    // in bytes
 
-std::vector<NameOffsetPair> edictStrings{};
-std::vector<dfunction_t> edictFunctions{};
+std::map<unsigned, std::string> edictStrings;
+std::vector<dfunction_t> edictFunctions;
 std::size_t staticStringCount{};
 
 unsigned short pr_crc;
@@ -696,10 +696,13 @@ auto ED_ParseEpair(void *base, ddef_t *key, std::string_view s) -> qboolean {
 
     switch (key->type & ~DEF_SAVEGLOBAL) {
         case ev_string:
+        {
             //*(string_t *)d = ED_NewString (s) - pr_strings;
-
-            *(string_t *) d = newString(s);
+            auto str = toString(s);
+            *(string_t *) d = newString(str);
             break;
+        }
+
 
         case ev_float:
             *(float *) d = strtof(s.cbegin(), nullptr);
@@ -1002,16 +1005,15 @@ void PR_LoadProgs() {
     for (i = 0; i < progs->numglobals; i++)
         ((int *) pr_globals)[i] = LittleLong(((int *) pr_globals)[i]);
 
-    std::string temp{};
+    std::string temp;
     for (auto j = 1; j < progs->numstrings; j++) {
         if (pr_strings[j] != '\0') {
             temp += pr_strings[j];
         } else {
-            edictStrings.emplace_back(temp, j - temp.length());
-            temp.clear();
+            edictStrings[j - temp.length()] = temp;
+            temp = "";
         }
     }
-    staticStringCount = edictStrings.size();
 }
 
 

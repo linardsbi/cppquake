@@ -220,13 +220,13 @@ void PF_setmodel() {
 
 // check to see if model was properly precached
     for (i = 0, check = sv.model_precache; *check; i++, check++)
-        if (!Q_strcmp(*check, m.name))
+        if (!Q_strcmp(*check, m.second))
             break;
 
     if (!*check)
-        PR_RunError("no precache: %s\n", m.name.c_str());
+        PR_RunError("no precache: %s\n", m.second.c_str());
 
-    e->v.model = m.offset;
+    e->v.model = m.first;
     e->v.modelindex = i; //SV_ModelIndex (m);
 
     mod = sv.models[(int) e->v.modelindex];  // Mod_ForName (m, true);
@@ -835,11 +835,11 @@ void PF_dprint() {
     Con_DPrintf("%s", PF_VarString(0).c_str());
 }
 
-auto PF_FindOrAddString(const std::string& str) {
+auto PF_FindOrAddString(std::string& str) {
     if (auto existing_offset = getOffsetByString(str)) {
         return existing_offset;
     }
-    return newString(std::move(str));
+    return newString(str);
 }
 
 void PF_ftos() {
