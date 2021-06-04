@@ -763,6 +763,14 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
     if (ent != sv.edicts)    // hack
         memset(&ent->v, 0, progs->entityfields * 4);
 
+    auto trim_spaces = [](std::string& str) {
+        auto n = str.length();
+        while (n && str[n - 1] == ' ') {
+            n--;
+        }
+        str.resize(n);
+    };
+
 // go through all the dictionary pairs
     while (true) {
         // parse key
@@ -787,11 +795,7 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
         std::string keyname = com_token;
 
         // another hack to fix heynames with trailing spaces
-        auto n = keyname.length();
-        while (n && keyname[n - 1] == ' ') {
-            keyname[n - 1] = 0;
-            n--;
-        }
+        trim_spaces(keyname);
 
         // parse value
         data = COM_Parse(data);
@@ -815,9 +819,9 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
         }
 
         if (anglehack) {
-//            char	temp[32];
-//            strcpy (temp, com_token);
-            sprintf(com_token, "0 %s 0", com_token);
+            char	temp[32]{};
+            strcpy (temp, com_token);
+            sprintf(com_token, "0 %s 0", temp);
         }
 
         if (!ED_ParseEpair((void *) &ent->v, key, com_token))
