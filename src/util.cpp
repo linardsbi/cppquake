@@ -25,17 +25,13 @@ auto stringExistsAtOffset(unsigned long offset) -> bool {
 }
 
 auto getStringByOffset(const unsigned long offset) -> std::string_view {
-//    if (offset == 0 || offset == std::numeric_limits<decltype(offset)>::max()) {
-//        //printf("aaa %ld", offset);
-//        return "";
-//    }
+
     auto stringIt = findStringByOffset(offset);
     if (stringIt != edictStrings.end()) {
         return stringIt->name;
-    } else {
-        //printf("aaa %ld", offset);
-        return "??";
     }
+    return {};
+
 }
 
 auto getOffsetByString(std::string_view name) -> unsigned long {
@@ -48,7 +44,11 @@ auto getOffsetByString(std::string_view name) -> unsigned long {
 }
 
 auto getGlobalString(unsigned long offset) -> std::string_view {
-    return getStringByOffset(*(string_t *) &pr_globals[offset]);
+    auto str = getStringByOffset(*(string_t *) &pr_globals[offset]);
+    if (!str.empty()) {
+        return str;
+    }
+    return {};
 }
 
 auto getEdictString(unsigned long offset, edict_s *edict) -> std::string_view {
@@ -96,8 +96,9 @@ auto fixNewLines(std::string_view string) {
             if (string[i] == 'n') {
                 newstring[i - 1] = ' ';
                 newstring[i] = '\n';
-            } else
+            } else {
                 newstring[i] = '\\';
+            }
         }
     }
     return newstring;

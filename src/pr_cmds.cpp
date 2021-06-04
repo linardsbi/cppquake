@@ -835,31 +835,33 @@ void PF_dprint() {
     Con_DPrintf("%s", PF_VarString(0).c_str());
 }
 
-char pr_string_temp[128];
+auto PF_FindOrAddString(const std::string& str) {
+    if (auto existing_offset = getOffsetByString(str)) {
+        return existing_offset;
+    }
+    return newString(std::move(str));
+}
 
 void PF_ftos() {
-    float v = NAN;
-    v = G_FLOAT(OFS_PARM0);
+    float v = G_FLOAT(OFS_PARM0);
+    std::string temp;
 
-    if (v == (int) v)
-        sprintf(pr_string_temp, "%d", (int) v);
-    else
-        sprintf(pr_string_temp, "%5.1f", v);
-    G_INT(OFS_RETURN) = getOffsetByString(pr_string_temp);
-//	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+    if (v == (int) v) {
+        temp = std::to_string((int) v);
+    } else
+        temp = fmt::sprintf("%5.1f", v);
+
+    G_INT(OFS_RETURN) = PF_FindOrAddString(temp);
 }
 
 void PF_fabs() {
-    float v = NAN;
-    v = G_FLOAT(OFS_PARM0);
-    G_FLOAT(OFS_RETURN) = std::fabs(v);
+    G_FLOAT(OFS_RETURN) = std::fabs(G_FLOAT(OFS_PARM0));
 }
 
 void PF_vtos() {
-    sprintf(pr_string_temp, "'%5.1f %5.1f %5.1f'", G_VECTOR(OFS_PARM0)[0], G_VECTOR(OFS_PARM0)[1],
-            G_VECTOR(OFS_PARM0)[2]);
-    G_INT(OFS_RETURN) = getOffsetByString(pr_string_temp);
-//	G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+    std::string temp = fmt::sprintf("'%5.1f %5.1f %5.1f'", G_VECTOR(OFS_PARM0)[0], G_VECTOR(OFS_PARM0)[1],
+                               G_VECTOR(OFS_PARM0)[2]);
+    G_INT(OFS_RETURN) = PF_FindOrAddString(temp);
 }
 
 #ifdef QUAKE2
