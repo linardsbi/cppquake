@@ -46,7 +46,7 @@ float Cvar_VariableValue(std::string_view var_name) {
     cvar_t *var = Cvar_FindVar(var_name);
     if (!var)
         return 0;
-    return Q_atof(var->string.c_str());
+    return std::atof(var->string.c_str());
 }
 
 

@@ -314,12 +314,12 @@ the given string.  Single ascii characters return themselves, while
 the K_* names are matched up.
 ===================
 */
-auto Key_StringToKeynum(char *str) -> int {
+auto Key_StringToKeynum(std::string_view str) -> int {
     keyname_t *kn = nullptr;
 
-    if (!str || !str[0])
+    if (str.empty() || !str[0])
         return -1;
-    if (!str[1])
+    if (str.length() < 2)
         return str[0];
 
     for (kn = keynames; kn->name; kn++) {
@@ -393,7 +393,7 @@ void Key_Unbind_f() {
     int b = 0;
 
     if (Cmd_Argc() != 2) {
-        Con_Printf("unbind <key> : remove commands from a key\n");
+        Con_Printf("%s", "unbind <key> : remove commands from a key\n");
         return;
     }
 
@@ -427,7 +427,7 @@ void Key_Bind_f() {
     c = Cmd_Argc();
 
     if (c != 2 && c != 3) {
-        Con_Printf("bind <key> [command] : attach a command to a key\n");
+        Con_Printf("%s", "bind <key> [command] : attach a command to a key\n");
         return;
     }
     b = Key_StringToKeynum(Cmd_Argv(1));
@@ -448,8 +448,8 @@ void Key_Bind_f() {
     cmd[0] = 0;        // start out with a null string
     for (i = 2; i < c; i++) {
         if (i > 2)
-            strcat(cmd, " ");
-        strcat(cmd, Cmd_Argv(i));
+            std::strcat(cmd, " ");
+        std::strcat(cmd, Cmd_Argv(i).data());
     }
 
     Key_SetBinding(b, cmd);

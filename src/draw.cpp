@@ -136,8 +136,8 @@ void Draw_Character(int x, int y, int num) {
         return;            // totally off screen
 
 #ifdef PARANOID
-    if (y > vid.height - 8 || x < 0 || x > vid.width - 8)
-        Sys_Error("Con_DrawCharacter: (%i, %i)", x, y);
+//    if (y > vid.height - 8 || x < 0 || x > vid.width - 8)
+//        Sys_Error("Con_DrawCharacter: (%i, %i)", x, y);
     if (num < 0 || num > 255)
         Sys_Error("Con_DrawCharacter: char %i", num);
 #endif

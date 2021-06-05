@@ -54,45 +54,47 @@ Host_Status_f
 ==================
 */
 void Host_Status_f() {
-    client_t *client = nullptr;
-    int seconds = 0;
-    int minutes = 0;
-    int hours = 0;
-    int j = 0;
-    void (*print)(const char *fmt, ...);
+    bool print_to_console = false;
 
     if (cmd_source == src_command) {
         if (!sv.active) {
             Cmd_ForwardToServer();
             return;
         }
-        print = Con_Printf;
-    } else
-        print = SV_ClientPrintf;
+        print_to_console = true;
+    }
 
-    print("host:    %s\n", Cvar_VariableString("hostname"));
-    print("version: %4.2f\n", VERSION);
+    std::string buffer = fmt::sprintf("host:    %s\n", Cvar_VariableString("hostname"));
+    buffer += fmt::sprintf("version: %4.2f\n", VERSION);
+
     if (tcpipAvailable)
-        print("tcp/ip:  %s\n", my_tcpip_address);
+        buffer += fmt::sprintf("tcp/ip:  %s\n", my_tcpip_address);
     if (ipxAvailable)
-        print("ipx:     %s\n", my_ipx_address);
-    print("map:     %s\n", sv.name);
-    print("players: %i active (%i max)\n\n", net_activeconnections, svs.maxclients);
-    for (j = 0, client = svs.clients; j < svs.maxclients; j++, client++) {
+        buffer += fmt::sprintf("ipx:     %s\n", my_ipx_address);
+    buffer += fmt::sprintf("map:     %s\n", sv.name);
+    buffer += fmt::sprintf("players: %i active (%i max)\n\n", net_activeconnections, svs.maxclients);
+    auto client = svs.clients;
+    for (int j = 0; j < svs.maxclients; j++, client++) {
         if (!client->active)
             continue;
-        seconds = (int) (net_time - client->netconnection->connecttime);
-        minutes = seconds / 60;
+        auto seconds = (int) (net_time - client->netconnection->connecttime);
+        auto minutes = seconds / 60;
+        auto hours = 0;
         if (minutes) {
             seconds -= (minutes * 60);
             hours = minutes / 60;
             if (hours)
                 minutes -= (hours * 60);
-        } else
-            hours = 0;
-        print("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j + 1, client->name.c_str(), (int) client->edict->v.frags, hours,
+        }
+        buffer += fmt::sprintf("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j + 1, client->name, (int) client->edict->v.frags, hours,
               minutes, seconds);
-        print("   %s\n", client->netconnection->address);
+        buffer += fmt::sprintf("   %s\n", client->netconnection->address);
+    }
+
+    if (print_to_console) {
+        Con_Printf("%s", buffer);
+    } else {
+        SV_ClientPrintf("%s", buffer.c_str());
     }
 }
 
@@ -247,13 +249,13 @@ void Host_Map_f() {
 
     cls.mapstring[0] = 0;
     for (i = 0; i < Cmd_Argc(); i++) {
-        strcat(cls.mapstring, Cmd_Argv(i));
+        strcat(cls.mapstring, Cmd_Argv(i).data());
         strcat(cls.mapstring, " ");
     }
     strcat(cls.mapstring, "\n");
 
     svs.serverflags = 0;            // haven't completed an episode yet
-    strcpy(name, Cmd_Argv(1));
+    strcpy(name, Cmd_Argv(1).data());
 #ifdef QUAKE2
     SV_SpawnServer (name, NULL);
 #else
@@ -266,7 +268,7 @@ void Host_Map_f() {
         strcpy(cls.spawnparms, "");
 
         for (i = 2; i < Cmd_Argc(); i++) {
-            strcat(cls.spawnparms, Cmd_Argv(i));
+            strcat(cls.spawnparms, Cmd_Argv(i).data());
             strcat(cls.spawnparms, " ");
         }
 
@@ -321,7 +323,7 @@ void Host_Changelevel_f() {
         return;
     }
     SV_SaveSpawnparms();
-    strcpy(level, Cmd_Argv(1));
+    strcpy(level, Cmd_Argv(1).data());
     SV_SpawnServer(level);
 #endif
 }
@@ -382,7 +384,7 @@ void Host_Connect_f() {
         CL_StopPlayback();
         CL_Disconnect();
     }
-    strcpy(name, Cmd_Argv(1));
+    strcpy(name, Cmd_Argv(1).data());
     CL_EstablishConnection(name);
     Host_Reconnect_f();
 }
@@ -456,7 +458,7 @@ void Host_Savegame_f() {
         return;
     }
 
-    if (strstr(Cmd_Argv(1), "..")) {
+    if (Cmd_Argv(1).find("..") != std::string::npos) {
         Con_Printf("Relative pathnames are not allowed.\n");
         return;
     }
@@ -512,6 +514,7 @@ void Host_Savegame_f() {
 Host_Loadgame_f
 ===============
 */
+// fixme does not work
 void Host_Loadgame_f() {
     char name[MAX_OSPATH];
     FILE *f = nullptr;
@@ -609,7 +612,7 @@ void Host_Loadgame_f() {
         if (i == sizeof(str) - 1)
             Sys_Error("Loadgame buffer overflow");
         str[i] = 0;
-        std::string_view start = COM_Parse(str); // fixme might break something
+        std::string_view start = COM_Parse(str);
 //		start = str;
 //		start = COM_Parse(str);
         if (!com_token[0])
@@ -851,7 +854,7 @@ Host_Name_f
 */
 void Host_Name_f() {
     if (Cmd_Argc() == 1) {
-        Con_Printf("\"name\" is \"%s\"\n", cl_name.string.c_str());
+        Con_Printf("\"name\" is \"%s\"\n", cl_name.string);
         return;
     }
     std::string_view newName = Cmd_Argc() == 2 ? Cmd_Argv(1) : Cmd_Args();
@@ -1043,7 +1046,7 @@ void Host_Tell_f() {
     for (auto j = 0; j < svs.maxclients; j++, client++) {
         if (!client->active || !client->spawned)
             continue;
-        if (Q_strcasecmp(client->name.data(), Cmd_Argv(1)))
+        if (Q_strcasecmp(client->name, Cmd_Argv(1)))
             continue;
         host_client = client;
         SV_ClientPrintf("%s", text.c_str());
@@ -1069,10 +1072,10 @@ void Host_Color_f() {
     }
 
     if (Cmd_Argc() == 2)
-        top = bottom = atoi(Cmd_Argv(1));
+        top = bottom = Q_atoi(Cmd_Argv(1));
     else {
-        top = atoi(Cmd_Argv(1));
-        bottom = atoi(Cmd_Argv(2));
+        top = Q_atoi(Cmd_Argv(1));
+        bottom = Q_atoi(Cmd_Argv(2));
     }
 
     top &= 15;
@@ -1373,7 +1376,7 @@ void Host_Kick_f() {
             {
                 while (message[j] == ' ')                // skip white space
                     ++j;
-                j += Q_strlen(Cmd_Argv(2));    // skip the number
+                j += Cmd_Argv(2).length();    // skip the number
             }
 
             while (message[j] == ' ')                // skip white space
@@ -1406,7 +1409,6 @@ Host_Give_f
 ==================
 */
 void Host_Give_f() {
-    char *t = nullptr;
     int v = 0, w = 0;
     eval_t *val = nullptr;
 
@@ -1418,8 +1420,8 @@ void Host_Give_f() {
     if (pr_global_struct->deathmatch && !host_client->privileged)
         return;
 
-    t = Cmd_Argv(1);
-    v = atoi(Cmd_Argv(2));
+    auto t = Cmd_Argv(1);
+    v = Q_atoi(Cmd_Argv(2));
 
     switch (t[0]) {
         case '0':
@@ -1583,7 +1585,7 @@ void Host_Viewframe_f() {
         return;
     m = cl.model_precache[(int) e->v.modelindex];
 
-    f = atoi(Cmd_Argv(1));
+    f = Q_atoi(Cmd_Argv(1));
     if (f >= m->numframes)
         f = m->numframes - 1;
 
@@ -1677,7 +1679,7 @@ void Host_Startdemos_f() {
     Con_Printf("%i demo(s) in loop\n", c);
 
     for (i = 1; i < c + 1; i++)
-        strncpy(cls.demos[i - 1], Cmd_Argv(i), sizeof(cls.demos[0]) - 1);
+        strncpy(cls.demos[i - 1], Cmd_Argv(i).data(), sizeof(cls.demos[0]) - 1);
 
     if (!sv.active && cls.demonum != -1 && !cls.demoplayback) {
         cls.demonum = 0;

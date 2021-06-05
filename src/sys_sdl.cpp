@@ -335,7 +335,7 @@ auto main(int c, char **v) -> int {
 
     double oldtime = Sys_FloatTime() - 0.1;
     auto fpsLastTime = SDL_GetTicks();
-
+    const bool showFPS = COM_CheckParm("-showfps");
     while (true) {
 // find time spent rendering last frame
 
@@ -358,7 +358,7 @@ auto main(int c, char **v) -> int {
         Host_Frame(time);
 
         ++frame;
-        if (COM_CheckParm("-showfps")) {
+        if (showFPS) {
             SDL_Delay(1);
             if (fpsLastTime < SDL_GetTicks() - fpsInterval * 1000) {
                 fpsLastTime = SDL_GetTicks();

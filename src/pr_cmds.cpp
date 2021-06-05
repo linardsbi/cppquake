@@ -39,7 +39,6 @@ auto PF_VarString(int first) -> std::string {
     for (int i = first; i < pr_argc; i++) {
         out += getGlobalString(OFS_PARM0 + i * 3);
     }
-    //out += " boi";
 
     return out;
 }
@@ -772,7 +771,7 @@ float cvar (string)
 =================
 */
 void PF_cvar() {
-    G_FLOAT(OFS_RETURN) = Cvar_VariableValue(const_cast<char *>(getGlobalString(OFS_PARM0).data()));
+    G_FLOAT(OFS_RETURN) = Cvar_VariableValue(getGlobalString(OFS_PARM0));
 }
 
 /*

@@ -23,6 +23,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef RENDER_HPP
 #define RENDER_HPP
 
+#include "common.hpp"
+#include "vid.hpp"
+
 #define    MAXCLIPPLANES    11
 
 #define    TOP_RANGE        16            // soldier uniform colors
@@ -37,6 +40,15 @@ typedef struct efrag_s {
     struct efrag_s *entnext;
 } efrag_t;
 
+struct entity_state_t {
+    vec3_t origin;
+    vec3_t angles;
+    int modelindex;
+    int frame;
+    int colormap;
+    int skin;
+    int effects;
+};
 
 typedef struct entity_s {
     qboolean forcelink;        // model changed

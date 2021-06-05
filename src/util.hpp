@@ -8,9 +8,6 @@
 #include <string_view>
 #include "quakedef.hpp"
 
-// TEMPORARY HACKY STUFF
-// needs to be changed
-
 auto getGlobalString(unsigned long offset) -> std::string_view;
 
 auto getEdictString(unsigned long offset, edict_s *edict) -> std::string_view;

@@ -135,11 +135,10 @@ void CDAudio_Shutdown() {
 }
 
 static void CD_f() {
-    char *command = nullptr;
     int cdstate = 0;
     if (Cmd_Argc() < 2) return;
 
-    command = Cmd_Argv(1);
+    auto command = Cmd_Argv(1);
     if (!Q_strcasecmp(command, "on")) {
         enabled = true;
     }

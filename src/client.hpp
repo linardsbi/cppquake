@@ -18,10 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // client.h
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
+#pragma once
 
-#include "common.hpp"
+#include "mathlib.hpp"
+#include "render.hpp"
+#include "cvar.hpp"
+#include "vid.hpp"
 
 typedef struct {
     vec3_t viewangles;
@@ -392,5 +394,3 @@ void V_SetContentsColor(int contents);
 void CL_InitTEnts(void);
 
 void CL_SignonReply(void);
-
-#endif

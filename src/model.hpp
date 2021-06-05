@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "modelgen.hpp"
 #include "spritegn.hpp"
 #include "zone.hpp"
+#include "bspfile.hpp"
 
 /*
 
@@ -357,7 +358,7 @@ void Mod_Init(void);
 
 void Mod_ClearAll(void);
 
-model_t *Mod_ForName(const char *name, qboolean crash);
+model_t *Mod_ForName(std::string_view name, qboolean crash);
 
 void *Mod_Extradata(model_t *mod);    // handles caching
 void Mod_TouchModel(char *name);

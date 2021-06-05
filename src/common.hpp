@@ -17,16 +17,12 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-#ifndef COMMON_H
-#define COMMON_H
+#pragma once
 
 // comndef.h  -- general definitions
 #include <string_view>
 #include <fmt/printf.h>
 
-#include "sys.hpp"
-#include "console.hpp"
-#include "quakedef.hpp"
 
 #if !defined BYTE_DEFINED
 typedef unsigned char byte;
@@ -54,7 +50,7 @@ void SZ_Clear(sizebuf_t *buf);
 //void *SZ_GetSpace (sizebuf_t *buf, int length);
 void SZ_Write(sizebuf_t *buf, const void *data, std::size_t length);
 
-void SZ_Print(sizebuf_t *buf, const char *data);    // strcats onto the sizebuf
+void SZ_Print(sizebuf_t *buf, std::string_view data);    // strcats onto the sizebuf
 
 //============================================================================
 
@@ -173,13 +169,13 @@ bool Q_strcmp(std::string_view s1, std::string_view s2);
 bool Q_strncmp(std::string_view s1, std::string_view s2, std::size_t count);
 
 //int Q_strncmp (char *s1, char *s2, int count);
-int Q_strcasecmp(const char *s1, const char *s2);
+int Q_strcasecmp(std::string_view s1, std::string_view s2);
 
-int Q_strncasecmp(const char *s1, const char *s2, int n);
+int Q_strncasecmp(std::string_view s1, std::string_view s2, int n);
 
-int Q_atoi(char *str);
+int Q_atoi(std::string_view str);
 
-float Q_atof(const char *str);
+float Q_atof(std::string_view str);
 
 //============================================================================
 
@@ -225,7 +221,7 @@ varargs versions of all text functions.
 */
 template<typename S, typename... Args>
 std::string va(const S &fmt, Args &&... args) {
-    return fmt::sprintf(fmt, args...);
+    return fmt::sprintf(fmt, std::forward<Args>(args)...);
 }
 // does a varargs printf into a temp buffer
 
@@ -241,7 +237,7 @@ void COM_WriteFile(char *filename, void *data, int len);
 
 int COM_OpenFile(std::string_view filename, int *handle);
 
-int COM_FOpenFile(char *filename, FILE **file);
+int COM_FOpenFile(std::string_view filename, FILE **file);
 
 void COM_CloseFile(int h);
 
@@ -249,7 +245,7 @@ byte *COM_LoadStackFile(char *path, void *buffer, int bufsize);
 
 byte *COM_LoadTempFile(char *path);
 
-byte *COM_LoadHunkFile(char *path);
+byte *COM_LoadHunkFile(std::string_view path);
 
 void COM_LoadCacheFile(std::string_view path, cache_user_s *cu);
 
@@ -257,6 +253,9 @@ void COM_LoadCacheFile(std::string_view path, cache_user_s *cu);
 extern struct cvar_s registered;
 
 extern qboolean standard_quake, rogue, hipnotic;
+
+#include "sys.hpp"
+#include "console.hpp"
 
 template<typename MemType>
 MemType SZGetSpace(sizebuf_t *buf, int length) {
@@ -268,7 +267,7 @@ MemType SZGetSpace(sizebuf_t *buf, int length) {
             Sys_Error("SZ_GetSpace: %i is > full buffer size", length);
 
         buf->overflowed = true;
-        Con_Printf("SZ_GetSpace: overflow");
+        Con_Printf("%s", "SZ_GetSpace: overflow");
         SZ_Clear(buf);
     }
 
@@ -278,4 +277,3 @@ MemType SZGetSpace(sizebuf_t *buf, int length) {
     return data;
 }
 
-#endif

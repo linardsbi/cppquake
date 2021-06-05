@@ -119,11 +119,11 @@ Z_Print
 void Z_Print(memzone_t *zone) {
     memblock_t *block = nullptr;
 
-    Con_Printf("zone size: %i  location: %p\n", mainzone->size, mainzone);
+    Con_Printf("zone size: %i  location: %x\n", mainzone->size, (void*)mainzone);
 
     for (block = zone->blocklist.next;; block = block->next) {
         Con_Printf("block:%p    size:%7i    tag:%3i\n",
-                   block, block->size, block->tag);
+                   (void*)block, block->size, block->tag);
 
         if (block->next == &zone->blocklist)
             break;            // all blocks have been hit
@@ -252,7 +252,7 @@ void Hunk_Print(qboolean all) {
         //
         memcpy(name, h->name, 8);
         if (all)
-            Con_Printf("%8p :%8i %8s\n", h, h->size, name);
+            Con_Printf("%8p :%8i %8s\n", (void*)h, h->size, name);
 
         //
         // print the total

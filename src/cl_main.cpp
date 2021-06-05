@@ -661,7 +661,8 @@ CL_Init
 =================
 */
 void CL_Init() {
-    SZ_Alloc(&cls.message, 1024);
+    constexpr int MESSAGE_BUF_SIZE = 2048;
+    SZ_Alloc(&cls.message, MESSAGE_BUF_SIZE);
 
     CL_InitInput();
     CL_InitTEnts();

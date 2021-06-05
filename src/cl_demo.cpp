@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
-#include "math.h"
+#include <cmath>
 #include "quakedef.hpp"
 
 void CL_FinishTimeDemo();
@@ -195,7 +195,7 @@ void CL_Record_f() {
         return;
     }
 
-    if (strstr(Cmd_Argv(1), "..")) {
+    if (Cmd_Argv(1).find("..") != std::string::npos) {
         Con_Printf("Relative pathnames are not allowed.\n");
         return;
     }
@@ -208,12 +208,12 @@ void CL_Record_f() {
 
 // write the forced cd track number, or -1
     if (c == 4) {
-        track = atoi(Cmd_Argv(3));
+        track = std::atoi(Cmd_Argv(3).data());
         Con_Printf("Forcing CD track to %i\n", cls.forcetrack);
     } else
         track = -1;
 
-    sprintf(name, "%s/%s", com_gamedir, Cmd_Argv(1));
+    sprintf(name, "%s/%s", com_gamedir, Cmd_Argv(1).data());
 
 //
 // start the map up
@@ -248,7 +248,6 @@ play [demoname]
 ====================
 */
 void CL_PlayDemo_f() {
-    char name[256];
     int c = 0;
     qboolean neg = false;
 
@@ -268,8 +267,10 @@ void CL_PlayDemo_f() {
 //
 // open the demo file
 //
-    strcpy(name, Cmd_Argv(1));
-    COM_DefaultExtension(name, ".dem");
+    std::string name(Cmd_Argv(1));
+    if (name.find('.') == std::string::npos) {
+        name += ".dem";
+    }
 
     Con_Printf("Playing demo from %s.\n", name);
     COM_FOpenFile(name, &cls.demofile);

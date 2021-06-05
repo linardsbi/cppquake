@@ -196,7 +196,7 @@ auto Q_strrchr(char *s, char c) -> char * {
 }
 
 void Q_strcat(char *dest, char *src) {
-    dest += Q_strlen(dest);
+    dest += std::strlen(dest);
     Q_strcpy(dest, src);
 }
 
@@ -208,151 +208,148 @@ auto Q_strncmp(std::string_view s1, std::string_view s2, const std::size_t count
     return s1.compare(0, count, s2, 0, count);
 }
 
-auto Q_strncasecmp(const char *s1, const char *s2, int n) -> int {
-    while (true) {
-        auto c1 = *s1++;
-        auto c2 = *s2++;
-
-        if (!n--)
-            return 0;               // strings are equal until end point
-
-        if (c1 != c2) {
-            if (c1 >= 'a' && c1 <= 'z')
-                c1 -= ('a' - 'A');
-            if (c2 >= 'a' && c2 <= 'z')
-                c2 -= ('a' - 'A');
-            if (c1 != c2)
-                return -1;              // strings not equal
+// -1 == not equal; 0 == equal
+auto Q_strncasecmp(std::string_view s1, std::string_view s2, int n) -> int {
+    for (auto c1 = s1.begin(), c2 = s2.begin(); n > 0; n--, c1++, c2++) {
+        if (*c1 != *c2) {
+            if (tolower(*c1) != tolower(*c2)) {
+                return -1; // strings not equal
+            }
         }
-        if (!c1)
-            return 0;               // strings are equal
-//              s1++;
-//              s2++;
+        if (c1 == s1.end() || c2 == s2.end()) {
+            return 0; // strings are equal
+        }
+    }
+
+    if (n == 0) {
+        return 0; // strings are equal until end point
     }
 
     return -1;
 }
 
-auto Q_strcasecmp(const char *s1, const char *s2) -> int {
+auto Q_strcasecmp(std::string_view s1, std::string_view s2) -> int {
     return Q_strncasecmp(s1, s2, 99999);
 }
 
-auto Q_atoi(char *str) -> int {
-    int val;
-    int sign;
-    int c;
-
-    if (*str == '-') {
-        sign = -1;
-        str++;
-    } else
-        sign = 1;
-
-    val = 0;
-
+auto Q_atoi(std::string_view str) -> int {
+    return std::atoi(str.data());
+//    int val;
+//    int sign;
+//    int c;
 //
-// check for hex
+//    if (*str == '-') {
+//        sign = -1;
+//        str++;
+//    } else
+//        sign = 1;
 //
-    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
-        str += 2;
-        while (true) {
-            c = *str++;
-            if (c >= '0' && c <= '9')
-                val = (val << 4) + c - '0';
-            else if (c >= 'a' && c <= 'f')
-                val = (val << 4) + c - 'a' + 10;
-            else if (c >= 'A' && c <= 'F')
-                val = (val << 4) + c - 'A' + 10;
-            else
-                return val * sign;
-        }
-    }
-
+//    val = 0;
 //
-// check for character
+////
+//// check for hex
+////
+//    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+//        str += 2;
+//        while (true) {
+//            c = *str++;
+//            if (c >= '0' && c <= '9')
+//                val = (val << 4) + c - '0';
+//            else if (c >= 'a' && c <= 'f')
+//                val = (val << 4) + c - 'a' + 10;
+//            else if (c >= 'A' && c <= 'F')
+//                val = (val << 4) + c - 'A' + 10;
+//            else
+//                return val * sign;
+//        }
+//    }
 //
-    if (str[0] == '\'') {
-        return sign * str[1];
-    }
-
+////
+//// check for character
+////
+//    if (str[0] == '\'') {
+//        return sign * str[1];
+//    }
 //
-// assume decimal
+////
+//// assume decimal
+////
+//    while (true) {
+//        c = *str++;
+//        if (c < '0' || c > '9')
+//            return val * sign;
+//        val = val * 10 + c - '0';
+//    }
 //
-    while (true) {
-        c = *str++;
-        if (c < '0' || c > '9')
-            return val * sign;
-        val = val * 10 + c - '0';
-    }
-
-    return 0;
+//    return 0;
 }
 
 
-auto Q_atof(const char *str) -> float {
-    double val;
-    int sign;
-    int c;
-    int decimal, total;
-
-    if (*str == '-') {
-        sign = -1;
-        str++;
-    } else
-        sign = 1;
-
-    val = 0;
-
+auto Q_atof(std::string_view str) -> float {
+    return std::atof(str.data());
+//    double val;
+//    int sign;
+//    int c;
+//    int decimal, total;
 //
-// check for hex
+//    if (*str == '-') {
+//        sign = -1;
+//        str++;
+//    } else
+//        sign = 1;
 //
-    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
-        str += 2;
-        while (true) {
-            c = *str++;
-            if (c >= '0' && c <= '9')
-                val = (val * 16) + c - '0';
-            else if (c >= 'a' && c <= 'f')
-                val = (val * 16) + c - 'a' + 10;
-            else if (c >= 'A' && c <= 'F')
-                val = (val * 16) + c - 'A' + 10;
-            else
-                return val * sign;
-        }
-    }
-
+//    val = 0;
 //
-// check for character
+////
+//// check for hex
+////
+//    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+//        str += 2;
+//        while (true) {
+//            c = *str++;
+//            if (c >= '0' && c <= '9')
+//                val = (val * 16) + c - '0';
+//            else if (c >= 'a' && c <= 'f')
+//                val = (val * 16) + c - 'a' + 10;
+//            else if (c >= 'A' && c <= 'F')
+//                val = (val * 16) + c - 'A' + 10;
+//            else
+//                return val * sign;
+//        }
+//    }
 //
-    if (str[0] == '\'') {
-        return sign * str[1];
-    }
-
+////
+//// check for character
+////
+//    if (str[0] == '\'') {
+//        return sign * str[1];
+//    }
 //
-// assume decimal
+////
+//// assume decimal
+////
+//    decimal = -1;
+//    total = 0;
+//    while (true) {
+//        c = *str++;
+//        if (c == '.') {
+//            decimal = total;
+//            continue;
+//        }
+//        if (c < '0' || c > '9')
+//            break;
+//        val = val * 10 + c - '0';
+//        total++;
+//    }
 //
-    decimal = -1;
-    total = 0;
-    while (true) {
-        c = *str++;
-        if (c == '.') {
-            decimal = total;
-            continue;
-        }
-        if (c < '0' || c > '9')
-            break;
-        val = val * 10 + c - '0';
-        total++;
-    }
-
-    if (decimal == -1)
-        return val * sign;
-    while (total > decimal) {
-        val /= 10;
-        total--;
-    }
-
-    return val * sign;
+//    if (decimal == -1)
+//        return val * sign;
+//    while (total > decimal) {
+//        val /= 10;
+//        total--;
+//    }
+//
+//    return val * sign;
 }
 
 /*
@@ -672,14 +669,14 @@ void SZ_Write(sizebuf_t *buf, const void *data, std::size_t length) {
     std::memcpy(SZGetSpace<void *>(buf, length), data, length);
 }
 
-void SZ_Print(sizebuf_t *buf, const char *data) {
-    auto len = strlen(data) + 1;
+void SZ_Print(sizebuf_t *buf, std::string_view data) {
+    const auto len = data.length() + 1;
 
 // byte * cast to keep VC++ happy
     if (buf->data[buf->cursize - 1])
-        std::memcpy((byte *) SZGetSpace<void *>(buf, len), data, len); // no trailing 0
+        std::memcpy((byte *) SZGetSpace<void *>(buf, len), data.data(), len); // no trailing 0
     else
-        std::memcpy((byte *) SZGetSpace<void *>(buf, len - 1) - 1, data, len); // write over trailing 0
+        std::memcpy((byte *) SZGetSpace<void *>(buf, len - 1) - 1, data.data(), len); // write over trailing 0
 }
 
 
@@ -1271,7 +1268,7 @@ If the requested file is inside a packfile, a new FILE * will be opened
 into the file.
 ===========
 */
-auto COM_FOpenFile(char *filename, FILE **file) -> int {
+auto COM_FOpenFile(std::string_view filename, FILE **file) -> int {
     return COM_FindFile(filename, nullptr, file);
 }
 
@@ -1348,7 +1345,7 @@ auto COM_LoadFile(std::string_view path, const int usehunk) -> byte * {
     return buf;
 }
 
-auto COM_LoadHunkFile(char *path) -> byte * {
+auto COM_LoadHunkFile(std::string_view path) -> byte * {
     return COM_LoadFile(path, 1);
 }
 

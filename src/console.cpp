@@ -253,7 +253,7 @@ All console printing must go through this in order to be logged to disk
 If no console is visible, the notify window will pop up.
 ================
 */
-void Con_Print(char *txt) {
+void Con_Print(const char *txt) {
     int y;
     int c, l;
     static int cr;
@@ -327,18 +327,6 @@ void Con_Print(char *txt) {
 Con_DebugLog
 ================
 */
-void Con_DebugLog(std::string_view file, char *fmt, ...) {
-    va_list argptr;
-    static char data[1024];
-    int fd;
-
-    va_start(argptr, fmt);
-    vsprintf(data, fmt, argptr);
-    va_end(argptr);
-    fd = open(file.data(), O_WRONLY | O_CREAT | O_APPEND, 0666);
-    write(fd, data, strlen(data));
-    close(fd);
-}
 
 
 
@@ -351,43 +339,6 @@ Handles cursor positioning, line wrapping, etc
 */
 #define    MAXPRINTMSG    4096
 
-// FIXME: make a buffer size safe vsprintf?
-void Con_Printf(const char *fmt, ...) {
-    va_list argptr;
-    char msg[MAXPRINTMSG];
-    static qboolean inupdate;
-
-    va_start (argptr, fmt);
-    vsprintf(msg, fmt, argptr);
-    va_end (argptr);
-
-// also echo to debugging console
-    sysPrintf("{}", msg);    // also echo to debugging console
-
-// log all messages to file
-    if (con_debuglog)
-        Con_DebugLog(va("%s/qconsole.log", com_gamedir), "%s", msg);
-
-    if (!con_initialized)
-        return;
-
-    if (cls.state == ca_dedicated)
-        return;        // no graphics mode
-
-// write it to the scrollable buffer
-    Con_Print(msg);
-
-// update the screen if the console is displayed
-    if (cls.signon != SIGNONS && !scr_disabled_for_loading) {
-        // protect against infinite loop if something in SCR_UpdateScreen calls
-        // Con_Printd
-        if (!inupdate) {
-            inupdate = true;
-            SCR_UpdateScreen();
-            inupdate = false;
-        }
-    }
-}
 
 /*
 ================

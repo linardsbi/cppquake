@@ -92,7 +92,7 @@ auto Cmd_CompleteCommand(std::string_view partial) -> std::string_view;
 
 int Cmd_Argc();
 
-char *Cmd_Argv(int arg);
+std::string_view Cmd_Argv(int arg);
 
 const char *Cmd_Args();
 // The functions that execute commands get their parameters with these

@@ -104,45 +104,42 @@ unsigned long banAddr = 0x00000000;
 unsigned long banMask = 0xffffffff;
 
 void NET_Ban_f() {
-    auto inet_addr = [](const char *cp) -> unsigned long {
+    auto inet_addr = [](std::string_view cp) -> unsigned long {
         int ha1 = 0, ha2 = 0, ha3 = 0, ha4 = 0;
 
-        int ret = sscanf(cp, "%d.%d.%d.%d", &ha1, &ha2, &ha3, &ha4);
+        int ret = sscanf(cp.data(), "%d.%d.%d.%d", &ha1, &ha2, &ha3, &ha4);
         if (ret != 4)
             return -1;
 
         return (ha1 << 24) | (ha2 << 16) | (ha3 << 8) | ha4;
     };
     auto inet_ntoa = [](in_addr in) {
-        char buf[32];
-
-        sprintf(buf, "%u.%u.%u.%u", in.S_un.S_un_b.s_b1, in.S_un.S_un_b.s_b2, in.S_un.S_un_b.s_b3, in.S_un.S_un_b.s_b4);
-        return buf;
+        return fmt::sprintf("%u.%u.%u.%u", in.S_un.S_un_b.s_b1, in.S_un.S_un_b.s_b2, in.S_un.S_un_b.s_b3, in.S_un.S_un_b.s_b4);
     };
-    char addrStr[32];
-    char maskStr[32];
-    void (*print)(const char *fmt, ...);
+    bool print_to_console = false;
 
     if (cmd_source == src_command) {
         if (!sv.active) {
             Cmd_ForwardToServer();
             return;
         }
-        print = Con_Printf;
+        print_to_console = true;
     } else {
         if (pr_global_struct->deathmatch && !host_client->privileged)
             return;
-        print = SV_ClientPrintf;
     }
+
+    std::string buffer;
 
     switch (Cmd_Argc()) {
         case 1:
             if (((struct in_addr *) &banAddr)->s_addr) {
-                Q_strcpy(addrStr, inet_ntoa(*(struct in_addr *) &banAddr));
-                Q_strcpy(maskStr, inet_ntoa(*(struct in_addr *) &banMask));
-                print("Banning %s [%s]\n", addrStr, maskStr);
-            } else
-                print("Banning not active\n");
+                buffer = fmt::sprintf("Banning %s [%s]\n",
+                                       inet_ntoa(*(struct in_addr *) &banAddr),
+                                       inet_ntoa(*(struct in_addr *) &banMask));
+            } else {
+                buffer = "Banning not active\n";
+            }
             break;
 
         case 2:
@@ -159,8 +156,13 @@ void NET_Ban_f() {
             break;
 
         default:
-            print("BAN ip_address [mask]\n");
+            buffer = "BAN ip_address [mask]\n";
             break;
+    }
+    if (print_to_console) {
+        Con_Printf("%s", buffer);
+    } else {
+        SV_ClientPrintf("%s", buffer.c_str());
     }
 }
 

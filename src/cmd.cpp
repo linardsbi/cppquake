@@ -313,7 +313,6 @@ void Cmd_Alias_f() {
     cmdalias_t *a = nullptr;
     char cmd[1024];
     int i = 0, c = 0;
-    char *s = nullptr;
 
     if (Cmd_Argc() == 1) {
         Con_Printf("Current alias commands:\n");
@@ -322,15 +321,15 @@ void Cmd_Alias_f() {
         return;
     }
 
-    s = Cmd_Argv(1);
-    if (strlen(s) >= MAX_ALIAS_NAME) {
+    auto s = Cmd_Argv(1);
+    if (s.length() >= MAX_ALIAS_NAME) {
         Con_Printf("Alias name is too long\n");
         return;
     }
 
     // if the alias allready exists, reuse it
     for (a = cmd_alias; a; a = a->next) {
-        if (!strcmp(s, a->name)) {
+        if (!Q_strcmp(s, a->name)) {
             Z_Free(a->value);
             break;
         }
@@ -341,17 +340,18 @@ void Cmd_Alias_f() {
         a->next = cmd_alias;
         cmd_alias = a;
     }
-    strcpy(a->name, s);
+    std::strncpy(a->name, s.data(), s.length());
 
 // copy the rest of the command line
     cmd[0] = 0;        // start out with a null string
     c = Cmd_Argc();
     for (i = 2; i < c; i++) {
-        strcat(cmd, Cmd_Argv(i));
+        auto argval = Cmd_Argv(i);
+        std::strncat(cmd, argval.data(), argval.length());
         if (i != c)
-            strcat(cmd, " ");
+            std::strcat(cmd, " ");
     }
-    strcat(cmd, "\n");
+    std::strcat(cmd, "\n");
 
     a->value = CopyString(cmd);
 }
@@ -375,7 +375,6 @@ using cmd_function_t = struct cmd_function_s {
 
 static int cmd_argc;
 static char *cmd_argv[MAX_ARGS];
-static char cmd_null_string[] = "";
 static const char *cmd_args = nullptr;
 
 cmd_source_t cmd_source;
@@ -414,9 +413,9 @@ auto Cmd_Argc() -> int {
 Cmd_Argv
 ============
 */
-auto Cmd_Argv(int arg) -> char * {
+auto Cmd_Argv(int arg) -> std::string_view {
     if ((unsigned) arg >= cmd_argc)
-        return cmd_null_string;
+        return {};
     return cmd_argv[arg];
 }
 
@@ -470,7 +469,7 @@ void Cmd_TokenizeString(const char *text) {
 
         if (cmd_argc < MAX_ARGS) {
             cmd_argv[cmd_argc] = zmalloc<char *>(Q_strlen(com_token) + 1);
-            Q_strcpy(cmd_argv[cmd_argc], com_token);
+            std::strcpy(cmd_argv[cmd_argc], com_token);
             cmd_argc++;
         }
     }

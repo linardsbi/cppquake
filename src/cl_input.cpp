@@ -58,11 +58,10 @@ int in_impulse;
 
 void KeyDown(kbutton_t *b) {
     int k = 0;
-    char *c = nullptr;
+    auto c = Cmd_Argv(1);
 
-    c = Cmd_Argv(1);
     if (c[0])
-        k = atoi(c);
+        k = Q_atoi(c);
     else
         k = -1;        // typed manually at the console for continuous down
 
@@ -85,11 +84,10 @@ void KeyDown(kbutton_t *b) {
 
 void KeyUp(kbutton_t *b) {
     int k = 0;
-    char *c = nullptr;
 
-    c = Cmd_Argv(1);
+    auto c = Cmd_Argv(1);
     if (c[0])
-        k = atoi(c);
+        k = Q_atoi(c);
     else { // typed manually at the console, assume for unsticking, so clear all
         b->down[0] = b->down[1] = 0;
         b->state = 4;    // impulse up

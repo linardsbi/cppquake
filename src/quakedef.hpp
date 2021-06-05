@@ -211,21 +211,16 @@ void	VID_UnlockBuffer ();
 // #define IDGODS
 
 #include "common.hpp"
-#include "bspfile.hpp"
-#include "vid.hpp"
-#include "sys.hpp"
-#include "zone.hpp"
-#include "mathlib.hpp"
 
-struct entity_state_t {
-    vec3_t origin;
-    vec3_t angles;
-    int modelindex;
-    int frame;
-    int colormap;
-    int skin;
-    int effects;
-};
+//struct entity_state_t {
+//    vec3_t origin;
+//    vec3_t angles;
+//    int modelindex;
+//    int frame;
+//    int colormap;
+//    int skin;
+//    int effects;
+//};
 
 
 #include "wad.hpp"
@@ -254,7 +249,6 @@ struct entity_state_t {
 #include "input.hpp"
 #include "world.hpp"
 #include "keys.hpp"
-#include "console.hpp"
 #include "view.hpp"
 #include "menu.hpp"
 #include "crc.hpp"
