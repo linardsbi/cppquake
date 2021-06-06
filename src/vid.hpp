@@ -74,8 +74,8 @@ void VID_Init(unsigned char *palette);
 void VID_Shutdown(void);
 // Called at shutdown
 
-void VID_Update(vrect_t *rects);
-// flushes the given rectangles from the view buffer to the screen
+void VID_Update();
+// flushes the given rectangles from the view buffer to the window
 
 int VID_SetMode(int modenum, unsigned char *palette);
 // sets the mode; only used by the Quake engine for resetting to mode 0 (the

@@ -127,7 +127,7 @@ void Host_Error(const char *error, ...) {
         Sys_Error("Host_Error: recursively entered");
     inerror = true;
 
-    SCR_EndLoadingPlaque();        // reenable screen updates
+    SCR_EndLoadingPlaque();        // reenable window updates
 
     va_start (argptr, error);
     vsprintf(string, error, argptr);
@@ -352,7 +352,7 @@ void SV_DropClient(qboolean crash) {
 
 // free the client (the body stays around)
     host_client->active = false;
-    host_client->name.resize(0);
+//    host_client->name.resize(0);
     host_client->old_frags = -999999;
     net_activeconnections--;
 
@@ -671,7 +671,7 @@ void _Host_Frame(float time) {
     } else
         S_Update(vec3_origin, vec3_origin, vec3_origin, vec3_origin);
 
-    CDAudio_Update();
+//    CDAudio_Update();
 
     if (host_speeds.value) {
         pass1 = (time1 - time3) * 1000;
@@ -799,7 +799,7 @@ void Host_Init(quakeparms_t *parms) {
         Sys_Error("Only %4.1f megs of memory available, can't execute game", parms->memsize / (float) 0x100000);
 
     com_argc = parms->argc;
-    com_argv = reinterpret_cast<const char **>(parms->argv);
+    com_argv = parms->argv;
 
     Memory_Init(parms->membase, parms->memsize);
     Cbuf_Init();
@@ -807,7 +807,7 @@ void Host_Init(quakeparms_t *parms) {
     V_Init();
     Chase_Init();
     Host_InitVCR(parms);
-    COM_Init(parms->basedir);
+    COM_Init();
     Host_InitLocal();
     W_LoadWadFile("gfx.wad");
     Key_Init();
@@ -851,7 +851,7 @@ void Host_Init(quakeparms_t *parms) {
 #endif
 
 #endif    // _WIN32
-        CDAudio_Init();
+//        CDAudio_Init();
         Sbar_Init();
         CL_Init();
 #ifdef _WIN32 // on non win32, mouse comes before video for security reasons
@@ -887,12 +887,12 @@ void Host_Shutdown() {
     }
     isdown = true;
 
-// keep Con_Printf from trying to update the screen
+// keep Con_Printf from trying to update the window
     scr_disabled_for_loading = true;
 
     Host_WriteConfiguration();
 
-    CDAudio_Shutdown();
+//    CDAudio_Shutdown();
     NET_Shutdown();
     S_Shutdown();
     IN_Shutdown();

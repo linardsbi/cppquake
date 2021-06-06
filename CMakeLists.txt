@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.19)
 project(sdlquake)
 
-find_package(SDL REQUIRED)
-message("Found SDL: ${SDL_LIBRARY}\nInclude dirs: ${SDL_INCLUDE_DIRS}")
+find_package(SDL2 REQUIRED)
 find_package(fmt REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(LIB_FOLDER lib)
 
 if (CMAKE_BUILD_TYPE)
@@ -36,7 +36,7 @@ include_directories(${SDL_INCLUDE_DIRS} ${LIB_FOLDER})
 add_definitions(-DSDL ${DEBUG_DEFINES} ${PLATFORM_DEFINES})
 
 add_executable(sdlquake
-        src/cd_sdl.cpp
+#        src/cd_sdl.cpp
         src/chase.cpp
         src/cl_demo.cpp
         src/cl_input.cpp
@@ -114,8 +114,8 @@ add_executable(sdlquake
 
 target_link_libraries(sdlquake
         ${SDL_LIBRARY}
-        #        /usr/lib32/libSDL.so
         fmt::fmt
+        SDL2::SDL2
         )
 set_target_properties(sdlquake PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY_DEBUG ~/quake

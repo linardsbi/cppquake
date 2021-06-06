@@ -30,8 +30,8 @@
 
 qboolean isDedicated;
 
-char basedir[] = ".";
-char cachedir[] = "/tmp";
+constexpr auto basedir = ".";
+constexpr auto cachedir = "/tmp";
 
 cvar_t sys_linerefresh = {"sys_linerefresh"};// set for entity display
 cvar_t sys_nostdout = {"sys_nostdout"};
@@ -309,7 +309,7 @@ void moncontrol(double x) {
 auto main(int c, char **v) -> int {
     extern int vcrFile;
     extern int recording;
-    static int frame;
+    int frame{};
     constexpr int memPoolSize = sizeof(void *) * 2 * 1024 * 1024;
     constexpr float fpsInterval = 1.0;
 
@@ -357,9 +357,8 @@ auto main(int c, char **v) -> int {
 
         Host_Frame(time);
 
-        ++frame;
         if (showFPS) {
-            SDL_Delay(1);
+            ++frame;
             if (fpsLastTime < SDL_GetTicks() - fpsInterval * 1000) {
                 fpsLastTime = SDL_GetTicks();
                 Con_Printf("FPS: %d\n", frame); // profile only while we do each Quake frame

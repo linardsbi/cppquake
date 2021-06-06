@@ -1,7 +1,5 @@
 
-#include <cstdio>
 #include "SDL_audio.h"
-#include "SDL_byteorder.h"
 #include "quakedef.hpp"
 
 static dma_t the_shm;

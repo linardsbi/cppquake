@@ -190,7 +190,7 @@ extern const char **com_argv;
 
 int COM_CheckParm(std::string_view parm);
 
-void COM_Init(char *path);
+void COM_Init();
 
 void COM_InitArgv(int argc, char **argv);
 
@@ -201,12 +201,12 @@ void COM_InitArgv(int argc, char **argv);
 constexpr std::string_view COM_FileBase(std::string_view in) {
     auto ext_period = in.find_last_of('.');
     auto filename_start = in.find_last_of('/');
-    filename_start = filename_start == std::string::npos ? 0UL : filename_start;
+    filename_start = filename_start == std::string::npos ? 0UL : filename_start + 1; // + 1 to skip /
 
     if (ext_period - filename_start < 2)
         return "?model?";
 
-    return in.substr(filename_start, ext_period);
+    return in.substr(filename_start, ext_period - filename_start);
 }
 
 void COM_DefaultExtension(char *path, char *extension);

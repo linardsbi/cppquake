@@ -53,7 +53,7 @@ void Show() {
     vr.width = vid.width;
     vr.height = vid.height;
     vr.pnext = nullptr;
-    VID_Update(&vr);
+    VID_Update();
 }
 
 
@@ -64,6 +64,7 @@ R_TimeRefresh_f
 For program optimization
 ====================
 */
+//TODO: might need to fix this
 void R_TimeRefresh_f() {
     int i = 0;
     float start = NAN, stop = NAN, time = NAN;
@@ -87,7 +88,7 @@ void R_TimeRefresh_f() {
         vr.width = r_refdef.vrect.width;
         vr.height = r_refdef.vrect.height;
         vr.pnext = nullptr;
-        VID_Update(&vr);
+        VID_Update();
     }
     stop = Sys_FloatTime();
     time = stop - start;
@@ -167,7 +168,7 @@ void R_TimeGraph() {
     do {
         R_LineGraph(x, r_refdef.vrect.height - 2, r_timings[a]);
         if (x == 0)
-            break;        // screen too small to hold entire thing
+            break;        // window too small to hold entire thing
         x--;
         a--;
         if (a == -1)
@@ -456,7 +457,7 @@ void R_SetupFrame() {
         r_viewchanged = false;
     }
 
-// start off with just the four screen edge clip planes
+// start off with just the four window edge clip planes
     R_TransformFrustum();
 
 // save base values

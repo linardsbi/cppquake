@@ -17,7 +17,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// screen.c -- master for refresh, status bar, console, chat, notify, etc
+// window.c -- master for refresh, status bar, console, chat, notify, etc
 
 #include <cmath>
 #include "quakedef.hpp"
@@ -85,7 +85,7 @@ int scr_erase_center;
 ==============
 SCR_CenterPrint
 
-Called for important messages that should stay in the center of the screen
+Called for important messages that should stay in the center of the window
 for a few moments
 ==============
 */
@@ -237,7 +237,7 @@ static void SCR_CalcRefdef() {
     r_refdef.fov_x = scr_fov.value;
     r_refdef.fov_y = CalcFov(r_refdef.fov_x, r_refdef.vrect.width, r_refdef.vrect.height);
 
-// intermission is always full screen	
+// intermission is always full window
     if (cl.intermission)
         size = 120;
     else
@@ -434,10 +434,10 @@ void SCR_SetUpToDrawConsole() {
     con_forcedup = !cl.worldmodel || cls.signon != SIGNONS;
 
     if (con_forcedup) {
-        scr_conlines = vid.height;        // full screen
+        scr_conlines = vid.height;        // full window
         scr_con_current = scr_conlines;
     } else if (key_dest == key_console)
-        scr_conlines = vid.height / 2;    // half screen
+        scr_conlines = vid.height / 2;    // half window
     else
         scr_conlines = 0;                // none visible
 
@@ -532,11 +532,11 @@ void WritePCXfile(char *filename, byte *data, int width, int height,
     pcx->ymax = LittleShort((short) (height - 1));
     pcx->hres = LittleShort((short) width);
     pcx->vres = LittleShort((short) height);
-    Q_memset(pcx->palette, 0, sizeof(pcx->palette));
+    memset(pcx->palette, 0, sizeof(pcx->palette));
     pcx->color_planes = 1;        // chunky image
     pcx->bytes_per_line = LittleShort((short) width);
     pcx->palette_type = LittleShort(2);        // not a grey scale
-    Q_memset(pcx->filler, 0, sizeof(pcx->filler));
+    memset(pcx->filler, 0, sizeof(pcx->filler));
 
 // pack the image
     pack = &pcx->data;
@@ -692,7 +692,7 @@ void SCR_DrawNotifyString() {
 ==================
 SCR_ModalMessage
 
-Displays a text string in the center of the screen and waits for a Y or N
+Displays a text string in the center of the window and waits for a Y or N
 keypress.  
 ==================
 */
@@ -702,7 +702,7 @@ auto SCR_ModalMessage(char *text) -> int {
 
     scr_notifystring = text;
 
-// draw a fresh screen
+// draw a fresh window
     scr_fullupdate = 0;
     scr_drawdialog = true;
     SCR_UpdateScreen();
@@ -749,7 +749,7 @@ void SCR_BringDownConsole() {
 SCR_UpdateScreen
 
 This is called every frame, and can also be called explicitly to flush
-text to the screen.
+text to the window.
 
 WARNING: be very careful calling this from elsewhere, because the refresh
 needs almost the entire 256k of stack space!
@@ -758,7 +758,6 @@ needs almost the entire 256k of stack space!
 void SCR_UpdateScreen() {
     static float oldscr_viewsize;
     static float oldlcd_x;
-    vrect_t vrect;
 
     if (scr_skipupdate || block_drawing)
         return;
@@ -804,16 +803,16 @@ void SCR_UpdateScreen() {
     }
 
     if (vid.recalc_refdef) {
-        // something changed, so reorder the screen
+        // something changed, so reorder the window
         SCR_CalcRefdef();
     }
 
 //
-// do 3D refresh drawing, and then update the screen
+// do 3D refresh drawing, and then update the window
 //
     D_EnableBackBufferAccess();    // of all overlay stuff if drawing directly
 
-    if (scr_fullupdate++ < vid.numpages) {    // clear the entire screen
+    if (scr_fullupdate++ < vid.numpages) {    // clear the entire window
         scr_copyeverything = 1;
         Draw_TileClear(0, 0, vid.width, vid.height);
         Sbar_Changed();
@@ -870,35 +869,7 @@ void SCR_UpdateScreen() {
 
     V_UpdatePalette();
 
-//
-// update one of three areas
-//
-
-    if (scr_copyeverything) {
-        vrect.x = 0;
-        vrect.y = 0;
-        vrect.width = vid.width;
-        vrect.height = vid.height;
-        vrect.pnext = nullptr;
-
-        VID_Update(&vrect);
-    } else if (scr_copytop) {
-        vrect.x = 0;
-        vrect.y = 0;
-        vrect.width = vid.width;
-        vrect.height = vid.height - sb_lines;
-        vrect.pnext = nullptr;
-
-        VID_Update(&vrect);
-    } else {
-        vrect.x = scr_vrect.x;
-        vrect.y = scr_vrect.y;
-        vrect.width = scr_vrect.width;
-        vrect.height = scr_vrect.height;
-        vrect.pnext = nullptr;
-
-        VID_Update(&vrect);
-    }
+    VID_Update(); // Update everything
 }
 
 

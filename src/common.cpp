@@ -362,7 +362,7 @@ auto Q_atof(std::string_view str) -> float {
 
 #ifdef SDL
 
-#include "SDL_byteorder.h"
+#include "SDL/SDL_byteorder.h"
 
 #endif
 
@@ -953,7 +953,7 @@ void COM_InitArgv(int argc, char **argv) {
 COM_Init
 ================
 */
-void COM_Init([[maybe_unused]] char *basedir) {
+void COM_Init() {
 // set the byte swapping variables in a portable manner
 #ifdef SDL
     // This is necessary because egcs 1.1.1 mis-compiles swaptest with -O2

@@ -761,7 +761,7 @@ void CL_ParseServerMessage() {
 
             case svc_serverinfo:
                 CL_ParseServerInfo();
-                vid.recalc_refdef = true;    // leave intermission full screen
+                vid.recalc_refdef = true;    // leave intermission full window
                 break;
 
             case svc_setangle:
@@ -834,17 +834,17 @@ void CL_ParseServerMessage() {
             case svc_setpause: {
                 cl.paused = MSG_ReadByte();
 
-                if (cl.paused) {
-                    CDAudio_Pause();
-#ifdef _WIN32
-                    VID_HandlePause (true);
-#endif
-                } else {
-                    CDAudio_Resume();
-#ifdef _WIN32
-                    VID_HandlePause (false);
-#endif
-                }
+//                if (cl.paused) {
+//                    CDAudio_Pause();
+//#ifdef _WIN32
+//                    VID_HandlePause (true);
+//#endif
+//                } else {
+//                    CDAudio_Resume();
+//#ifdef _WIN32
+//                    VID_HandlePause (false);
+//#endif
+//                }
             }
                 break;
 
@@ -875,32 +875,33 @@ void CL_ParseServerMessage() {
                 CL_ParseStaticSound();
                 break;
 
+            // TODO: fix audio
             case svc_cdtrack:
                 cl.cdtrack = MSG_ReadByte();
                 cl.looptrack = MSG_ReadByte();
-                if ((cls.demoplayback || cls.demorecording) && (cls.forcetrack != -1))
-                    CDAudio_Play((byte) cls.forcetrack, true);
-                else
-                    CDAudio_Play((byte) cl.cdtrack, true);
+//                if ((cls.demoplayback || cls.demorecording) && (cls.forcetrack != -1))
+//                    CDAudio_Play((byte) cls.forcetrack, true);
+//                else
+//                    CDAudio_Play((byte) cl.cdtrack, true);
                 break;
 
             case svc_intermission:
                 cl.intermission = 1;
                 cl.completed_time = cl.time;
-                vid.recalc_refdef = true;    // go to full screen
+                vid.recalc_refdef = true;    // go to full window
                 break;
 
             case svc_finale:
                 cl.intermission = 2;
                 cl.completed_time = cl.time;
-                vid.recalc_refdef = true;    // go to full screen
+                vid.recalc_refdef = true;    // go to full window
                 SCR_CenterPrint(MSG_ReadString());
                 break;
 
             case svc_cutscene:
                 cl.intermission = 3;
                 cl.completed_time = cl.time;
-                vid.recalc_refdef = true;    // go to full screen
+                vid.recalc_refdef = true;    // go to full window
                 SCR_CenterPrint(MSG_ReadString());
                 break;
 

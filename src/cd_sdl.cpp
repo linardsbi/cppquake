@@ -5,7 +5,7 @@
   Mark Baker <homer1@together.net>
 */
 
-#include <SDL.h>
+#include <SDL/SDL_cdrom.h>
 
 #include "quakedef.hpp"
 

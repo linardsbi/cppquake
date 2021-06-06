@@ -19,6 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // quakedef.h -- primary header for client
 #pragma once
+
+#define FLATTEN __attribute__((flatten))
+
 //#define	GLTEST			// experimental stuff
 
 #define    QUAKE_GAME            // as opposed to utilities
@@ -264,10 +267,9 @@ void	VID_UnlockBuffer ();
 // command line parms passed to the program, and the amount of memory
 // available for the program to use
 
-
 struct quakeparms_t {
-    char *basedir;
-    char *cachedir;        // for development over ISDN lines
+    const char *basedir;
+    const char *cachedir;        // for development over ISDN lines
     int argc;
     const char **argv;
     void *membase;
