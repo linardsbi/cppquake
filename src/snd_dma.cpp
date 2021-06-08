@@ -73,9 +73,6 @@ int num_sfx;
 
 sfx_t *ambient_sfx[NUM_AMBIENTS];
 
-int desired_speed = 11025;
-int desired_bits = 16;
-
 int sound_started = 0;
 
 cvar_t bgmvolume = {"bgmvolume", "1", true};
@@ -129,7 +126,7 @@ void S_SoundInfo_f() {
     Con_Printf("%5d samplebits\n", shm->samplebits);
     Con_Printf("%5d submission_chunk\n", shm->submission_chunk);
     Con_Printf("%5d speed\n", shm->speed);
-    Con_Printf("0x%x dma buffer\n", shm->buffer);
+    Con_Printf("%p dma buffer\n", (void*)shm->buffer);
     Con_Printf("%5d total_channels\n", total_channels);
 }
 
@@ -322,7 +319,7 @@ S_PrecacheSound
 ==================
 */
 auto S_PrecacheSound(std::string_view name) -> sfx_t * {
-    if (!sound_started || nosound.value == 0)
+    if (!sound_started || nosound.value == 1)
         return nullptr;
 
     sfx_t *sfx = S_FindName(name);
@@ -925,7 +922,7 @@ void S_LocalSound(std::string_view sound) {
     if (!sound_started)
         return;
 
-    auto sfx = S_PrecacheSound(sound);
+    auto *sfx = S_PrecacheSound(sound);
     if (!sfx) {
         Con_Printf("S_LocalSound: can't cache %s\n", sound);
         return;

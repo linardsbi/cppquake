@@ -74,7 +74,7 @@ void VID_Init(unsigned char *palette) {
         vid.width = static_cast<unsigned>(std::atoi(com_argv[width_offset + 1]));
     }
     if (const auto height_offset = COM_CheckParm("-h"); height_offset > 0) {
-        vid.width = static_cast<unsigned>(std::atoi(com_argv[height_offset + 1]));
+        vid.height = static_cast<unsigned>(std::atoi(com_argv[height_offset + 1]));
     }
 
     if (!vid.width || !vid.height)

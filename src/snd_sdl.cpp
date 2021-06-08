@@ -5,11 +5,8 @@
 static dma_t the_shm;
 static int snd_inited;
 
-extern int desired_speed;
-extern int desired_bits;
-
 static void paint_audio(void *unused, Uint8 *stream, int len) {
-    if (shm) {
+    if (shm != nullptr) {
         shm->buffer = stream;
         shm->samplepos += len / (shm->samplebits / 8) / 2;
         // Check for samplepos overflow?
@@ -18,7 +15,14 @@ static void paint_audio(void *unused, Uint8 *stream, int len) {
 }
 
 auto SNDDMA_Init() -> qboolean {
-    SDL_AudioSpec desired, obtained;
+    // Ideally these would be specified in a config file
+    // or passed as parameters to the executable.
+    constexpr int desired_speed = 44100;
+    constexpr int desired_bits = 16;
+    constexpr int sound_channels = 2;
+    constexpr int samples = 512;
+
+    SDL_AudioSpec desired;
 
     snd_inited = 0;
 
@@ -29,61 +33,41 @@ auto SNDDMA_Init() -> qboolean {
             desired.format = AUDIO_U8;
             break;
         case 16:
-            if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+            if constexpr (SDL_BYTEORDER == SDL_BIG_ENDIAN)
                 desired.format = AUDIO_S16MSB;
             else
                 desired.format = AUDIO_S16LSB;
+            break;
+        case 32:
+            if constexpr (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+                desired.format = AUDIO_S32MSB;
+            else
+                desired.format = AUDIO_S32LSB;
             break;
         default:
             Con_Printf("Unknown number of audio bits: %d\n",
                        desired_bits);
             return false;
     }
-    desired.channels = 2;
-    desired.samples = 512;
+    desired.channels = sound_channels;
+    desired.samples = samples;
     desired.callback = paint_audio;
 
     /* Open the audio device */
-    if (SDL_OpenAudio(&desired, &obtained) < 0) {
+    if (SDL_OpenAudio(&desired, nullptr) < 0) {
         Con_Printf("Couldn't open SDL audio: %s\n", SDL_GetError());
         return false;
     }
 
-    /* Make sure we can support the audio format */
-    switch (obtained.format) {
-        case AUDIO_U8:
-            /* Supported */
-            break;
-        case AUDIO_S16LSB:
-        case AUDIO_S16MSB:
-            if (((obtained.format == AUDIO_S16LSB) &&
-                 (SDL_BYTEORDER == SDL_LIL_ENDIAN)) ||
-                ((obtained.format == AUDIO_S16MSB) &&
-                 (SDL_BYTEORDER == SDL_BIG_ENDIAN))) {
-                /* Supported */
-                break;
-            }
-            /* Unsupported, fall through */;
-        default:
-            /* Not supported -- force SDL to do our bidding */
-            SDL_CloseAudio();
-            if (SDL_OpenAudio(&desired, nullptr) < 0) {
-                Con_Printf("Couldn't open SDL audio: %s\n",
-                           SDL_GetError());
-                return false;
-            }
-            memcpy(&obtained, &desired, sizeof(desired));
-            break;
-    }
     SDL_PauseAudio(0);
 
     /* Fill the audio DMA information block */
     shm = &the_shm;
     shm->splitbuffer = false;
-    shm->samplebits = (obtained.format & 0xFF);
-    shm->speed = obtained.freq;
-    shm->channels = obtained.channels;
-    shm->samples = obtained.samples * shm->channels;
+    shm->samplebits = (desired.format & 0xFF);
+    shm->speed = desired.freq;
+    shm->channels = desired.channels;
+    shm->samples = desired.samples * shm->channels;
     shm->samplepos = 0;
     shm->submission_chunk = 1;
     shm->buffer = nullptr;

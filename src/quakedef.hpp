@@ -255,7 +255,6 @@ void	VID_UnlockBuffer ();
 #include "view.hpp"
 #include "menu.hpp"
 #include "crc.hpp"
-#include "cdaudio.hpp"
 
 #ifdef GLQUAKE
 #include "glquake.hpp"

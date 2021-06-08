@@ -103,7 +103,7 @@ void SCR_CenterPrint(char *str) {
     }
 }
 
-void SCR_EraseCenterString() {
+inline void SCR_EraseCenterString() {
     int y = 0;
 
     if (scr_erase_center++ > vid.numpages) {
@@ -120,7 +120,7 @@ void SCR_EraseCenterString() {
     Draw_TileClear(0, y, vid.width, 8 * scr_erase_lines);
 }
 
-void SCR_DrawCenterString() {
+inline void SCR_DrawCenterString() {
     char *start = nullptr;
     int l = 0;
     int j = 0;
@@ -164,7 +164,7 @@ void SCR_DrawCenterString() {
     } while (true);
 }
 
-void SCR_CheckDrawCenterString() {
+inline void SCR_CheckDrawCenterString() {
     scr_copytop = 1;
     if (scr_center_lines > scr_erase_lines)
         scr_erase_lines = scr_center_lines;
@@ -186,7 +186,7 @@ void SCR_CheckDrawCenterString() {
 CalcFov
 ====================
 */
-auto CalcFov(float fov_x, float width, float height) -> float {
+inline auto CalcFov(float fov_x, float width, float height) -> float {
     float a = NAN;
     float x = NAN;
 
@@ -210,7 +210,7 @@ Must be called whenever vid changes
 Internal use only
 =================
 */
-static void SCR_CalcRefdef() {
+static inline void SCR_CalcRefdef() {
     vrect_t vrect;
     float size = NAN;
 
@@ -331,7 +331,7 @@ void SCR_Init() {
 SCR_DrawRam
 ==============
 */
-void SCR_DrawRam() {
+inline void SCR_DrawRam() {
     if (!scr_showram.value)
         return;
 
@@ -346,7 +346,7 @@ void SCR_DrawRam() {
 SCR_DrawTurtle
 ==============
 */
-void SCR_DrawTurtle() {
+inline void SCR_DrawTurtle() {
     static int count;
 
     if (!scr_showturtle.value)
@@ -369,7 +369,7 @@ void SCR_DrawTurtle() {
 SCR_DrawNet
 ==============
 */
-void SCR_DrawNet() {
+inline void SCR_DrawNet() {
     if (realtime - cl.last_received_message < 0.3)
         return;
     if (cls.demoplayback)
@@ -383,7 +383,7 @@ void SCR_DrawNet() {
 DrawPause
 ==============
 */
-void SCR_DrawPause() {
+inline void SCR_DrawPause() {
     qpic_t *pic = nullptr;
 
     if (!scr_showpause.value)        // turn off for screenshots
@@ -403,7 +403,7 @@ void SCR_DrawPause() {
 SCR_DrawLoading
 ==============
 */
-void SCR_DrawLoading() {
+inline void SCR_DrawLoading() {
     qpic_t *pic = nullptr;
 
     if (!scr_drawloading)
