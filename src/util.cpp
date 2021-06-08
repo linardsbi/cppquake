@@ -83,7 +83,7 @@ auto fixNewLines(std::string &string) {
     return newstring;
 }
 
-auto newString(std::string &string) -> unsigned long {
+auto newString(std::string string) -> unsigned long {
     const auto lastIt = --edictStrings.end();
     const auto offset = lastIt->first + lastIt->second.length() + 1; // I might not be adding something..
     edictStrings[offset] = fixNewLines(string);

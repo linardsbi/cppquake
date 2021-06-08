@@ -92,7 +92,7 @@ edict_t *ED_Alloc();
 
 void ED_Free(edict_t *ed);
 
-auto newString(std::string&) -> unsigned long;
+auto newString(std::string) -> unsigned long;
 
 char *ED_NewString(std::string_view string);
 // returns a copy of the string allocated from the server's string heap

@@ -875,9 +875,9 @@ void Host_Name_f() {
         if (Q_strcmp(host_client->name, newName) != 0)
             Con_Printf("%s renamed to %s\n", host_client->name, newName);
 
-    host_client->name = newName;
+    host_client->name.assign(newName);
 
-    host_client->edict->v.netname = newString(host_client->name);
+    host_client->edict->v.netname = static_cast<string_t>(newString(host_client->name));
 
 // send notification to all clients
 

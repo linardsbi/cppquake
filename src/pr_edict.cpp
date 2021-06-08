@@ -373,7 +373,7 @@ auto PR_GlobalString(int ofs) -> char * {
     auto val = reinterpret_cast<eval_t *>(&pr_globals[ofs]);
     def = ED_GlobalAtOfs(ofs);
     if (!def)
-        sprintf(line, "%i(???)", ofs);
+        sprintf(line, "%i(?\?\?)", ofs);
     else {
         s = PR_ValueString(static_cast<etype_t>(def->type), val);
         sprintf(line, "%i(%s)%s", ofs, getStringByOffset(def->s_name).data(), s);
@@ -394,7 +394,7 @@ auto PR_GlobalStringNoContents(int ofs) -> char * {
 
     def = ED_GlobalAtOfs(ofs);
     if (!def)
-        sprintf(line, "%i(???)", ofs);
+        sprintf(line, "%i(?\?\?)", ofs);
     else
         sprintf(line, "%i(%s)", ofs, getStringByOffset(def->s_name).data());
 
@@ -466,10 +466,10 @@ void ED_Write(FILE *f, edict_t *ed) {
     int i = 0, j = 0;
     int type = 0;
 
-    fprintf(f, "{\n");
+    fmt::fprintf(f, "{\n");
 
     if (ed->free) {
-        fprintf(f, "}\n");
+        fmt::fprintf(f, "}\n");
         return;
     }
 
@@ -489,11 +489,11 @@ void ED_Write(FILE *f, edict_t *ed) {
         if (j == type_size[type])
             continue;
 
-        fprintf(f, "\"%s\" ", name.data());
-        fprintf(f, "\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(d->type), (eval_t *) v));
+        fmt::fprintf(f, "\"%s\" ", name);
+        fmt::fprintf(f, "\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(d->type), (eval_t *) v));
     }
 
-    fprintf(f, "}\n");
+    fmt::fprintf(f, "}\n");
 }
 
 void ED_PrintNum(int ent) {
@@ -587,7 +587,7 @@ void ED_WriteGlobals(FILE *f) {
     char *name = nullptr;
     int type = 0;
 
-    fprintf(f, "{\n");
+    fmt::fprintf(f, "{\n");
     for (i = 0; i < progs->numglobaldefs; i++) {
         def = &pr_globaldefs[i];
         type = def->type;
@@ -600,10 +600,10 @@ void ED_WriteGlobals(FILE *f) {
             && type != ev_entity)
             continue;
 
-        fprintf(f, "\"%s\" ", getStringByOffset(def->s_name).data());
-        fprintf(f, "\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(type), (eval_t *) &pr_globals[def->ofs]));
+        fmt::fprintf(f, "\"%s\" ", getStringByOffset(def->s_name).data());
+        fmt::fprintf(f, "\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(type), (eval_t *) &pr_globals[def->ofs]));
     }
-    fprintf(f, "}\n");
+    fmt::fprintf(f, "}\n");
 }
 
 /*
@@ -696,7 +696,7 @@ auto ED_ParseEpair(void *base, ddef_t *key, std::string_view s) -> qboolean {
         case ev_string: {
             //*(string_t *)d = ED_NewString (s) - pr_strings;
             auto str = toString(s);
-            *(string_t *) d = newString(str);
+            *(string_t *) d = static_cast<string_t>(newString(std::move(str)));
             break;
         }
 
