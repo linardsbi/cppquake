@@ -141,7 +141,7 @@ void SV_StartSound(edict_t *entity, int channel, std::string_view sample, int vo
             break;
 
     if (sound_num == MAX_SOUNDS || !sv.sound_precache[sound_num]) {
-        Con_Printf("SV_StartSound: %s not precacheed\n", sample.data());
+        Con_Printf("SV_StartSound: %s not precacheed\n", sample);
         return;
     }
 

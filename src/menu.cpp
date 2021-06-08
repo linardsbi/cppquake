@@ -1723,22 +1723,20 @@ void M_Menu_SerialConfig_f() {
 void M_SerialConfig_Draw() {
     qpic_t *p = nullptr;
     int basex = 0;
-    char *startJoin = nullptr;
-    char *directModem = nullptr;
 
     M_DrawTransPic(16, 4, Draw_CachePic("gfx/qplaque.lmp"));
     p = Draw_CachePic("gfx/p_multi.lmp");
     basex = (320 - p->width) / 2;
     M_DrawPic(basex, 4, p);
 
+    std::string_view startJoin = "Join Game";
     if (StartingGame)
         startJoin = "New Game";
-    else
-        startJoin = "Join Game";
+
+    std::string_view directModem = "Direct Connect";
     if (SerialConfig)
         directModem = "Modem";
-    else
-        directModem = "Direct Connect";
+
     M_Print(basex, 32, va("%s - %s", startJoin, directModem));
     basex += 8;
 

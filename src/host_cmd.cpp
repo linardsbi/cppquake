@@ -86,8 +86,9 @@ void Host_Status_f() {
             if (hours)
                 minutes -= (hours * 60);
         }
-        buffer += fmt::sprintf("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j + 1, client->name, (int) client->edict->v.frags, hours,
-              minutes, seconds);
+        buffer += fmt::sprintf("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", j + 1, client->name,
+                               (int) client->edict->v.frags, hours,
+                               minutes, seconds);
         buffer += fmt::sprintf("   %s\n", client->netconnection->address);
     }
 
@@ -872,7 +873,7 @@ void Host_Name_f() {
 
     if (!host_client->name.empty() && host_client->name != "unconnected")
         if (Q_strcmp(host_client->name, newName) != 0)
-            Con_Printf("%s renamed to %s\n", host_client->name.c_str(), newName.data());
+            Con_Printf("%s renamed to %s\n", host_client->name, newName);
 
     host_client->name = newName;
 

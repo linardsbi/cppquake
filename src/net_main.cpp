@@ -261,10 +261,10 @@ static void PrintSlist() {
 
     for (n = slistLastShown; n < hostCacheCount; n++) {
         if (hostcache[n].maxusers)
-            Con_Printf("%-15.15s %-15.15s %2u/%2u\n", hostcache[n].name.c_str(), hostcache[n].map.c_str(),
+            Con_Printf("%-15.15s %-15.15s %2u/%2u\n", hostcache[n].name, hostcache[n].map,
                        hostcache[n].users, hostcache[n].maxusers);
         else
-            Con_Printf("%-15.15s %-15.15s\n", hostcache[n].name.c_str(), hostcache[n].map.c_str());
+            Con_Printf("%-15.15s %-15.15s\n", hostcache[n].name, hostcache[n].map);
     }
     slistLastShown = n;
 }

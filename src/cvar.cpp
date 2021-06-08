@@ -129,7 +129,7 @@ void Cvar_RegisterVariable(cvar_t *variable) {
 
 // first check to see if it has allready been defined
     if (Cvar_FindVar(variable->name)) {
-        Con_Printf("Can't register variable %s, allready defined\n", variable->name.c_str());
+        Con_Printf("Can't register variable %s, allready defined\n", variable->name);
         return;
     }
 
@@ -161,7 +161,7 @@ qboolean Cvar_Command() {
 
 // perform a variable print or set
     if (Cmd_Argc() == 1) {
-        Con_Printf("\"%s\" is \"%s\"\n", v->name.c_str(), v->string.c_str());
+        Con_Printf("\"%s\" is \"%s\"\n", v->name, v->string);
         return true;
     }
 

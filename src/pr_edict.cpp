@@ -19,10 +19,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sv_edict.c -- entity dictionary
 
-
 #include <string>
 #include <array>
-#include "quakedef.hpp"
 #include "util.hpp"
 
 dprograms_t *progs;
@@ -446,7 +444,7 @@ void ED_Print(edict_t *ed) {
         if (j == type_size[type])
             continue;
 
-        Con_Printf("%s", name.data());
+        Con_Printf("%s", name);
 
         for (int l = name.length(); l++ < 15;)
             Con_Printf(" ");
@@ -695,8 +693,7 @@ auto ED_ParseEpair(void *base, ddef_t *key, std::string_view s) -> qboolean {
 
 
     switch (key->type & ~DEF_SAVEGLOBAL) {
-        case ev_string:
-        {
+        case ev_string: {
             //*(string_t *)d = ED_NewString (s) - pr_strings;
             auto str = toString(s);
             *(string_t *) d = newString(str);
@@ -766,7 +763,7 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
     if (ent != sv.edicts)    // hack
         memset(&ent->v, 0, progs->entityfields * 4);
 
-    auto trim_spaces = [](std::string& str) {
+    auto trim_spaces = [](std::string &str) {
         auto n = str.length();
         while (n && str[n - 1] == ' ') {
             n--;
@@ -817,13 +814,13 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
 
         auto key = ED_FindField(keyname);
         if (!key) {
-            Con_Printf("'%s' is not a field\n", keyname.c_str());
+            Con_Printf("'%s' is not a field\n", keyname);
             continue;
         }
 
         if (anglehack) {
-            char	temp[32]{};
-            strcpy (temp, com_token);
+            char temp[32]{};
+            strcpy(temp, com_token);
             sprintf(com_token, "0 %s 0", temp);
         }
 

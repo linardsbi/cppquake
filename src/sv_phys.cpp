@@ -95,11 +95,11 @@ void SV_CheckVelocity(edict_t *ent) {
 //
     for (i = 0; i < 3; i++) {
         if (IS_NAN(ent->v.velocity[i])) {
-            Con_Printf("Got a NaN velocity on %s\n", getStringByOffset(ent->v.classname).data());
+            Con_Printf("Got a NaN velocity on %s\n", getStringByOffset(ent->v.classname));
             ent->v.velocity[i] = 0;
         }
         if (IS_NAN(ent->v.origin[i])) {
-            Con_Printf("Got a NaN origin on %s\n", getStringByOffset(ent->v.classname).data());
+            Con_Printf("Got a NaN origin on %s\n", getStringByOffset(ent->v.classname));
             ent->v.origin[i] = 0;
         }
         if (ent->v.velocity[i] > sv_maxvelocity.value)

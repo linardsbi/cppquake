@@ -17,8 +17,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-
-#include "quakedef.hpp"
 #include "util.hpp"
 
 /*
@@ -196,7 +194,7 @@ void PR_StackTrace() {
         if (!f) {
             Con_Printf("<NO FUNCTION>\n");
         } else
-            Con_Printf("%12s : %s\n", getGlobalString(f->s_file).data(), getGlobalString(f->s_name).data());
+            Con_Printf("%12s : %s\n", getGlobalString(f->s_file), getGlobalString(f->s_name));
     }
 }
 

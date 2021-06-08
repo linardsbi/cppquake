@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <cmath>
 #include <string>
-#include "quakedef.hpp"
 #include "util.hpp"
 
 #define    RETURN_EDICT(e) (((int *)pr_globals)[OFS_RETURN] = EDICT_TO_PROG(e))
@@ -55,8 +54,8 @@ error(value)
 =================
 */
 void PF_error() {
-    Con_Printf("======SERVER ERROR in %s:\n%s\n", getStringByOffset(pr_xfunction->s_name).data(),
-               PF_VarString(0).c_str());
+    Con_Printf("======SERVER ERROR in %s:\n%s\n", getStringByOffset(pr_xfunction->s_name),
+               PF_VarString(0));
     edict_t *ed = PROG_TO_EDICT(pr_global_struct->self);
     ED_Print(ed);
 
@@ -467,7 +466,7 @@ void PF_ambientsound() {
             break;
 
     if (!*check) {
-        Con_Printf("no precache: %s\n", samp.data());
+        Con_Printf("no precache: %s\n", samp);
         return;
     }
 
@@ -834,7 +833,7 @@ void PF_dprint() {
     Con_DPrintf("%s", PF_VarString(0).c_str());
 }
 
-auto PF_FindOrAddString(std::string& str) {
+inline auto PF_FindOrAddString(std::string &str) {
     if (auto existing_offset = getOffsetByString(str)) {
         return existing_offset;
     }
@@ -859,7 +858,7 @@ void PF_fabs() {
 
 void PF_vtos() {
     std::string temp = fmt::sprintf("'%5.1f %5.1f %5.1f'", G_VECTOR(OFS_PARM0)[0], G_VECTOR(OFS_PARM0)[1],
-                               G_VECTOR(OFS_PARM0)[2]);
+                                    G_VECTOR(OFS_PARM0)[2]);
     G_INT(OFS_RETURN) = PF_FindOrAddString(temp);
 }
 
