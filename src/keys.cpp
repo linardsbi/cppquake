@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include "quakedef.hpp"
 #include <string>
+#include <ranges>
 /*
 
 key up events are sent even if in console mode
@@ -39,19 +40,17 @@ keydest_t key_dest;
 
 int key_count;            // incremented every key event
 
-char *keybindings[256];
+keybind_map_t keybindings;
+
 qboolean consolekeys[256];    // if true, can't be rebound while in console
 qboolean menubound[256];    // if true, can't be rebound while in menu
 int keyshift[256];        // key to map to if shift held down in console
 int key_repeats[256];    // if > 1, it is autorepeating
 qboolean keydown[256];
 
-using keyname_t = struct {
-    char *name;
-    int keynum;
-};
+using keyname_t = std::map<std::string_view, std::uint16_t>;
 
-keyname_t keynames[] =
+static keyname_t keynames =
         {
                 {"TAB",        K_TAB},
                 {"ENTER",      K_ENTER},
@@ -136,7 +135,6 @@ keyname_t keynames[] =
 
                 {"SEMICOLON", ';'},    // because a raw semicolon seperates commands
 
-                {nullptr,     0}
         };
 
 /*
@@ -315,17 +313,15 @@ the K_* names are matched up.
 ===================
 */
 auto Key_StringToKeynum(std::string_view str) -> int {
-    keyname_t *kn = nullptr;
-
     if (str.empty() || !str[0])
         return -1;
     if (str.length() < 2)
         return str[0];
 
-    for (kn = keynames; kn->name; kn++) {
-        if (!Q_strcasecmp(str, kn->name))
-            return kn->keynum;
+    if (keynames.contains(str)) {
+        return keynames[str];
     }
+
     return -1;
 }
 
@@ -338,21 +334,24 @@ given keynum.
 FIXME: handle quote special (general escape sequence?)
 ===================
 */
-auto Key_KeynumToString(int keynum) -> const char * {
-    keyname_t *kn = nullptr;
+auto Key_KeynumToString(int keynum) -> std::string_view {
     static char tinystr[2];
 
     if (keynum == -1)
         return "<KEY NOT FOUND>";
-    if (keynum > 32 && keynum < 127) {    // printable ascii
+    if (keynum > ' ' && keynum < 127) {    // printable ascii
         tinystr[0] = keynum;
         tinystr[1] = 0;
         return tinystr;
     }
 
-    for (kn = keynames; kn->name; kn++)
-        if (keynum == kn->keynum)
-            return kn->name;
+    const auto keynames_iter = std::find_if(keynames.begin(), keynames.end(),[keynum](const auto& pair) {
+        return pair.second == keynum;
+    });
+
+    if (keynames_iter != keynames.end()) {
+        return keynames_iter->first;
+    }
 
     return "<UNKNOWN KEYNUM>";
 }
@@ -363,26 +362,6 @@ auto Key_KeynumToString(int keynum) -> const char * {
 Key_SetBinding
 ===================
 */
-void Key_SetBinding(int keynum, const char *binding) {
-    char *newChar = nullptr;
-    int l = 0;
-
-    if (keynum == -1)
-        return;
-
-// free old bindings
-    if (keybindings[keynum]) {
-        Z_Free(keybindings[keynum]);
-        keybindings[keynum] = nullptr;
-    }
-
-// allocate memory for newChar binding
-    l = Q_strlen(binding);
-    newChar = zmalloc<decltype(newChar)>(l + 1);
-    Q_strcpy(newChar, binding);
-    newChar[l] = 0;
-    keybindings[keynum] = newChar;
-}
 
 /*
 ===================
@@ -390,28 +369,23 @@ Key_Unbind_f
 ===================
 */
 void Key_Unbind_f() {
-    int b = 0;
-
     if (Cmd_Argc() != 2) {
         Con_Printf("%s", "unbind <key> : remove commands from a key\n");
         return;
     }
 
-    b = Key_StringToKeynum(Cmd_Argv(1));
+    const auto b = Key_StringToKeynum(Cmd_Argv(1));
+
     if (b == -1) {
         Con_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
         return;
     }
 
-    Key_SetBinding(b, "");
+    keybindings[b].clear();
 }
 
 void Key_Unbindall_f() {
-    int i = 0;
-
-    for (i = 0; i < 256; i++)
-        if (keybindings[i])
-            Key_SetBinding(i, "");
+    keybindings.clear();
 }
 
 
@@ -421,38 +395,37 @@ Key_Bind_f
 ===================
 */
 void Key_Bind_f() {
-    int i = 0, c = 0, b = 0;
-    char cmd[1024];
+    const auto argc = Cmd_Argc();
 
-    c = Cmd_Argc();
-
-    if (c != 2 && c != 3) {
+    if (argc != 2 && argc != 3) {
         Con_Printf("%s", "bind <key> [command] : attach a command to a key\n");
         return;
     }
-    b = Key_StringToKeynum(Cmd_Argv(1));
-    if (b == -1) {
+
+    const auto key_num = Key_StringToKeynum(Cmd_Argv(1));
+
+    if (key_num == -1) {
         Con_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
         return;
     }
 
-    if (c == 2) {
-        if (keybindings[b])
-            Con_Printf("\"%s\" = \"%s\"\n", Cmd_Argv(1), keybindings[b]);
+    if (argc == 2) {
+        if (!keybindings[key_num].empty())
+            Con_Printf("\"%s\" = \"%s\"\n", Cmd_Argv(1), keybindings[key_num]);
         else
             Con_Printf("\"%s\" is not bound\n", Cmd_Argv(1));
         return;
     }
 
 // copy the rest of the command line
-    cmd[0] = 0;        // start out with a null string
-    for (i = 2; i < c; i++) {
+    std::string cmd;
+    for (int i = 2; i < argc; i++) {
         if (i > 2)
-            std::strcat(cmd, " ");
-        std::strcat(cmd, Cmd_Argv(i).data());
+            cmd += ' ';
+        cmd += Cmd_Argv(i);
     }
 
-    Key_SetBinding(b, cmd);
+    keybindings[key_num] = std::move(cmd);
 }
 
 /*
@@ -463,12 +436,9 @@ Writes lines containing "bind key value"
 ============
 */
 void Key_WriteBindings(FILE *f) {
-    int i = 0;
-
-    for (i = 0; i < 256; i++)
-        if (keybindings[i])
-            if (*keybindings[i])
-                fprintf(f, "bind \"%s\" \"%s\"\n", Key_KeynumToString(i), keybindings[i]);
+    for (const auto& [i, key] : keybindings) {
+        fmt::fprintf(f, "bind \"%s\" \"%s\"\n", Key_KeynumToString(i), key);
+    }
 }
 
 
@@ -555,8 +525,6 @@ Should NOT be called during an interrupt!
 ===================
 */
 void Key_Event(int key, qboolean down) {
-    char *kb = nullptr;
-    char cmd[1024];
 
     keydown[key] = down;
 
@@ -576,7 +544,7 @@ void Key_Event(int key, qboolean down) {
             return;    // ignore most autorepeats
         }
 
-        if (key >= 200 && !keybindings[key])
+        if (key >= 200 && keybindings[key].empty())
             Con_Printf("%s is unbound, hit F4 to set.\n", Key_KeynumToString(key));
     }
 
@@ -614,15 +582,15 @@ void Key_Event(int key, qboolean down) {
 // downs can be matched with ups
 //
     if (!down) {
-        kb = keybindings[key];
-        if (kb && kb[0] == '+') {
-            sprintf(cmd, "-%s %i\n", kb + 1, key);
+        std::string_view kb = keybindings[key];
+        if (kb.starts_with('+')) {
+            const auto cmd = fmt::sprintf("-%s %i\n", kb.substr(1), key);
             Cbuf_AddText(cmd);
         }
         if (keyshift[key] != key) {
             kb = keybindings[keyshift[key]];
-            if (kb && kb[0] == '+') {
-                sprintf(cmd, "-%s %i\n", kb + 1, key);
+            if (kb.starts_with('+')) {
+                const auto cmd = fmt::sprintf("-%s %i\n", kb.substr(1), key);
                 Cbuf_AddText(cmd);
             }
         }
@@ -643,10 +611,10 @@ void Key_Event(int key, qboolean down) {
     if ((key_dest == key_menu && menubound[key])
         || (key_dest == key_console && !consolekeys[key])
         || (key_dest == key_game && (!con_forcedup || !consolekeys[key]))) {
-        kb = keybindings[key];
-        if (kb) {
-            if (kb[0] == '+') {    // button commands add keynum as a parm
-                sprintf(cmd, "%s %i\n", kb, key);
+        std::string_view kb = keybindings[key];
+        if (!kb.empty()) {
+            if (kb.starts_with('+')) {    // button commands add keynum as a parm
+                const auto cmd = fmt::sprintf("%s %i\n", kb, key);
                 Cbuf_AddText(cmd);
             } else {
                 Cbuf_AddText(kb);

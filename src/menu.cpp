@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <cmath>
 #include "quakedef.hpp"
 #include <array>
+#include <ranges>
 
 #ifdef _WIN32
 #include "winquake.hpp"
@@ -1332,42 +1333,29 @@ void M_Menu_Keys_f() {
 }
 
 
-void M_FindKeysForCommand(char *command, int *twokeys) {
-    int count = 0;
-    int j = 0;
-    int l = 0;
-    char *b = nullptr;
-
+void M_FindKeysForCommand(std::string_view command, int *twokeys) {
     twokeys[0] = twokeys[1] = -1;
-    l = strlen(command);
-    count = 0;
+    int count = 0;
 
-    for (j = 0; j < 256; j++) {
-        b = keybindings[j];
-        if (!b)
-            continue;
-        if (!strncmp(b, command, l)) {
-            twokeys[count] = j;
-            count++;
-            if (count == 2)
-                break;
-        }
+    const auto match = [&command](const auto& binding) {
+        return binding.second == command;
+    };
+
+    for (const auto& [num, binding] : keybindings | std::views::filter(match)) {
+        twokeys[count] = num;
+        count++;
+        if (count == 2)
+            break;
     }
 }
 
-void M_UnbindCommand(char *command) {
-    int j = 0;
-    int l = 0;
-    char *b = nullptr;
+void M_UnbindCommand(std::string_view command) {
+    const auto binding_it = std::find_if(keybindings.begin(), keybindings.end(), [&command](const auto& pair) {
+        return pair.second == command;
+    });
 
-    l = strlen(command);
-
-    for (j = 0; j < 256; j++) {
-        b = keybindings[j];
-        if (!b)
-            continue;
-        if (!strncmp(b, command, l))
-            Key_SetBinding(j, "");
+    if (binding_it != keybindings.end()) {
+        keybindings.erase(binding_it);
     }
 }
 

@@ -346,7 +346,7 @@ void CL_BaseMove(usercmd_t *cmd);
 
 float CL_KeyState(kbutton_t *key);
 
-const char *Key_KeynumToString(int keynum);
+std::string_view Key_KeynumToString(int keynum);
 
 //
 // cl_demo.c
