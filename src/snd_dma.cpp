@@ -202,8 +202,6 @@ void S_Init() {
 
     S_Startup();
 
-    SND_InitScaletable();
-
     known_sfx = hunkAllocName<decltype(known_sfx)>(MAX_SFX * sizeof(sfx_t), "sfx_t");
     num_sfx = 0;
 

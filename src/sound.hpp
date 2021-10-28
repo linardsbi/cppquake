@@ -180,8 +180,6 @@ sfxcache_t *S_LoadSound(sfx_t *s);
 
 wavinfo_t GetWavinfo(char *name, byte *wav, int wavlength);
 
-void SND_InitScaletable();
-
 void SNDDMA_Submit();
 
 void S_AmbientOff();

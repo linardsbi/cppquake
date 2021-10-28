@@ -29,7 +29,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define    PAINTBUFFER_SIZE    512
 portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
-int snd_scaletable[32][256];
+
+using scaletable_t = std::array<std::array<unsigned, 256>, 32>;
+
+static constexpr scaletable_t snd_scaletable = []() {
+    scaletable_t table;
+    for (auto i = 0; i < 32; i++) {
+        for (auto j = 0; j < 256; j++) {
+            table[i][j] = ((signed char) j) * i * 8;
+        }
+    }
+    return table;
+}();
+
 int *snd_p, snd_linear_count, snd_vol;
 short *snd_out;
 
@@ -264,7 +276,7 @@ void S_PaintChannels(int endtime) {
             end = paintedtime + PAINTBUFFER_SIZE;
 
         // clear the paint buffer
-        Q_memset(paintbuffer, 0, (end - paintedtime) * sizeof(portable_samplepair_t));
+        std::memset(paintbuffer, 0, (end - paintedtime) * sizeof(portable_samplepair_t));
 
         // paint in the channels.
         ch = channels;
@@ -314,31 +326,31 @@ void S_PaintChannels(int endtime) {
     }
 }
 
-void SND_InitScaletable() {
-    for (auto i = 0; i < 32; i++)
-        for (auto j = 0; j < 256; j++)
-            snd_scaletable[i][j] = ((signed char) j) * i * 8;
-}
-
-
 #if    !id386
 
 void SND_PaintChannelFrom8(channel_t *ch, sfxcache_t *sc, int count) {
-    int data = 0;
+    constexpr auto clamp8 = [](const auto value) -> std::uint8_t {
+        using u8_limit = std::numeric_limits<std::uint8_t>;
 
-    if (ch->leftvol > 255)
-        ch->leftvol = 255;
-    if (ch->rightvol > 255)
-        ch->rightvol = 255;
+        if (value < u8_limit::min()) {
+            return u8_limit::min();
+        }
+        if (value > u8_limit::max()) {
+            return u8_limit::max();
+        }
 
-    int *lscale = snd_scaletable[ch->leftvol >> 3];
-    int *rscale = snd_scaletable[ch->rightvol >> 3];
+        return value;
+    };
+
+    const auto lscale = snd_scaletable[clamp8(ch->leftvol) >> 3U];
+    const auto rscale = snd_scaletable[clamp8(ch->rightvol) >> 3U];
+
     unsigned char *sfx = sc->data + ch->pos;
 
     for (auto i = 0; i < count; i++) {
-        data = sfx[i];
-        paintbuffer[i].left += lscale[data];
-        paintbuffer[i].right += rscale[data];
+        const auto data = sfx[i];
+        paintbuffer[i].left += lscale.at(data);
+        paintbuffer[i].right += rscale.at(data);
     }
 
     ch->pos += count;
