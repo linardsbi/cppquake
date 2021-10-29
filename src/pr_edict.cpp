@@ -611,7 +611,7 @@ void ED_WriteGlobals(FILE *f) {
 ED_ParseGlobals
 =============
 */
-void ED_ParseGlobals(const char *data) {
+void ED_ParseGlobals(std::string_view data) {
     char keyname[64];
     ddef_t *key = nullptr;
 
@@ -620,14 +620,14 @@ void ED_ParseGlobals(const char *data) {
         data = COM_Parse(data);
         if (com_token[0] == '}')
             break;
-        if (!data)
+        if (data.empty())
             Sys_Error("ED_ParseEntity: EOF without closing brace");
 
         strcpy(keyname, com_token);
 
         // parse value
         data = COM_Parse(data);
-        if (!data)
+        if (data.empty())
             Sys_Error("ED_ParseEntity: EOF without closing brace");
 
         if (com_token[0] == '}')
@@ -734,7 +734,7 @@ auto ED_ParseEpair(void *base, ddef_t *key, std::string_view s) -> qboolean {
         case ev_function:
             functionDistance = getFunctionOffsetFromName(s);
             if (functionDistance == 0) {
-                Con_Printf("Can't find function %s\n", s.data());
+                Con_Printf("Can't find function %s\n", s);
                 return false;
             }
             *(func_t *) d = functionDistance;
@@ -755,7 +755,7 @@ ed should be a properly initialized empty edict.
 Used for initial level load and for savegames.
 ====================
 */
-auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
+auto ED_ParseEdict(std::string_view data, edict_t *ent) -> const char * {
     qboolean anglehack = false;
     qboolean init = false;
 
@@ -765,7 +765,7 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
 
     auto trim_spaces = [](std::string &str) {
         auto n = str.length();
-        while (n && str[n - 1] == ' ') {
+        while (n > 0 && str[n - 1] == ' ') {
             n--;
         }
         str.resize(n);
@@ -777,7 +777,7 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
         data = COM_Parse(data);
         if (com_token[0] == '}')
             break;
-        if (!data)
+        if (data.empty())
             Sys_Error("ED_ParseEntity: EOF without closing brace");
 
         // anglehack is to allow QuakeEd to write single scalar angles
@@ -799,7 +799,7 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
 
         // parse value
         data = COM_Parse(data);
-        if (!data)
+        if (data.empty())
             Sys_Error("ED_ParseEntity: EOF without closing brace");
 
         if (com_token[0] == '}')
@@ -831,7 +831,7 @@ auto ED_ParseEdict(const char *data, edict_t *ent) -> const char * {
     if (!init)
         ent->free = true;
 
-    return data;
+    return data.data();
 }
 
 
@@ -850,7 +850,7 @@ Used for both fresh maps and savegame loads.  A fresh map would also need
 to call ED_CallSpawnFunctions () to let the objects initialize themselves.
 ================
 */
-void ED_LoadFromFile(const char *data) {
+void ED_LoadFromFile(std::string_view data) {
     edict_t *ent = nullptr;
     int inhibit = 0;
 
@@ -860,16 +860,16 @@ void ED_LoadFromFile(const char *data) {
     while (true) {
 // parse the opening brace	
         data = COM_Parse(data);
-        if (!data)
+        if (data.empty())
             break;
         if (com_token[0] != '{')
             Sys_Error("ED_LoadFromFile: found %s when expecting {", com_token);
 
-        // something fishy v->model
         if (!ent)
             ent = EDICT_NUM(0);
         else
             ent = ED_Alloc();
+
         data = ED_ParseEdict(data, ent);
 
 // remove things from different skill levels or deathmatch
@@ -899,7 +899,6 @@ void ED_LoadFromFile(const char *data) {
 
         // look for the spawn function
         auto funcOfs = getFunctionOffsetFromName(getStringByOffset(ent->v.classname)); // fixme
-
 
         if (funcOfs == 0) {
             Con_Printf("No spawn function for:\n");

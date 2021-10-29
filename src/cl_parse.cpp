@@ -777,7 +777,7 @@ void CL_ParseServerMessage() {
                 i = MSG_ReadByte();
                 if (i >= MAX_LIGHTSTYLES)
                     Sys_Error("svc_lightstyle > MAX_LIGHTSTYLES");
-                Q_strcpy(cl_lightstyle[i].map, MSG_ReadString());
+                std::strcpy(cl_lightstyle[i].map, MSG_ReadString());
                 cl_lightstyle[i].length = Q_strlen(cl_lightstyle[i].map);
                 break;
 

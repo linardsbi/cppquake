@@ -183,7 +183,6 @@ record <demoname> <map> [cd track]
 */
 void CL_Record_f() {
     int c = 0;
-    char name[MAX_OSPATH];
     int track = 0;
 
     if (cmd_source != src_command)
@@ -213,13 +212,15 @@ void CL_Record_f() {
     } else
         track = -1;
 
-    sprintf(name, "%s/%s", com_gamedir, Cmd_Argv(1).data());
+    auto name = fmt::sprintf("%s/%s", com_gamedir, Cmd_Argv(1));
 
 //
 // start the map up
 //
     if (c > 2)
+    {
         Cmd_ExecuteString(va("map %s", Cmd_Argv(2)), src_command);
+    }
 
 //
 // open the demo file
@@ -227,14 +228,14 @@ void CL_Record_f() {
     COM_DefaultExtension(name, ".dem");
 
     Con_Printf("recording to %s.\n", name);
-    cls.demofile = fopen(name, "wb");
+    cls.demofile = fopen(name.c_str(), "wb");
     if (!cls.demofile) {
         Con_Printf("ERROR: couldn't open.\n");
         return;
     }
 
     cls.forcetrack = track;
-    fprintf(cls.demofile, "%i\n", cls.forcetrack);
+    fmt::fprintf(cls.demofile, "%i\n", cls.forcetrack);
 
     cls.demorecording = true;
 }

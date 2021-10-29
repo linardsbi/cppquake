@@ -59,8 +59,8 @@ void Sys_Error(const char *error, ...);
 // an error will cause the entire program to exit
 
 template<typename S, typename... Args>
-void sysPrintf(const S &fmt, Args &&... args) {
-    fmt::print(stderr, fmt, args...);
+inline void sysPrintf(const S& fmt, Args &&... args) {
+    fmt::fprintf(stderr, fmt, std::forward<Args>(args)...);
     //Con_Print (text);
 }
 // send text to the console

@@ -186,24 +186,27 @@ void Sys_FileSeek(int handle, int position) {
 }
 
 auto Sys_FileRead(int handle, void *dst, int count) -> int {
-    int size = 0;
-    if (handle >= 0) {
-        auto data = static_cast<char *>(dst);
-        while (count > 0) {
-            const auto done = fread(data, 1, count, sys_handles[handle]);
-            if (done == 0) {
-                break;
-            }
-            data += done;
-            count -= done;
-            size += done;
-        }
+    if (handle == -1) {
+        return 0;
     }
+
+    auto *data = static_cast<char *>(dst);
+    std::size_t size = 0;
+
+    while (count > 0) {
+        const auto done = fread(data, 1, count, sys_handles[handle]);
+        if (done == 0) {
+            break;
+        }
+        std::advance(data, done);
+        count -= done;
+        size += done;
+    }
+
     return size;
 
 }
 
-// fixme: isn't it weird that reading and writing have the same code?
 auto Sys_FileWrite(int handle, const void *src, int count) -> int {
     if (handle >= 0) {
         return fwrite(static_cast<const char *>(src), 1, count, sys_handles[handle]);

@@ -49,14 +49,14 @@ void Con_Print(const char *txt);
 template <typename ...Args>
 void Con_Printf(const char* fmt, Args &&... args) {
     static qboolean inupdate;
-    std::string msg = fmt::sprintf(fmt, std::forward<Args>(args)...);
+    const std::string msg = fmt::sprintf(fmt, std::forward<Args>(args)...);
 
 // also echo to debugging console
-    sysPrintf("{}", msg);    // also echo to debugging console
+    sysPrintf("%s", msg);    // also echo to debugging console
 
 // log all messages to file
     if (con_debuglog) {
-        auto filename = fmt::sprintf("%s/qconsole.log", com_gamedir);
+        const auto filename = fmt::sprintf("%s/qconsole.log", com_gamedir);
         auto file = std::ofstream(filename, std::fstream::app);
         file << msg;
     }
