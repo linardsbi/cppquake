@@ -611,8 +611,8 @@ void Key_Event(int key, qboolean down) {
     if ((key_dest == key_menu && menubound[key])
         || (key_dest == key_console && !consolekeys[key])
         || (key_dest == key_game && (!con_forcedup || !consolekeys[key]))) {
-        std::string_view kb = keybindings[key];
-        if (!kb.empty()) {
+        if (keybindings.contains(key)) {
+            std::string_view kb = keybindings[key];
             if (kb.starts_with('+')) {    // button commands add keynum as a parm
                 const auto cmd = fmt::sprintf("%s %i\n", kb, key);
                 Cbuf_AddText(cmd);

@@ -103,7 +103,7 @@ const char *Cmd_Args();
 // Returns the position (1 to argc-1) in the command's argument list
 // where the given parameter apears, or 0 if not present
 
-void Cmd_TokenizeString(const char *text);
+void Cmd_TokenizeString(std::string_view text);
 // Takes a null terminated string.  Does not need to be /n terminated.
 // breaks the string up into arg tokens.
 

@@ -408,20 +408,19 @@ Host_SavegameComment
 Writes a SAVEGAME_COMMENT_LENGTH character comment describing the current 
 ===============
 */
-void Host_SavegameComment(char *text) {
-    int i = 0;
-    char kills[20];
-
-    for (i = 0; i < SAVEGAME_COMMENT_LENGTH; i++)
-        text[i] = ' ';
-    memcpy(text, cl.levelname, strlen(cl.levelname));
-    sprintf(kills, "kills:%3i/%3i", cl.stats[STAT_MONSTERS], cl.stats[STAT_TOTALMONSTERS]);
-    memcpy(text + 22, kills, strlen(kills));
+std::string Host_SavegameComment() {
+    std::string text{cl.levelname};
+    text.resize(22, ' ');
+    text += fmt::sprintf("kills:%3i/%3i", cl.stats[STAT_MONSTERS], cl.stats[STAT_TOTALMONSTERS]);
 // convert space to _ to make stdio happy
-    for (i = 0; i < SAVEGAME_COMMENT_LENGTH; i++)
+
+    for (int i = 0; i < SAVEGAME_COMMENT_LENGTH; i++)
         if (text[i] == ' ')
             text[i] = '_';
-    text[SAVEGAME_COMMENT_LENGTH] = '\0';
+
+    text.resize(SAVEGAME_COMMENT_LENGTH);
+
+    return text;
 }
 
 
@@ -431,10 +430,8 @@ Host_Savegame_f
 ===============
 */
 void Host_Savegame_f() {
-    char name[256];
     FILE *f = nullptr;
     int i = 0;
-    char comment[SAVEGAME_COMMENT_LENGTH + 1];
 
     if (cmd_source != src_command)
         return;
@@ -470,33 +467,34 @@ void Host_Savegame_f() {
             return;
         }
     }
-
-    sprintf(name, "%s/%s", com_gamedir, Cmd_Argv(1));
+    auto name = fmt::sprintf("%s/%s", com_gamedir, Cmd_Argv(1));
     COM_DefaultExtension(name, ".sav");
 
     Con_Printf("Saving game to %s...\n", name);
-    f = fopen(name, "w");
+    f = fopen(name.c_str(), "w");
     if (!f) {
         Con_Printf("ERROR: couldn't open.\n");
         return;
     }
 
-    fprintf(f, "%i\n", SAVEGAME_VERSION);
-    Host_SavegameComment(comment);
-    fprintf(f, "%s\n", comment);
+    fmt::fprintf(f, "%i\n", SAVEGAME_VERSION);
+
+    const auto comment = Host_SavegameComment();
+    fmt::fprintf(f, "%s\n", comment);
+
     for (i = 0; i < NUM_SPAWN_PARMS; i++)
-        fprintf(f, "%f\n", svs.clients->spawn_parms[i]);
-    fprintf(f, "%d\n", current_skill);
-    fprintf(f, "%s\n", sv.name);
-    fprintf(f, "%f\n", sv.time);
+        fmt::fprintf(f, "%f\n", svs.clients->spawn_parms[i]);
+    fmt::fprintf(f, "%d\n", current_skill);
+    fmt::fprintf(f, "%s\n", sv.name);
+    fmt::fprintf(f, "%f\n", sv.time);
 
 // write the light styles
 
     for (i = 0; i < MAX_LIGHTSTYLES; i++) {
         if (sv.lightstyles[i])
-            fprintf(f, "%s\n", sv.lightstyles[i]);
+            fmt::fprintf(f, "%s\n", sv.lightstyles[i]);
         else
-            fprintf(f, "m\n");
+            fmt::fprintf(f, "m\n");
     }
 
 
@@ -517,7 +515,6 @@ Host_Loadgame_f
 */
 // fixme does not work
 void Host_Loadgame_f() {
-    char name[MAX_OSPATH];
     FILE *f = nullptr;
     char mapname[MAX_QPATH];
     float time = NAN, tfloat = NAN;
@@ -538,7 +535,7 @@ void Host_Loadgame_f() {
 
     cls.demonum = -1;        // stop demo loop in case this fails
 
-    sprintf(name, "%s/%s", com_gamedir, Cmd_Argv(1));
+    auto name = fmt::sprintf("%s/%s", com_gamedir, Cmd_Argv(1));
     COM_DefaultExtension(name, ".sav");
 
 // we can't call SCR_BeginLoadingPlaque, because too much stack space has
@@ -546,7 +543,7 @@ void Host_Loadgame_f() {
 //	SCR_BeginLoadingPlaque ();
 
     Con_Printf("Loading game from %s...\n", name);
-    f = fopen(name, "r");
+    f = fopen(name.c_str(), "r");
     if (!f) {
         Con_Printf("ERROR: couldn't open.\n");
         return;
@@ -671,23 +668,23 @@ void SaveGamestate()
         return;
     }
 
-    fprintf (f, "%i\n", SAVEGAME_VERSION);
+    fmt::fprintf (f, "%i\n", SAVEGAME_VERSION);
     Host_SavegameComment (comment);
-    fprintf (f, "%s\n", comment);
+    fmt::fprintf (f, "%s\n", comment);
 //	for (i=0 ; i<NUM_SPAWN_PARMS ; i++)
 //		fprintf (f, "%f\n", svs.clients->spawn_parms[i]);
-    fprintf (f, "%f\n", skill.value);
-    fprintf (f, "%s\n", sv.name);
-    fprintf (f, "%f\n", sv.time);
+    fmt::fprintf (f, "%f\n", skill.value);
+    fmt::fprintf (f, "%s\n", sv.name);
+    fmt::fprintf (f, "%f\n", sv.time);
 
 // write the light styles
 
     for (i=0 ; i<MAX_LIGHTSTYLES ; i++)
     {
         if (sv.lightstyles[i])
-            fprintf (f, "%s\n", sv.lightstyles[i]);
+            fmt::fprintf (f, "%s\n", sv.lightstyles[i]);
         else
-            fprintf (f,"m\n");
+            fmt::fprintf (f,"m\n");
     }
 
 
@@ -696,7 +693,7 @@ void SaveGamestate()
         ent = EDICT_NUM(i);
         if ((int)ent->v.flags & FL_ARCHIVE_OVERRIDE)
             continue;
-        fprintf (f, "%i\n",i);
+        fmt::fprintf (f, "%i\n",i);
         ED_Write (f, ent);
         fflush (f);
     }
@@ -997,7 +994,7 @@ void Host_Say(qboolean teamonly) {
     }
     host_client = save;
 
-    sysPrintf("{}", &text[1]);
+    sysPrintf("%s", &text[1]);
 }
 
 
@@ -1223,7 +1220,7 @@ void Host_Spawn_f() {
         PR_ExecuteProgram(pr_global_struct->ClientConnect);
 
         if ((Sys_FloatTime() - host_client->netconnection->connecttime) <= sv.time)
-            sysPrintf("{} entered the game\n", host_client->name);
+            sysPrintf("%s entered the game\n", host_client->name);
 
         PR_ExecuteProgram(pr_global_struct->PutClientInServer);
     }
@@ -1371,7 +1368,7 @@ void Host_Kick_f() {
             return;
 
         if (Cmd_Argc() > 2) {
-            std::string message = COM_Parse(Cmd_Args());
+            auto message = COM_Parse(Cmd_Args());
             auto j = 1U;
             if (byNumber) // skip the #
             {
@@ -1387,7 +1384,7 @@ void Host_Kick_f() {
                 message = message.substr(j);
 
             if (message.length())
-                SV_ClientPrintf("Kicked by %s: %s\n", who.c_str(), message.c_str());
+                SV_ClientPrintf("Kicked by %s: %s\n", who.c_str(), message);
         } else
             SV_ClientPrintf("Kicked by %s\n", who.c_str());
         SV_DropClient(false);

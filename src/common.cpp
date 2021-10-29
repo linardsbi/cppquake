@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <array>
 #include <cstdio>
 #include <sstream>
+#include <ranges>
 
 #define NUM_SAFE_ARGVS  7
 ;
@@ -736,21 +737,22 @@ auto COM_FileExtension(const char *in) -> const char * {
 COM_DefaultExtension
 ==================
 */
-void COM_DefaultExtension(char *path, char *extension) {
-    char *src;
+void COM_DefaultExtension(std::string &path, std::string_view extension) {
 //
 // if path doesn't have a .EXT, append extension
 // (extension should include the .)
 //
-    src = path + strlen(path) - 1;
 
-    while (*src != '/' && src != path) {
-        if (*src == '.')
-            return;                 // it has an extension
-        src--;
+    for (char c : path | std::views::reverse) {
+        if (c == '/') {
+            break;
+        }
+        if (c == '.') {
+            return;
+        }
     }
 
-    strcat(path, extension);
+    path.append(extension);
 }
 
 
@@ -761,66 +763,102 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-auto COM_Parse(const char *data) -> const char * {
-    int c;
-    int len;
-
-    len = 0;
+auto COM_Parse(std::string_view str) -> std::string_view {
     com_token[0] = 0;
 
-    if (!data)
-        return nullptr;
-
-// skip whitespace
-    skipwhite:
-    while ((c = *data) <= ' ') {
-        if (c == 0)
-            return nullptr;                    // end of file;
-        data++;
+    if (str.empty()) {
+        return {};
     }
 
-// skip // comments
-    if (c == '/' && data[1] == '/') {
-        while (*data && *data != '\n')
-            data++;
-        goto skipwhite;
-    }
+    enum class State {
+        Initial,
+        Comment,
+        Quote,
+        Word,
+        End,
+    };
 
+    State state = State::Initial;
+    std::size_t token_len = 0;
 
-// handle quoted strings specially
-    if (c == '\"') {
-        data++;
-        while (true) {
-            c = *data++;
-            if (c == '\"' || !c) {
-                com_token[len] = 0;
-                return data;
-            }
-            com_token[len] = c;
-            len++;
+    bool reconsume = false;
+
+    for (std::size_t i = 0; i < str.size() || reconsume; i++) {
+
+        if (reconsume) {
+            --i;
+            reconsume = false;
+        }
+
+        const auto ch = str.at(i);
+
+        switch (state) {
+            case State::Initial:
+                if (ch == 0) {
+                    return {};
+                }
+                // skip whitespace
+                if (ch <= ' ') {
+                    continue;
+                }
+
+                if (ch == '/' && str[i + 1] == '/') {
+                    state = State::Comment;
+                    continue;
+                }
+
+                if (ch == '"') {
+                    state = State::Quote;
+                    continue;
+                }
+
+                if (ch == '{' || ch == '}' || ch == ')' || ch == '(' || ch == '\'' || ch == ':') {
+                    com_token[token_len] = ch;
+                    token_len++;
+                    com_token[token_len] = 0;
+                    return str.substr(i + 1);
+                }
+
+                state = State::Word;
+                reconsume = true;
+                break;
+
+                case State::Comment:
+                    if (ch == 0 || ch == '\n') {
+                        state = State::Initial;
+                    }
+                    break;
+                case State::Quote:
+                    if (ch == '\"' || ch == 0) {
+                        com_token[token_len] = 0;
+                        return str.substr(i + 1);
+                    }
+                    com_token[token_len] = ch;
+                    token_len++;
+                    break;
+                case State::Word:
+                    if (ch <= ' ') {
+                        state = State::End;
+                        break;
+                    }
+
+                    com_token[token_len] = ch;
+                    token_len++;
+
+                    if (ch == '{' || ch == '}' || ch == ')' || ch == '(' || ch == '\'' || ch == ':')
+                        state = State::End;
+
+                    break;
+                case State::End:
+                    com_token[token_len] = 0;
+                    return str.substr(i);
+                default:
+                    break;
         }
     }
 
-// parse single characters
-    if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':') {
-        com_token[len] = c;
-        len++;
-        com_token[len] = 0;
-        return data + 1;
-    }
-
-// parse a regular word
-    do {
-        com_token[len] = c;
-        data++;
-        len++;
-        c = *data;
-        if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':')
-            break;
-    } while (c > 32);
-
-    com_token[len] = 0;
-    return data;
+    com_token[token_len] = 0;
+    return {};
 }
 
 
@@ -1086,7 +1124,7 @@ void COM_WriteFile(char *filename, void *data, int len) {
         return;
     }
 
-    sysPrintf("COM_WriteFile: {}\n", name);
+    sysPrintf("COM_WriteFile: %s\n", name);
     Sys_FileWrite(handle, data, len);
     Sys_FileClose(handle);
 }
@@ -1125,11 +1163,11 @@ void COM_CopyFile(const char *netpath, char *cachepath) {
 
     char buf[4096];
 
-    std::size_t remaining = Sys_FileOpenRead(netpath, &in);
+    auto remaining = Sys_FileOpenRead(netpath, &in);
     COM_CreatePath(cachepath);     // create directories up to the cache file
     out = Sys_FileOpenWrite(cachepath);
 
-    for (std::size_t count = 0; remaining; remaining -= count) {
+    for (int count = 0; remaining > 0; remaining -= count) {
         if (remaining < sizeof(buf))
             count = remaining;
         else
@@ -1151,7 +1189,7 @@ Sets com_filesize and one of handle or file
 ===========
 */
 auto COM_FindFile(std::string_view filename, int *handle, FILE **file) -> int {
-    sysPrintf("PackFile: {}\n", filename);
+    sysPrintf("PackFile: %s\n", filename);
     pack_t *pak;
     int i;
     int findtime, cachetime;
@@ -1177,7 +1215,7 @@ auto COM_FindFile(std::string_view filename, int *handle, FILE **file) -> int {
             pak = search->pack;
             for (i = 0; i < pak->numfiles; i++)
                 if (pak->files[i].name == filename) {       // found it!
-                    sysPrintf("PackFile: {} : {}\n", pak->filename, filename);
+                    sysPrintf("PackFile: %s : %s\n", pak->filename, filename);
                     if (handle) {
                         *handle = pak->handle;
                         Sys_FileSeek(pak->handle, pak->files[i].filepos);
@@ -1223,7 +1261,7 @@ auto COM_FindFile(std::string_view filename, int *handle, FILE **file) -> int {
 
             }();
 
-            sysPrintf("FindFile: {}\n", netpath);
+            sysPrintf("FindFile: %s\n", netpath);
             com_filesize = Sys_FileOpenRead(netpath.c_str(), &i);
             if (handle)
                 *handle = i;
@@ -1236,7 +1274,7 @@ auto COM_FindFile(std::string_view filename, int *handle, FILE **file) -> int {
 
     }
 
-    sysPrintf("FindFile: can't find {}\n", filename);
+    sysPrintf("FindFile: can't find %s\n", filename);
 
     if (handle)
         *handle = -1;

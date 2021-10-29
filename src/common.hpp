@@ -182,7 +182,7 @@ float Q_atof(std::string_view str);
 extern char com_token[1024];
 extern qboolean com_eof;
 
-const char *COM_Parse(const char *data);
+std::string_view COM_Parse(std::string_view data);
 
 
 extern int com_argc;
@@ -209,7 +209,7 @@ constexpr std::string_view COM_FileBase(std::string_view in) {
     return in.substr(filename_start, ext_period - filename_start);
 }
 
-void COM_DefaultExtension(char *path, char *extension);
+void COM_DefaultExtension(std::string &path, std::string_view extension);
 
 /*
 ============

@@ -436,7 +436,7 @@ Cmd_TokenizeString
 Parses the given string into command line tokens.
 ============
 */
-void Cmd_TokenizeString(const char *text) {
+void Cmd_TokenizeString(std::string_view text) {
     int i = 0;
 
 // clear the args from the last string
@@ -447,24 +447,17 @@ void Cmd_TokenizeString(const char *text) {
     cmd_args = nullptr;
 
     while (true) {
-// skip whitespace up to a /n
-        while (*text && *text <= ' ' && *text != '\n') {
-            text++;
-        }
-
-        if (*text == '\n') {    // a newline seperates commands in the buffer
-            text++;
-            break;
-        }
-
-        if (!*text)
+        if (text.empty()) {
             return;
+        }
 
-        if (cmd_argc == 1)
-            cmd_args = text;
+        if (cmd_argc == 1) {
+            cmd_args = text.data();
+        }
 
         text = COM_Parse(text);
-        if (!text)
+
+        if (*com_token == 0)
             return;
 
         if (cmd_argc < MAX_ARGS) {
@@ -550,18 +543,18 @@ FIXME: lookupnoadd the token to speed search?
 ============
 */
 void Cmd_ExecuteString(std::string_view text, cmd_source_t src) {
-    cmd_function_t *cmd = nullptr;
     cmdalias_t *a = nullptr;
 
     cmd_source = src;
-    Cmd_TokenizeString(text.data());
+
+    Cmd_TokenizeString(text);
 
 // execute the command line
-    if (!Cmd_Argc())
+    if (Cmd_Argc() == 0)
         return;        // no tokens
 
 // check functions
-    for (cmd = cmd_functions; cmd; cmd = cmd->next) {
+    for (auto cmd = cmd_functions; cmd; cmd = cmd->next) {
         if (!Q_strcasecmp(cmd_argv[0], cmd->name)) {
             cmd->function();
             return;
