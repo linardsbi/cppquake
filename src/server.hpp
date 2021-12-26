@@ -93,9 +93,9 @@ using client_t = struct client_s {
     usercmd_t cmd;                // movement
     vec3_t wishdir;            // intended motion calced from cmd
 
-    sizebuf_t message;            // can be added to at any time,
+    sizebuf_t message{};            // can be added to at any time,
     // copied and clear once per frame
-    byte msgbuf[MAX_MSGLEN];
+    byte msgbuf[MAX_MSGLEN]{};
     edict_t *edict;                // EDICT_NUM(clientnum+1)
     std::string name{"unconnected"};            // for printing to other people
     int colors;
@@ -264,6 +264,6 @@ void SV_SaveSpawnparms();
 void SV_SpawnServer (char *server, char *startspot);
 #else
 
-void SV_SpawnServer(char *server);
+void SV_SpawnServer(const std::string &server);
 
 #endif

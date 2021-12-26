@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <string>
 #include <array>
+#include <sstream>
 #include "util.hpp"
 
 dprograms_t *progs;
@@ -184,8 +185,8 @@ ED_FindField
 */
 auto ED_FindField(std::string_view name) -> ddef_t * {
     for (auto i = 0; i < progs->numfielddefs; i++) {
-        auto def = &pr_fielddefs[i];
-        if (!Q_strcmp(getStringByOffset(def->s_name), name))
+        auto *def = &pr_fielddefs[i];
+        if (getStringByOffset(def->s_name) == name)
             return def;
     }
     return nullptr;
@@ -200,35 +201,10 @@ ED_FindGlobal
 auto ED_FindGlobal(std::string_view name) -> ddef_t * {
     for (auto i = 0; i < progs->numglobaldefs; i++) {
         auto def = &pr_globaldefs[i];
-        if (!Q_strcmp(getStringByOffset(def->s_name), name))
+        if (getStringByOffset(def->s_name) == name)
             return def;
     }
     return nullptr;
-}
-
-
-/*
-============
-ED_FindFunction
-============
-*/
-// this needs to be replaced with a map<string, function>
-auto ED_FindFunction(std::string_view name) {
-    auto funcIt = std::find_if(edictFunctions.begin(), edictFunctions.end(), [&name](const auto &item) {
-        return getStringByOffset(item.s_name) == name;
-    });
-    return std::distance(edictFunctions.begin(), funcIt);
-
-//	dfunction_t		*func = nullptr;
-//	int				i = 0;
-//
-//	for (i=0 ; i<progs->numfunctions ; i++)
-//	{
-//		func = &pr_functions[i];
-//		if (!strcmp(pr_strings + func->s_name,name) )
-//			return func;
-//	}
-//	return nullptr;
 }
 
 
@@ -317,43 +293,37 @@ Returns a string describing *data in a type specific manner
 Easier to parse than PR_ValueString
 =============
 */
-auto PR_UglyValueString(etype_t type, eval_t *val) -> char * {
-    static char line[256];
-    ddef_t *def = nullptr;
-    dfunction_t *f = nullptr;
-
+auto PR_UglyValueString(etype_t type, eval_t *val) -> std::string {
     type = static_cast<etype_t>(type & ~DEF_SAVEGLOBAL);
-
+    std::ostringstream line;
     switch (type) {
         case ev_string:
-            sprintf(line, "%s", getStringByOffset(val->string).data());
+            line << getStringByOffset(val->string);
             break;
         case ev_entity:
-            sprintf(line, "%i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
+            line << NUM_FOR_EDICT(PROG_TO_EDICT(val->edict));
             break;
         case ev_function:
-            f = &edictFunctions[val->function];
-            sprintf(line, "%s", getStringByOffset(f->s_name).data());
+            line << getStringByOffset(edictFunctions[val->function].s_name);
             break;
         case ev_field:
-            def = ED_FieldAtOfs(val->_int);
-            sprintf(line, "%s", getStringByOffset(def->s_name).data());
+            line << getStringByOffset(ED_FieldAtOfs(val->_int)->s_name);
             break;
         case ev_void:
-            sprintf(line, "void");
+            line << "void";
             break;
         case ev_float:
-            sprintf(line, "%f", val->_float);
+            line << val->_float;
             break;
         case ev_vector:
-            sprintf(line, "%f %f %f", val->vector[0], val->vector[1], val->vector[2]);
+            line << val->vector[0] << ' ' << val->vector[1] << ' ' << val->vector[2];
             break;
         default:
-            sprintf(line, "bad type %i", type);
+            line << "bad type " << static_cast<int>(type);
             break;
     }
 
-    return line;
+    return line.str();
 }
 
 /*
@@ -460,12 +430,7 @@ ED_Write
 For savegames
 =============
 */
-void ED_Write(FILE *f, edict_t *ed) {
-    ddef_t *d = nullptr;
-    int *v = nullptr;
-    int i = 0, j = 0;
-    int type = 0;
-
+void ED_Write(std::ofstream &f, edict_t *ed) {
     fmt::fprintf(f, "{\n");
 
     if (ed->free) {
@@ -473,21 +438,27 @@ void ED_Write(FILE *f, edict_t *ed) {
         return;
     }
 
-    for (i = 1; i < progs->numfielddefs; i++) {
-        d = &pr_fielddefs[i];
+    for (int i = 1; i < progs->numfielddefs; i++) {
+        const auto *d = &pr_fielddefs[i];
         auto name = getStringByOffset(d->s_name);
         if (name[name.length() - 2] == '_')
             continue;    // skip _x, _y, _z vars
 
-        v = (int *) ((char *) &ed->v + d->ofs * 4);
+        const auto *v = (int *) ((char *) &ed->v + d->ofs * 4);
 
         // if the value is still all 0, skip the field
-        type = d->type & ~DEF_SAVEGLOBAL;
-        for (j = 0; j < type_size[type]; j++)
+        auto skip_field = [d, v]() {
+          const auto type = d->type & ~DEF_SAVEGLOBAL;
+          int j = 0;
+          for (; j < type_size[type]; j++)
             if (v[j])
-                break;
-        if (j == type_size[type])
-            continue;
+              break;
+          return j == type_size[type];
+        };
+
+        if (skip_field()){
+          continue;
+        }
 
         fmt::fprintf(f, "\"%s\" ", name);
         fmt::fprintf(f, "\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(d->type), (eval_t *) v));
@@ -508,10 +479,8 @@ For debugging, prints all the entities in the current server
 =============
 */
 void ED_PrintEdicts() {
-    int i = 0;
-
     Con_Printf("%i entities\n", sv.num_edicts);
-    for (i = 0; i < sv.num_edicts; i++)
+    for (int i = 0; i < sv.num_edicts; i++)
         ED_PrintNum(i);
 }
 
@@ -523,9 +492,7 @@ For debugging, prints a single edicy
 =============
 */
 void ED_PrintEdict_f() {
-    int i = 0;
-
-    i = Q_atoi(Cmd_Argv(1));
+    const auto i = Q_atoi(Cmd_Argv(1));
     if (i >= sv.num_edicts) {
         Con_Printf("Bad edict number\n");
         return;
@@ -572,7 +539,6 @@ void ED_Count() {
 
 					ARCHIVING GLOBALS
 
-FIXME: need to tag constants, doesn't really work
 ==============================================================================
 */
 
@@ -581,27 +547,22 @@ FIXME: need to tag constants, doesn't really work
 ED_WriteGlobals
 =============
 */
-void ED_WriteGlobals(FILE *f) {
-    ddef_t *def = nullptr;
-    int i = 0;
-    char *name = nullptr;
-    int type = 0;
-
+void ED_WriteGlobals(std::ofstream &f) {
     fmt::fprintf(f, "{\n");
-    for (i = 0; i < progs->numglobaldefs; i++) {
-        def = &pr_globaldefs[i];
-        type = def->type;
-        if (!(def->type & DEF_SAVEGLOBAL))
+    for (int i = 0; i < progs->numglobaldefs; i++) {
+        const auto *def = &pr_globaldefs[i];
+        if ((def->type & DEF_SAVEGLOBAL) == 0)
             continue;
-        type = static_cast<etype_t>(type & ~DEF_SAVEGLOBAL);
+
+        const auto type = static_cast<etype_t>(def->type & ~DEF_SAVEGLOBAL);
 
         if (type != ev_string
             && type != ev_float
             && type != ev_entity)
             continue;
 
-        fmt::fprintf(f, "\"%s\" ", getStringByOffset(def->s_name).data());
-        fmt::fprintf(f, "\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(type), (eval_t *) &pr_globals[def->ofs]));
+        fmt::fprintf(f, "\"%s\" ", getStringByOffset(def->s_name));
+        fmt::fprintf(f, "\"%s\"\n", PR_UglyValueString(type, reinterpret_cast<eval_t *>(&pr_globals[def->ofs])));
     }
     fmt::fprintf(f, "}\n");
 }
@@ -612,66 +573,36 @@ ED_ParseGlobals
 =============
 */
 void ED_ParseGlobals(std::string_view data) {
-    char keyname[64];
-    ddef_t *key = nullptr;
-
     while (true) {
         // parse key
         data = COM_Parse(data);
         if (com_token[0] == '}')
             break;
         if (data.empty())
-            Sys_Error("ED_ParseEntity: EOF without closing brace");
+            Sys_Error("ED_ParseGlobals: EOF without closing brace when parsing key");
 
-        strcpy(keyname, com_token);
+        std::string keyname{com_token}; // fixme: this should be a view into 'data' instead of a string
 
         // parse value
         data = COM_Parse(data);
         if (data.empty())
-            Sys_Error("ED_ParseEntity: EOF without closing brace");
+            Sys_Error("ED_ParseGlobals: EOF without closing brace when parsing value");
 
         if (com_token[0] == '}')
-            Sys_Error("ED_ParseEntity: closing brace without data");
+            Sys_Error("ED_ParseGlobals: closing brace without data");
 
-        key = ED_FindGlobal(keyname);
-        if (!key) {
-            Con_Printf("'%s' is not a global\n", keyname);
-            continue;
+
+        if (auto *key = ED_FindGlobal(keyname)) {
+          if (!ED_ParseEpair((void *) pr_globals, key, com_token))
+            Host_Error("ED_ParseGlobals: parse error");
+        } else {
+          Con_Printf("'%s' is not a global\n", keyname);
         }
 
-        if (!ED_ParseEpair((void *) pr_globals, key, com_token))
-            Host_Error("ED_ParseGlobals: parse error");
     }
 }
 
 //============================================================================
-
-
-
-/*
-auto ED_NewString (std::string_view string) -> char *
-{
-    std::size_t l = string.length() + 1;
-	char* newMem = hunkAlloc<decltype(newMem)> (l);
-	char* new_p = newMem;
-
-	for (std::size_t i=0 ; i< l ; i++)
-	{
-		if (string[i] == '\\' && i < l-1)
-		{
-			i++;
-			if (string[i] == 'n')
-				*new_p++ = '\n';
-			else
-				*new_p++ = '\\';
-		}
-		else
-			*new_p++ = string[i];
-	}
-	
-	return newMem;
-}
-*/
 
 /*
 =============
@@ -682,64 +613,53 @@ returns false if error
 =============
 */
 auto ED_ParseEpair(void *base, ddef_t *key, std::string_view s) -> qboolean {
-    int i = 0;
-    char string[128];
-    ddef_t *def = nullptr;
-    char *v = nullptr, *w = nullptr;
-    void *d = nullptr;
-    unsigned long functionDistance = 0;
-
-    d = (void *) ((int *) base + key->ofs);
-
-
+    auto *dest = (void *) ((int *) base + key->ofs);
+    istringviewstream stream{s};
     switch (key->type & ~DEF_SAVEGLOBAL) {
         case ev_string: {
-            //*(string_t *)d = ED_NewString (s) - pr_strings;
-            auto str = toString(s);
-            *(string_t *) d = static_cast<string_t>(newString(std::move(str)));
+          // global fields that are empty (defined but not initialized), hold a value that we need to preserve
+            if (s.empty()) {
+              return true;
+            }
+            std::string str{s};
+            *(string_t *) dest = static_cast<string_t>(newString(std::move(str)));
             break;
         }
 
-
         case ev_float:
-            *(float *) d = strtof(s.cbegin(), nullptr);
+            stream >> *((float *) dest);
             break;
 
         case ev_vector:
-            strncpy(string, s.data(), s.length());
-            v = string;
-            w = string;
-            for (i = 0; i < 3; i++) {
-                while (*v && *v != ' ')
-                    v++;
-                *v = 0;
-                ((float *) d)[i] = strtof(w, nullptr);
-                w = v = v + 1;
+            for (int i = 0; i < 3; i++) {
+                stream >> ((float *) dest)[i];
             }
             break;
 
         case ev_entity:
-            *(int *) d = EDICT_TO_PROG(EDICT_NUM(strtol(s.data(), nullptr, 10)));
+            *(int *) dest = EDICT_TO_PROG(EDICT_NUM(strtol(s.data(), nullptr, 10)));
             break;
 
         case ev_field:
-            def = ED_FindField(s);
-            if (!def) {
-                Con_Printf("Can't find field %s\n", s);
-                return false;
-            }
-            *(int *) d = G_INT(def->ofs);
-            break;
-
+        {
+          const auto *def = ED_FindField(s);
+          if (def == nullptr) {
+            Con_Printf("Can't find field %s\n", s);
+            return false;
+          }
+          *(int *) dest = G_INT(def->ofs);
+          break;
+        }
         case ev_function:
-            functionDistance = getFunctionOffsetFromName(s);
-            if (functionDistance == 0) {
-                Con_Printf("Can't find function %s\n", s);
-                return false;
-            }
-            *(func_t *) d = functionDistance;
+        {
+          if (const auto functionDistance = getFunctionOffsetFromName(s)) {
+            *(func_t *) dest = functionDistance;
             break;
+          }
 
+          Con_Printf("Can't find function %s\n", s);
+          return false;
+        }
         default:
             break;
     }
@@ -755,7 +675,7 @@ ed should be a properly initialized empty edict.
 Used for initial level load and for savegames.
 ====================
 */
-auto ED_ParseEdict(std::string_view data, edict_t *ent) -> const char * {
+auto ED_ParseEdict(std::string_view data, edict_t *ent) -> std::string_view {
     qboolean anglehack = false;
     qboolean init = false;
 
@@ -778,7 +698,7 @@ auto ED_ParseEdict(std::string_view data, edict_t *ent) -> const char * {
         if (com_token[0] == '}')
             break;
         if (data.empty())
-            Sys_Error("ED_ParseEntity: EOF without closing brace");
+            Sys_Error("ED_ParseEdict: EOF without closing brace");
 
         // anglehack is to allow QuakeEd to write single scalar angles
         // and allow them to be turned into vectors. (FIXME...)
@@ -795,26 +715,26 @@ auto ED_ParseEdict(std::string_view data, edict_t *ent) -> const char * {
         std::string keyname = com_token;
 
         // another hack to fix heynames with trailing spaces
-        trim_spaces(keyname);
+//        trim_spaces(keyname);
 
         // parse value
         data = COM_Parse(data);
         if (data.empty())
-            Sys_Error("ED_ParseEntity: EOF without closing brace");
+            Sys_Error("ED_ParseEdict: EOF without closing brace");
 
         if (com_token[0] == '}')
-            Sys_Error("ED_ParseEntity: closing brace without data");
+            Sys_Error("ED_ParseEdict: closing brace without data");
 
         init = true;
 
 // keynames with a leading underscore are used for utility comments,
 // and are immediately discarded by quake
-        if (keyname[0] == '_')
-            continue;
+//        if (keyname[0] == '_')
+//            continue;
 
         auto key = ED_FindField(keyname);
         if (!key) {
-            Con_Printf("'%s' is not a field\n", keyname);
+            Con_Printf("Field '%s' does not exist\n", keyname);
             continue;
         }
 
@@ -831,7 +751,7 @@ auto ED_ParseEdict(std::string_view data, edict_t *ent) -> const char * {
     if (!init)
         ent->free = true;
 
-    return data.data();
+    return data;
 }
 
 
@@ -933,7 +853,8 @@ void PR_LoadProgs() {
     progs = (dprograms_t *) COM_LoadHunkFile("progs.dat");
     if (!progs)
         Sys_Error("PR_LoadProgs: couldn't load progs.dat");
-    Con_DPrintf("Programs occupy %iK.\n", com_filesize / 1024);
+
+    sysPrintf("Programs occupy %iK.\n", com_filesize / 1024);
 
     for (i = 0; i < com_filesize; i++)
         CRC_ProcessByte(&pr_crc, ((byte *) progs)[i]);
@@ -967,7 +888,7 @@ void PR_LoadProgs() {
     }
     edictFunctions.reserve(progs->numfunctions);
     for (i = 0; i < progs->numfunctions; i++) {
-        edictFunctions.push_back({
+        edictFunctions.emplace_back(dfunction_t{
                                          .first_statement = LittleLong(pr_functions[i].first_statement),
                                          .parm_start = LittleLong(pr_functions[i].parm_start),
                                          .locals = LittleLong(pr_functions[i].locals),
@@ -976,12 +897,6 @@ void PR_LoadProgs() {
                                          .s_file = LittleLong(pr_functions[i].s_file),
                                          .numparms = LittleLong(pr_functions[i].numparms),
                                  });
-//	pr_functions[i].first_statement = LittleLong (pr_functions[i].first_statement);
-//	pr_functions[i].parm_start = LittleLong (pr_functions[i].parm_start);
-//	pr_functions[i].s_name = LittleLong (pr_functions[i].s_name);
-//	pr_functions[i].s_file = LittleLong (pr_functions[i].s_file);
-//	pr_functions[i].numparms = LittleLong (pr_functions[i].numparms);
-//	pr_functions[i].locals = LittleLong (pr_functions[i].locals);
     }
 
     for (i = 0; i < progs->numglobaldefs; i++) {
@@ -1006,8 +921,8 @@ void PR_LoadProgs() {
         if (pr_strings[j] != '\0') {
             temp += pr_strings[j];
         } else {
-            edictStrings[j - temp.length()] = temp;
-            temp = "";
+            edictStrings[j - temp.length()] = std::move(temp);
+            temp.clear();
         }
     }
 }

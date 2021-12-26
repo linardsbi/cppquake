@@ -52,6 +52,7 @@ using keyname_t = std::map<std::string_view, std::uint16_t>;
 
 static keyname_t keynames =
         {
+                {"<UNKNOWN KEYNUM>",0},
                 {"TAB",        K_TAB},
                 {"ENTER",      K_ENTER},
                 {"ESCAPE",     K_ESCAPE},
@@ -175,13 +176,14 @@ void Key_Console(int key) {
             cmd = Cvar_CompleteVariable(key_lines[edit_line] + 1);
 
         if (!cmd.empty()) {
-            Q_strcpy(key_lines[edit_line] + 1, cmd.data());
+            strncpy(key_lines[edit_line] + 1, cmd.data(), cmd.length());
             key_linepos = cmd.length() + 1;
             key_lines[edit_line][key_linepos] = ' ';
             key_linepos++;
             key_lines[edit_line][key_linepos] = 0;
-            return;
         }
+
+        return;
     }
 
     if (key == K_BACKSPACE || key == K_LEFTARROW) {
@@ -313,8 +315,6 @@ the K_* names are matched up.
 ===================
 */
 auto Key_StringToKeynum(std::string_view str) -> int {
-    if (str.empty() || !str[0])
-        return -1;
     if (str.length() < 2)
         return str[0];
 
@@ -410,7 +410,7 @@ void Key_Bind_f() {
     }
 
     if (argc == 2) {
-        if (!keybindings[key_num].empty())
+        if (keybindings.contains(key_num))
             Con_Printf("\"%s\" = \"%s\"\n", Cmd_Argv(1), keybindings[key_num]);
         else
             Con_Printf("\"%s\" is not bound\n", Cmd_Argv(1));

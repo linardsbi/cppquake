@@ -190,7 +190,7 @@ auto hunkAllocName(int hsize, std::string_view name) -> MemType {
     if (hsize < 0)
         Sys_Error("Hunk_Alloc: bad size: %i", hsize);
 
-    auto size = sizeof(hunk_t) + ((hsize + 0b111) & ~0b111);
+    const auto size = sizeof(hunk_t) + ((hsize + 0b111) & ~0b111);
 
     if (hunk_size - hunk_low_used - hunk_high_used < size)
         Sys_Error("Hunk_Alloc: failed on %i bytes", size);

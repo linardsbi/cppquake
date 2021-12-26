@@ -18,9 +18,43 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #pragma once
+#include <map>
+#include <optional>
 // cmd.h -- Command buffer and command execution
 
 //===========================================================================
+template <typename AliasType>
+class CMDBase {
+public:
+  static AliasType& get() {
+    static AliasType cmd_functions;
+    return cmd_functions;
+  }
+
+  inline static std::optional<typename AliasType::iterator> find(const std::string &name) {
+    const auto iter = get().find(name);
+    if (iter != end()) {
+      return iter;
+    }
+    return {};
+  }
+
+  inline static typename AliasType::const_iterator end() {
+    return get().end();
+  }
+
+  CMDBase() = delete;
+  ~CMDBase() = delete;
+
+  CMDBase(const CMDBase&) = delete;
+  CMDBase& operator=(const CMDBase&) = delete;
+  CMDBase(CMDBase&&) = delete;
+  CMDBase& operator=(CMDBase&&) = delete;
+};
+
+class CMDFunctions : public CMDBase<std::map<std::string, std::function<void()>>> {};
+
+class CMDAliases : public CMDBase<std::map<std::string, std::string>> {};
 
 /*
 
@@ -42,7 +76,7 @@ void Cbuf_AddText(std::string_view text);
 // as new commands are generated from the console or keybindings,
 // the text is added to the end of the command buffer.
 
-void Cbuf_InsertText(char *text);
+void Cbuf_InsertText(std::string_view text);
 // when a command wants to issue other commands immediately, the text is
 // inserted at the beginning of the buffer, before any remaining unexecuted
 // commands.
@@ -94,7 +128,7 @@ int Cmd_Argc();
 
 std::string_view Cmd_Argv(int arg);
 
-const char *Cmd_Args();
+std::string_view Cmd_Args();
 // The functions that execute commands get their parameters with these
 // functions. Cmd_Argv () will return an empty string, not a NULL
 // if arg > argc, so string operations are allways safe.

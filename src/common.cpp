@@ -360,12 +360,7 @@ auto Q_atof(std::string_view str) -> float {
 
 ============================================================================
 */
-
-#ifdef SDL
-
-#include "SDL/SDL_byteorder.h"
-
-#endif
+#include <SDL.h>
 
 qboolean bigendien;
 
@@ -829,13 +824,18 @@ auto COM_Parse(std::string_view str) -> std::string_view {
                     }
                     break;
                 case State::Quote:
-                    if (ch == '\"' || ch == 0) {
-                        com_token[token_len] = 0;
-                        return str.substr(i + 1);
-                    }
-                    com_token[token_len] = ch;
-                    token_len++;
-                    break;
+                  if (ch == '\"' && str[i - 1] == '\"'){
+                    com_token[token_len] = 0;
+                    com_token[token_len + 1] = 0;
+                    return str.substr(i + 1);
+                  }
+                  if (ch == '\"' || ch == 0) {
+                      com_token[token_len] = 0;
+                      return str.substr(i + 1);
+                  }
+                  com_token[token_len] = ch;
+                  token_len++;
+                  break;
                 case State::Word:
                     if (ch <= ' ') {
                         state = State::End;

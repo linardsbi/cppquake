@@ -781,7 +781,7 @@ float cvar (string)
 =================
 */
 void PF_cvar_set() {
-    Cvar_Set(getGlobalString(OFS_PARM0).data(), getGlobalString(OFS_PARM1).data());
+    Cvar_Set(getGlobalString(OFS_PARM0), getGlobalString(OFS_PARM1));
 }
 
 /*
@@ -1678,7 +1678,7 @@ void PF_Fixme() {
 
 #include <array>
 
-std::array pr_builtin =
+static std::array pr_builtin =
         {
                 PF_Fixme,
                 PF_makevectors,    // void(entity e)	makevectors 		= #1;

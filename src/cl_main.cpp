@@ -33,7 +33,7 @@ cvar_t cl_shownet = {"cl_shownet", "0"};    // can be 0, 1, or 2
 cvar_t cl_nolerp = {"cl_nolerp", "0"};
 
 cvar_t lookspring = {"lookspring", "0", true};
-cvar_t lookstrafe = {"lookstrafe", "0", true};
+cvar_t lookstrafe = {"lookstrafe", "1", true};
 cvar_t sensitivity = {"sensitivity", "3", true};
 
 cvar_t m_pitch = {"m_pitch", "0.022", true};
@@ -210,8 +210,6 @@ Called to play the next demo in the demo loop
 =====================
 */
 void CL_NextDemo() {
-    char str[1024];
-
     if (cls.demonum == -1)
         return;        // don't play demos
 
@@ -226,9 +224,11 @@ void CL_NextDemo() {
         }
     }
 
-    sprintf(str, "playdemo %s\n", cls.demos[cls.demonum]);
-    Cbuf_InsertText(str);
+    const auto str = fmt::sprintf("playdemo %s\n", cls.demos[cls.demonum]);
+
     cls.demonum++;
+
+    Cbuf_InsertText(str);
 }
 
 /*

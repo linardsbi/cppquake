@@ -99,11 +99,11 @@ char *ED_NewString(std::string_view string);
 
 void ED_Print(edict_t *ed);
 
-void ED_Write(FILE *f, edict_t *ed);
+void ED_Write(std::ofstream &f, edict_t *ed);
 
-const char *ED_ParseEdict(std::string_view data, edict_t *ent);
+std::string_view ED_ParseEdict(std::string_view data, edict_t *ent);
 
-void ED_WriteGlobals(FILE *f);
+void ED_WriteGlobals(std::ofstream &f);
 
 void ED_ParseGlobals(std::string_view data);
 
@@ -142,7 +142,7 @@ auto G_STRING(int o) -> const char *;
 constexpr std::array<unsigned long, 8> type_size = {1, sizeof(string_t) / 4, 1, 3, 1, 1, sizeof(func_t) / 4,
                                                     sizeof(void *) / 4};
 
-typedef void (*builtin_t)();
+using builtin_t = void (*)();
 
 extern builtin_t *pr_builtins;
 extern const int pr_numbuiltins;

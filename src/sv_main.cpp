@@ -238,51 +238,39 @@ once for a player each game, not once for each level change.
 ================
 */
 void SV_ConnectClient(int clientnum) {
-    edict_t *ent = nullptr;
-    client_t *client = nullptr;
-    int edictnum = 0;
-    struct qsocket_s *netconnection = nullptr;
-    int i = 0;
-    float spawn_parms[NUM_SPAWN_PARMS];
-
-    client = svs.clients + clientnum;
+    auto *client = svs.clients + clientnum;
+    client_t new_client{};
 
     Con_DPrintf("Client %s connected\n", client->netconnection->address);
 
-    edictnum = clientnum + 1;
-
-    ent = EDICT_NUM(edictnum);
+    const auto edictnum = clientnum + 1;
 
 // set up the client_t
-    netconnection = client->netconnection;
-
-    if (sv.loadgame)
-        memcpy(spawn_parms, client->spawn_parms, sizeof(spawn_parms));
-    //memset (client, 0, sizeof(*client));
-    client->netconnection = netconnection;
-
-    client->name = "unconnected";
-    client->active = true;
-    client->spawned = false;
-    client->edict = ent;
-    client->message.data = client->msgbuf;
-    client->message.maxsize = sizeof(client->msgbuf);
-    client->message.allowoverflow = true;        // we can catch it
+    new_client.netconnection = client->netconnection;
+    new_client.name = "unconnected";
+    new_client.active = true;
+    new_client.spawned = false;
+    new_client.edict = EDICT_NUM(edictnum);
+    new_client.message.data = client->msgbuf;
+    new_client.message.maxsize = sizeof(client->msgbuf);
+    new_client.message.allowoverflow = true;        // we can catch it
 
 #ifdef IDGODS
-    client->privileged = IsID(&client->netconnection->addr);
+    new_client.privileged = IsID(&client->netconnection->addr);
 #else
-    client->privileged = false;
+    new_client.privileged = false;
 #endif
 
     if (sv.loadgame)
-        memcpy(client->spawn_parms, spawn_parms, sizeof(spawn_parms));
+        memcpy(new_client.spawn_parms, client->spawn_parms, sizeof(client->spawn_parms));
     else {
         // call the progs to get default spawn parms for the new client
         PR_ExecuteProgram(pr_global_struct->SetNewParms);
-        for (i = 0; i < NUM_SPAWN_PARMS; i++)
-            client->spawn_parms[i] = (&pr_global_struct->parm1)[i];
+        for (int i = 0; i < NUM_SPAWN_PARMS; i++)
+            new_client.spawn_parms[i] = (&pr_global_struct->parm1)[i];
     }
+
+    *client = new_client;
 
     SV_SendServerinfo(client);
 }
@@ -295,21 +283,19 @@ SV_CheckForNewClients
 ===================
 */
 void SV_CheckForNewClients() {
-    struct qsocket_s *ret = nullptr;
-    int i = 0;
-
 //
 // check for new connections
 //
     while (true) {
-        ret = NET_CheckNewConnections();
+        auto *ret = NET_CheckNewConnections();
         if (!ret)
             break;
 
         //
         // init a new client structure
         //
-        for (i = 0; i < svs.maxclients; i++)
+        int i = 0;
+        for (; i < svs.maxclients; i++)
             if (!svs.clients[i].active)
                 break;
         if (i == svs.maxclients)
@@ -353,34 +339,28 @@ crosses a waterline.
 =============================================================================
 */
 
-int fatbytes;
-byte fatpvs[MAX_MAP_LEAFS / 8];
+static std::array<byte, MAX_MAP_LEAFS / 8> fatpvs{};
 
-void SV_AddToFatPVS(vec3_t org, mnode_t *node) {
-    int i = 0;
-    byte *pvs = nullptr;
-    mplane_t *plane = nullptr;
-    float d = NAN;
-
+void SV_AddToFatPVS(const vec3_t org, mnode_t *node, const auto fatbytes) {
     while (true) {
         // if this is a leaf, accumulate the pvs bits
         if (node->contents < 0) {
             if (node->contents != CONTENTS_SOLID) {
-                pvs = Mod_LeafPVS((mleaf_t *) node, sv.worldmodel);
-                for (i = 0; i < fatbytes; i++)
+                const auto *pvs = Mod_LeafPVS(reinterpret_cast<mleaf_t *>(node), sv.worldmodel);
+                for (int i = 0; i < fatbytes; i++)
                     fatpvs[i] |= pvs[i];
             }
             return;
         }
 
-        plane = node->plane;
-        d = DotProduct (org, plane->normal) - plane->dist;
+        const auto *plane = node->plane;
+        const auto d = DotProduct (org, plane->normal) - plane->dist;
         if (d > 8)
             node = node->children[0];
         else if (d < -8)
             node = node->children[1];
         else {    // go down both
-            SV_AddToFatPVS(org, node->children[0]);
+            SV_AddToFatPVS(org, node->children[0], fatbytes);
             node = node->children[1];
         }
     }
@@ -394,11 +374,11 @@ Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 given point.
 =============
 */
-auto SV_FatPVS(vec3_t org) -> byte * {
-    fatbytes = (sv.worldmodel->numleafs + 31) >> 3;
-    Q_memset(fatpvs, 0, fatbytes);
-    SV_AddToFatPVS(org, sv.worldmodel->nodes);
-    return fatpvs;
+inline auto SV_FatPVS(const vec3_t org) {
+    const auto fatbytes = static_cast<unsigned>(sv.worldmodel->numleafs + 31) >> 3U;
+    memset(fatpvs.data(), 0, fatbytes);
+    SV_AddToFatPVS(org, sv.worldmodel->nodes, fatbytes);
+    return fatpvs.begin();
 }
 
 //=============================================================================
@@ -411,19 +391,15 @@ SV_WriteEntitiesToClient
 =============
 */
 void SV_WriteEntitiesToClient(edict_t *clent, sizebuf_t *msg) {
-    int e = 0, i = 0;
-    byte *pvs = nullptr;
     vec3_t org;
-    float miss = NAN;
-    edict_t *ent = nullptr;
 
 // find the client's PVS
     VectorAdd (clent->v.origin, clent->v.view_ofs, org);
-    pvs = SV_FatPVS(org);
+    const auto *pvs = SV_FatPVS(org);
 
 // send over all entities (excpet the client) that touch the pvs
-    ent = NEXT_EDICT(sv.edicts);
-    for (e = 1; e < sv.num_edicts; e++, ent = NEXT_EDICT(ent)) {
+    const auto *ent = NEXT_EDICT(sv.edicts);
+    for (int e = 1; e < sv.num_edicts; e++, ent = NEXT_EDICT(ent)) {
 #ifdef QUAKE2
         // don't send if flagged for NODRAW and there are no lighting effects
         if (ent->v.effects == EF_NODRAW)
@@ -437,7 +413,8 @@ void SV_WriteEntitiesToClient(edict_t *clent, sizebuf_t *msg) {
             if (!ent->v.modelindex || !stringExistsAtOffset(ent->v.model))
                 continue;
 
-            for (i = 0; i < ent->num_leafs; i++)
+            int i = 0;
+            for (; i < ent->num_leafs; i++)
                 if (pvs[ent->leafnums[i] >> 3] & (1 << (ent->leafnums[i] & 7)))
                     break;
 
@@ -453,8 +430,8 @@ void SV_WriteEntitiesToClient(edict_t *clent, sizebuf_t *msg) {
 // send an update
         int bits = 0;
 
-        for (i = 0; i < 3; i++) {
-            miss = ent->v.origin[i] - ent->baseline.origin[i];
+        for (int i = 0; i < 3; i++) {
+            const auto miss = ent->v.origin[i] - ent->baseline.origin[i];
             if (miss < -0.1 || miss > 0.1)
                 bits |= U_ORIGIN1 << i;
         }
@@ -536,14 +513,10 @@ SV_CleanupEnts
 =============
 */
 void SV_CleanupEnts() {
-    int e = 0;
-    edict_t *ent = nullptr;
-
-    ent = NEXT_EDICT(sv.edicts);
-    for (e = 1; e < sv.num_edicts; e++, ent = NEXT_EDICT(ent)) {
-        ent->v.effects = (int) ent->v.effects & ~EF_MUZZLEFLASH;
+    auto *ent = NEXT_EDICT(sv.edicts);
+    for (int e = 1; e < sv.num_edicts; e++, ent = NEXT_EDICT(ent)) {
+        ent->v.effects = (unsigned) ent->v.effects & ~EF_MUZZLEFLASH;
     }
-
 }
 
 /*
@@ -553,23 +526,15 @@ SV_WriteClientdataToMessage
 ==================
 */
 void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
-    int bits = 0;
-    int i = 0;
-    edict_t *other = nullptr;
-    int items = 0;
-#ifndef QUAKE2
-    eval_t *val = nullptr;
-#endif
-
 //
 // send a damage message
 //
     if (ent->v.dmg_take || ent->v.dmg_save) {
-        other = PROG_TO_EDICT(ent->v.dmg_inflictor);
+        const auto *other = PROG_TO_EDICT(ent->v.dmg_inflictor);
         MSG_WriteByte(msg, svc_damage);
         MSG_WriteByte(msg, ent->v.dmg_save);
         MSG_WriteByte(msg, ent->v.dmg_take);
-        for (i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
             MSG_WriteCoord(msg, other->v.origin[i] + 0.5 * (other->v.mins[i] + other->v.maxs[i]));
 
         ent->v.dmg_take = 0;
@@ -584,12 +549,12 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
 // a fixangle might get lost in a dropped packet.  Oh well.
     if (ent->v.fixangle) {
         MSG_WriteByte(msg, svc_setangle);
-        for (i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
             MSG_WriteAngle(msg, ent->v.angles[i]);
         ent->v.fixangle = 0;
     }
 
-    bits = 0;
+    auto bits = 0U;
 
     if (ent->v.view_ofs[2] != DEFAULT_VIEWHEIGHT)
         bits |= SU_VIEWHEIGHT;
@@ -602,12 +567,15 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
 #ifdef QUAKE2
     items = (int)ent->v.items | ((int)ent->v.items2 << 23);
 #else
-    val = GetEdictFieldValue(ent, "items2");
+  auto get_items = [ent]() {
+    const auto *val = GetEdictFieldValue(ent, "items2");
 
-    if (val)
-        items = (int) ent->v.items | ((int) val->_float << 23);
-    else
-        items = (int) ent->v.items | ((int) pr_global_struct->serverflags << 28);
+    if (val != nullptr)
+      return (unsigned) ent->v.items | ((unsigned) val->_float << 23U);
+
+    return (unsigned) ent->v.items | ((unsigned) pr_global_struct->serverflags << 28U);
+  };
+
 #endif
 
     bits |= SU_ITEMS;
@@ -618,7 +586,7 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
     if (ent->v.waterlevel >= 2)
         bits |= SU_INWATER;
 
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         if (ent->v.punchangle[i])
             bits |= (SU_PUNCH1 << i);
         if (ent->v.velocity[i])
@@ -645,7 +613,7 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
     if (bits & SU_IDEALPITCH)
         MSG_WriteChar(msg, ent->v.idealpitch);
 
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         if (bits & (SU_PUNCH1 << i))
             MSG_WriteChar(msg, ent->v.punchangle[i]);
         if (bits & (SU_VELOCITY1 << i))
@@ -653,7 +621,7 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
     }
 
 // [always sent]	if (bits & SU_ITEMS)
-    MSG_WriteLong(msg, items);
+    MSG_WriteLong(msg, get_items());
 
     if (bits & SU_WEAPONFRAME)
         MSG_WriteByte(msg, ent->v.weaponframe);
@@ -672,8 +640,8 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
     if (standard_quake) {
         MSG_WriteByte(msg, ent->v.weapon);
     } else {
-        for (i = 0; i < 32; i++) {
-            if (((int) ent->v.weapon) & (1 << i)) {
+        for (unsigned i = 0; i < 32; i++) {
+            if (((unsigned) ent->v.weapon) & (1U << i)) {
                 MSG_WriteByte(msg, i);
                 break;
             }
@@ -853,13 +821,9 @@ SV_CreateBaseline
 ================
 */
 void SV_CreateBaseline() {
-    int i = 0;
-    edict_t *svent = nullptr;
-    int entnum = 0;
-
-    for (entnum = 0; entnum < sv.num_edicts; entnum++) {
+    for (int entnum = 0; entnum < sv.num_edicts; entnum++) {
         // get the current server version
-        svent = EDICT_NUM(entnum);
+        auto *svent = EDICT_NUM(entnum);
         if (svent->free)
             continue;
         if (entnum > svs.maxclients && !svent->v.modelindex)
@@ -890,7 +854,7 @@ void SV_CreateBaseline() {
         MSG_WriteByte(&sv.signon, svent->baseline.frame);
         MSG_WriteByte(&sv.signon, svent->baseline.colormap);
         MSG_WriteByte(&sv.signon, svent->baseline.skin);
-        for (i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             MSG_WriteCoord(&sv.signon, svent->baseline.origin[i]);
             MSG_WriteAngle(&sv.signon, svent->baseline.angles[i]);
         }
@@ -904,11 +868,10 @@ SV_ModelIndex
 ================
 */
 auto SV_ModelIndex(std::string_view name) -> int {
-    int i = 0;
-
     if (name.empty())
         return 0;
 
+    int i = 0;
     for (i = 0; i < MAX_MODELS && sv.model_precache[i]; i++)
         if (!Q_strcmp(sv.model_precache[i], name))
             return i;
@@ -985,17 +948,15 @@ extern float scr_centertime_off;
 void SV_SpawnServer (char *server, char *startspot)
 #else
 
-void SV_SpawnServer(char *server)
+void SV_SpawnServer(const std::string &server)
 #endif
 {
-    edict_t *ent = nullptr;
-    int i = 0;
     // let's not have any servers with no name
     if (hostname.string[0] == 0)
         Cvar_Set("hostname", "UNNAMED");
     scr_centertime_off = 0;
 
-    Con_DPrintf("SpawnServer: %s\n", server);
+    Con_DPrintf("SpawnServer: %s\n", server.c_str());
     svs.changelevel_issued = false;        // now safe to issue another
 
 //
@@ -1025,7 +986,6 @@ void SV_SpawnServer(char *server)
 
     memset(&sv, 0, sizeof(sv));
 
-    strcpy(sv.name, server);
 #ifdef QUAKE2
     if (startspot)
         strcpy(sv.startspot, startspot);
@@ -1053,8 +1013,8 @@ void SV_SpawnServer(char *server)
 
 // leave slots at start for clients only
     sv.num_edicts = svs.maxclients + 1;
-    for (i = 0; i < svs.maxclients; i++) {
-        ent = EDICT_NUM(i + 1);
+    for (int i = 0; i < svs.maxclients; i++) {
+        auto *ent = EDICT_NUM(i + 1);
         svs.clients[i].edict = ent;
     }
 
@@ -1063,8 +1023,8 @@ void SV_SpawnServer(char *server)
 
     sv.time = 1.0;
 
-    strcpy(sv.name, server);
-    sprintf(sv.modelname, "maps/%s.bsp", server);
+    strncpy(sv.name, server.c_str(), server.length());
+    sprintf(sv.modelname, "maps/%s.bsp", server.c_str());
     sv.worldmodel = Mod_ForName(sv.modelname, false);
     if (!sv.worldmodel) {
         Con_Printf("Couldn't spawn server %s\n", sv.modelname);
@@ -1082,7 +1042,7 @@ void SV_SpawnServer(char *server)
 
     sv.model_precache[0] = pr_strings;
     sv.model_precache[1] = sv.modelname;
-    for (i = 1; i < sv.worldmodel->numsubmodels; i++) {
+    for (int i = 1; i < sv.worldmodel->numsubmodels; i++) {
         sv.model_precache[1 + i] = localmodels[i];
         sv.models[i + 1] = Mod_ForName(localmodels[i], false);
     }
@@ -1090,7 +1050,7 @@ void SV_SpawnServer(char *server)
 //
 // load the rest of the entities
 //	
-    ent = EDICT_NUM(0);
+    auto *ent = EDICT_NUM(0);
     memset(&ent->v, 0, progs->entityfields * 4);
     ent->free = false;
     ent->v.model = getOffsetByString(sv.worldmodel->name);
@@ -1127,7 +1087,8 @@ void SV_SpawnServer(char *server)
     SV_CreateBaseline();
 
 // send serverinfo to all connected clients
-    for (i = 0, host_client = svs.clients; i < svs.maxclients; i++, host_client++)
+    auto *host_client = svs.clients;
+    for (int i = 0; i < svs.maxclients; i++, host_client++)
         if (host_client->active)
             SV_SendServerinfo(host_client);
 

@@ -24,7 +24,6 @@ auto getStringByOffset(const unsigned long offset) -> std::string_view {
         return stringIt->second;
     }
     return {};
-
 }
 
 auto getOffsetByString(std::string_view name) -> unsigned long {
@@ -67,8 +66,7 @@ NewString
 =============
 */
 
-auto fixNewLines(std::string &string) {
-    std::string newstring = std::move(string);
+void fixNewLines(std::string& newstring) {
     for (std::size_t i = 0, l = newstring.length(); i < l; i++) {
         if (newstring[i] == '\\' && i < l - 1) {
             i++;
@@ -80,12 +78,12 @@ auto fixNewLines(std::string &string) {
             }
         }
     }
-    return newstring;
 }
 
 auto newString(std::string string) -> unsigned long {
     const auto lastIt = --edictStrings.end();
-    const auto offset = lastIt->first + lastIt->second.length() + 1; // I might not be adding something..
-    edictStrings[offset] = fixNewLines(string);
+    const auto offset = lastIt->first + lastIt->second.length() + 1;
+    fixNewLines(string);
+    edictStrings[offset] = std::move(string);
     return offset;
 }

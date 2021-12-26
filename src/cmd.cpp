@@ -24,16 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 void Cmd_ForwardToServer();
 
-#define    MAX_ALIAS_NAME    32
-
-using cmdalias_t = struct cmdalias_s {
-    struct cmdalias_s *next;
-    char name[MAX_ALIAS_NAME];
-    char *value;
-};
-
-cmdalias_t *cmd_alias;
-
 int trashtest;
 int *trashspot;
 
@@ -70,7 +60,7 @@ Cbuf_Init
 ============
 */
 void Cbuf_Init() {
-    SZ_Alloc(&cmd_text, 8192);        // space for commands and script files
+    SZ_Alloc(&cmd_text, 32768);        // space for commands and script files
 }
 
 
@@ -100,13 +90,12 @@ Adds a \n to the text
 FIXME: actually change the command buffer to do less copying
 ============
 */
-void Cbuf_InsertText(char *text) {
+void Cbuf_InsertText(std::string_view text) {
     unsigned char *temp = nullptr;
-    int templen = 0;
 
 // copy off any commands still remaining in the exec buffer
-    templen = cmd_text.cursize;
-    if (templen) {
+    const auto templen = cmd_text.cursize;
+    if (templen > 0) {
         temp = zmalloc<decltype(temp)>(templen);
         Q_memcpy(temp, cmd_text.data, templen);
         SZ_Clear(&cmd_text);
@@ -117,7 +106,7 @@ void Cbuf_InsertText(char *text) {
     Cbuf_AddText(text);
 
 // add the copied off data
-    if (templen) {
+    if (templen > 0) {
         SZ_Write(&cmd_text, temp, templen);
         Z_Free(temp);
     }
@@ -310,50 +299,37 @@ auto CopyString(char *in) -> char * {
 }
 
 void Cmd_Alias_f() {
-    cmdalias_t *a = nullptr;
-    char cmd[1024];
-    int i = 0, c = 0;
-
     if (Cmd_Argc() == 1) {
         Con_Printf("Current alias commands:\n");
-        for (a = cmd_alias; a; a = a->next)
-            Con_Printf("%s : %s\n", a->name, a->value);
+        for (const auto &[name, value] : CMDAliases::get()) {
+          Con_Printf("%s : %s\n", name, value);
+        }
         return;
     }
 
-    auto s = Cmd_Argv(1);
-    if (s.length() >= MAX_ALIAS_NAME) {
+    auto make_cmd_string = []() {
+      std::string command;
+      for (int i = 2, c = Cmd_Argc(); i < c; i++) {
+        auto argval = Cmd_Argv(i);
+        command += argval;
+        if (i != c)
+          command += ' ';
+      }
+      command += '\n';
+      return command;
+    };
+
+    constexpr auto MAX_ALIAS_NAME = 512;
+    std::string new_alias_name{Cmd_Argv(1)};
+
+    if (new_alias_name.length() >= MAX_ALIAS_NAME) {
         Con_Printf("Alias name is too long\n");
         return;
     }
 
-    // if the alias allready exists, reuse it
-    for (a = cmd_alias; a; a = a->next) {
-        if (!Q_strcmp(s, a->name)) {
-            Z_Free(a->value);
-            break;
-        }
-    }
+    auto &aliases = CMDAliases::get();
 
-    if (!a) {
-        a = zmalloc<decltype(a)>(sizeof(cmdalias_t));
-        a->next = cmd_alias;
-        cmd_alias = a;
-    }
-    std::strncpy(a->name, s.data(), s.length());
-
-// copy the rest of the command line
-    cmd[0] = 0;        // start out with a null string
-    c = Cmd_Argc();
-    for (i = 2; i < c; i++) {
-        auto argval = Cmd_Argv(i);
-        std::strncat(cmd, argval.data(), argval.length());
-        if (i != c)
-            std::strcat(cmd, " ");
-    }
-    std::strcat(cmd, "\n");
-
-    a->value = CopyString(cmd);
+    aliases.insert_or_assign(new_alias_name, make_cmd_string());
 }
 
 /*
@@ -366,7 +342,7 @@ void Cmd_Alias_f() {
 
 using cmd_function_t = struct cmd_function_s {
     struct cmd_function_s *next;
-    char *name;
+    const char *name;
     xcommand_t function;
 };
 
@@ -375,12 +351,9 @@ using cmd_function_t = struct cmd_function_s {
 
 static int cmd_argc;
 static char *cmd_argv[MAX_ARGS];
-static const char *cmd_args = nullptr;
+static std::string_view cmd_args;
 
 cmd_source_t cmd_source;
-
-
-static cmd_function_t *cmd_functions;        // possible commands to execute
 
 /*
 ============
@@ -424,7 +397,7 @@ auto Cmd_Argv(int arg) -> std::string_view {
 Cmd_Args
 ============
 */
-auto Cmd_Args() -> const char * {
+auto Cmd_Args() -> std::string_view {
     return cmd_args;
 }
 
@@ -444,24 +417,19 @@ void Cmd_TokenizeString(std::string_view text) {
         Z_Free(cmd_argv[i]);
 
     cmd_argc = 0;
-    cmd_args = nullptr;
 
-    while (true) {
-        if (text.empty()) {
-            return;
-        }
-
+    while (!text.empty()) {
         if (cmd_argc == 1) {
-            cmd_args = text.data();
+            cmd_args = text;
         }
 
         text = COM_Parse(text);
 
         if (*com_token == 0)
-            return;
+          return;
 
         if (cmd_argc < MAX_ARGS) {
-            cmd_argv[cmd_argc] = zmalloc<char *>(Q_strlen(com_token) + 1);
+            cmd_argv[cmd_argc] = zmalloc<char *>(strlen(com_token) + 1);
             std::strcpy(cmd_argv[cmd_argc], com_token);
             cmd_argc++;
         }
@@ -480,26 +448,17 @@ void Cmd_AddCommand(const char *cmd_name, xcommand_t function) {
         Sys_Error("Cmd_AddCommand after host_initialized");
 
 // fail if the command is a variable name
-    if (Cvar_VariableString(cmd_name)[0]) {
+    if (!Cvar_VariableString(cmd_name).empty()) {
         Con_Printf("Cmd_AddCommand: %s already defined as a var\n", cmd_name);
         return;
     }
 
-    cmd_function_t *cmd = cmd_functions;
-// fail if the command already exists
-    while (cmd != nullptr) {
-        if (!Q_strcmp(cmd_name, cmd->name)) {
-            Con_Printf("Cmd_AddCommand: %s already defined\n", cmd_name);
-            return;
-        }
-        cmd = cmd->next;
-    }
+    const auto [iter, inserted] = CMDFunctions::get().insert({cmd_name, function});
 
-    cmd = hunkAlloc<decltype(cmd)>(sizeof(cmd_function_t));
-    cmd->name = const_cast<char *>(cmd_name);
-    cmd->function = function;
-    cmd->next = cmd_functions;
-    cmd_functions = cmd;
+    if (!inserted) {
+      Con_Printf("Cmd_AddCommand: %s already defined\n", cmd_name);
+      return;
+    }
 }
 
 /*
@@ -508,12 +467,7 @@ Cmd_Exists
 ============
 */
 auto Cmd_Exists(std::string_view cmd_name) -> qboolean {
-    for (auto cmd = cmd_functions; cmd; cmd = cmd->next) {
-        if (!Q_strcmp(cmd_name, cmd->name))
-            return true;
-    }
-
-    return false;
+  return CMDFunctions::get().contains(std::string{cmd_name});
 }
 
 
@@ -526,10 +480,14 @@ auto Cmd_CompleteCommand(std::string_view partial) -> std::string_view {
     if (partial.empty())
         return {};
 
-// check functions
-    for (auto cmd = cmd_functions; cmd; cmd = cmd->next)
-        if (!Q_strncmp(partial, cmd->name, partial.length()))
-            return cmd->name;
+    auto starts_with = [partial](const auto &element) {
+      return element.first.starts_with(partial);
+    };
+
+    const auto function = std::ranges::find_if(CMDFunctions::get(), starts_with);
+    if (function != CMDFunctions::end()) {
+      return function->first;
+    }
 
     return {};
 }
@@ -543,8 +501,6 @@ FIXME: lookupnoadd the token to speed search?
 ============
 */
 void Cmd_ExecuteString(std::string_view text, cmd_source_t src) {
-    cmdalias_t *a = nullptr;
-
     cmd_source = src;
 
     Cmd_TokenizeString(text);
@@ -554,20 +510,18 @@ void Cmd_ExecuteString(std::string_view text, cmd_source_t src) {
         return;        // no tokens
 
 // check functions
-    for (auto cmd = cmd_functions; cmd; cmd = cmd->next) {
-        if (!Q_strcasecmp(cmd_argv[0], cmd->name)) {
-            cmd->function();
-            return;
-        }
+    if (auto function_it = CMDFunctions::find(cmd_argv[0])) {
+      function_it.value()->second();
+      return;
     }
 
 // check alias
-    for (a = cmd_alias; a; a = a->next) {
-        if (!Q_strcasecmp(cmd_argv[0], a->name)) {
-            Cbuf_InsertText(a->value);
-            return;
-        }
+    // fixme: constructing a new string just to find an element is not good
+    if (const auto alias = CMDAliases::find(cmd_argv[0])) {
+      Cbuf_InsertText(alias.value()->second);
+      return;
     }
+
 
 // check cvars
     if (!Cvar_Command())

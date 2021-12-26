@@ -313,7 +313,7 @@ auto main(int c, char **v) -> int {
     extern int vcrFile;
     extern int recording;
     int frame{};
-    constexpr int memPoolSize = sizeof(void *) * 4 * 1024 * 1024;
+    constexpr int memPoolSize = sizeof(void *) * 16 * 1024 * 1024;
     constexpr float fpsInterval = 1.0;
 
     moncontrol(0);

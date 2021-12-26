@@ -412,11 +412,8 @@ std::string Host_SavegameComment() {
     std::string text{cl.levelname};
     text.resize(22, ' ');
     text += fmt::sprintf("kills:%3i/%3i", cl.stats[STAT_MONSTERS], cl.stats[STAT_TOTALMONSTERS]);
-// convert space to _ to make stdio happy
 
-    for (int i = 0; i < SAVEGAME_COMMENT_LENGTH; i++)
-        if (text[i] == ' ')
-            text[i] = '_';
+    std::ranges::replace(text, ' ', '_');
 
     text.resize(SAVEGAME_COMMENT_LENGTH);
 
@@ -430,9 +427,6 @@ Host_Savegame_f
 ===============
 */
 void Host_Savegame_f() {
-    FILE *f = nullptr;
-    int i = 0;
-
     if (cmd_source != src_command)
         return;
 
@@ -461,7 +455,7 @@ void Host_Savegame_f() {
         return;
     }
 
-    for (i = 0; i < svs.maxclients; i++) {
+    for (int i = 0; i < svs.maxclients; i++) {
         if (svs.clients[i].active && (svs.clients[i].edict->v.health <= 0)) {
             Con_Printf("Can't savegame with a dead player\n");
             return;
@@ -471,39 +465,38 @@ void Host_Savegame_f() {
     COM_DefaultExtension(name, ".sav");
 
     Con_Printf("Saving game to %s...\n", name);
-    f = fopen(name.c_str(), "w");
-    if (!f) {
-        Con_Printf("ERROR: couldn't open.\n");
+
+    std::ofstream file(name);
+
+    if (!file) {
+        Con_Printf("ERROR: couldn't open file.\n");
         return;
     }
 
-    fmt::fprintf(f, "%i\n", SAVEGAME_VERSION);
+    fmt::fprintf(file, "%i\n", SAVEGAME_VERSION);
 
-    const auto comment = Host_SavegameComment();
-    fmt::fprintf(f, "%s\n", comment);
+    fmt::fprintf(file, "%s\n", Host_SavegameComment());
 
-    for (i = 0; i < NUM_SPAWN_PARMS; i++)
-        fmt::fprintf(f, "%f\n", svs.clients->spawn_parms[i]);
-    fmt::fprintf(f, "%d\n", current_skill);
-    fmt::fprintf(f, "%s\n", sv.name);
-    fmt::fprintf(f, "%f\n", sv.time);
+    for (int i = 0; i < NUM_SPAWN_PARMS; i++)
+        fmt::fprintf(file, "%f\n", svs.clients->spawn_parms[i]);
+
+    fmt::fprintf(file, "%d\n", current_skill);
+    fmt::fprintf(file, "%s\n", sv.name);
+    fmt::fprintf(file, "%f\n", sv.time);
 
 // write the light styles
 
-    for (i = 0; i < MAX_LIGHTSTYLES; i++) {
+    for (int i = 0; i < MAX_LIGHTSTYLES; i++) {
         if (sv.lightstyles[i])
-            fmt::fprintf(f, "%s\n", sv.lightstyles[i]);
+            fmt::fprintf(file, "%s\n", sv.lightstyles[i]);
         else
-            fmt::fprintf(f, "m\n");
+            fmt::fprintf(file, "m\n");
     }
 
-
-    ED_WriteGlobals(f);
-    for (i = 0; i < sv.num_edicts; i++) {
-        ED_Write(f, EDICT_NUM(i));
-        fflush(f);
+    ED_WriteGlobals(file);
+    for (int i = 0; i < sv.num_edicts; i++) {
+        ED_Write(file, EDICT_NUM(i));
     }
-    fclose(f);
     Con_Printf("done.\n");
 }
 
@@ -513,18 +506,7 @@ void Host_Savegame_f() {
 Host_Loadgame_f
 ===============
 */
-// fixme does not work
 void Host_Loadgame_f() {
-    FILE *f = nullptr;
-    char mapname[MAX_QPATH];
-    float time = NAN, tfloat = NAN;
-    char str[32768];
-    int i = 0, r = 0;
-    edict_t *ent = nullptr;
-    int entnum = 0;
-    int version = 0;
-    float spawn_parms[NUM_SPAWN_PARMS];
-
     if (cmd_source != src_command)
         return;
 
@@ -540,28 +522,48 @@ void Host_Loadgame_f() {
 
 // we can't call SCR_BeginLoadingPlaque, because too much stack space has
 // been used.  The menu calls it before stuffing loadgame command
-//	SCR_BeginLoadingPlaque ();
+	SCR_BeginLoadingPlaque ();
 
     Con_Printf("Loading game from %s...\n", name);
-    f = fopen(name.c_str(), "r");
-    if (!f) {
+    std::ifstream file(name);
+
+    if (!file) {
         Con_Printf("ERROR: couldn't open.\n");
         return;
     }
 
-    fscanf(f, "%i\n", &version);
-    if (version != SAVEGAME_VERSION) {
-        fclose(f);
+    auto is_correct_version = [&file]() {
+      auto version = 0;
+      file >> version;
+      if (version != SAVEGAME_VERSION) {
         Con_Printf("Savegame is version %i, not %i\n", version, SAVEGAME_VERSION);
-        return;
+        return false;
+      }
+
+      file.ignore(); // skip newline
+      return true;
+    };
+
+    if (!is_correct_version()) {
+      return;
     }
-    fscanf(f, "%s\n", str);
-    for (i = 0; i < NUM_SPAWN_PARMS; i++)
-        fscanf(f, "%f\n", &spawn_parms[i]);
-// this silliness is so we can load 1.06 save files, which have float skill values
-    fscanf(f, "%f\n", &tfloat);
-    current_skill = (int) (tfloat + 0.1);
-    Cvar_SetValue("skill", (float) current_skill);
+
+    file.ignore(SAVEGAME_COMMENT_LENGTH, '\n');
+
+    std::array<double, NUM_SPAWN_PARMS> spawn_parms{};
+
+    std::transform(spawn_parms.begin(), spawn_parms.end(), spawn_parms.begin(), [&file](auto param) {
+      file >> param;
+      return param;
+    });
+
+    auto read_skill = [&file]() {
+      auto float_skill = 0.0F;
+      file >> float_skill;
+      return static_cast<float>(std::floor(float_skill + 0.1F));
+    };
+
+    Cvar_SetValue("skill", read_skill());
 
 #ifdef QUAKE2
     Cvar_SetValue ("deathmatch", 0);
@@ -569,16 +571,25 @@ void Host_Loadgame_f() {
     Cvar_SetValue ("teamplay", 0);
 #endif
 
-    fscanf(f, "%s\n", mapname);
-    fscanf(f, "%f\n", &time);
+    auto spawn_new_server = [&file]() {
+      float server_time = 0.0F;
+      std::string mapname;
 
-    CL_Disconnect_f();
+      file >> mapname;
+      file >> server_time;
+
+      CL_Disconnect_f();
 
 #ifdef QUAKE2
     SV_SpawnServer (mapname, NULL);
 #else
     SV_SpawnServer(mapname);
 #endif
+      sv.time = server_time;
+    };
+
+    spawn_new_server();
+
     if (!sv.active) {
         Con_Printf("Couldn't load map\n");
         return;
@@ -588,44 +599,35 @@ void Host_Loadgame_f() {
 
 // load the light styles
 
-    for (i = 0; i < MAX_LIGHTSTYLES; i++) {
-        fscanf(f, "%s\n", str);
-        sv.lightstyles[i] = hunkAlloc<char *>(strlen(str) + 1);
-        strcpy(sv.lightstyles[i], str);
+    for (int i = 0; i < MAX_LIGHTSTYLES; i++) {
+        std::string lightstyle;
+        file >> lightstyle;
+        sv.lightstyles[i] = hunkAlloc<char *>(lightstyle.length() + 1);
+        std::strncpy(sv.lightstyles[i], lightstyle.c_str(), lightstyle.length());
     }
 
 // load the edicts out of the savegame file
-    entnum = -1;        // -1 is the globals
-    while (!feof(f)) {
-        for (i = 0; i < sizeof(str) - 1; i++) {
-            r = fgetc(f);
-            if (r == EOF || !r)
-                break;
-            str[i] = r;
-            if (r == '}') {
-                i++;
-                break;
-            }
+    file.ignore();
+    auto entnum = -1;        // -1 is the globals
+    std::string edict_string;
+    while (!file.eof()) {
+      std::getline(file, edict_string, '}');
+      edict_string += '}'; // fixme
+        auto start = COM_Parse(edict_string);
+        if (strcmp(com_token, "}") == 0) {
+          break;
         }
-        if (i == sizeof(str) - 1)
-            Sys_Error("Loadgame buffer overflow");
-        str[i] = 0;
-        std::string_view start = COM_Parse(str);
-//		start = str;
-//		start = COM_Parse(str);
-        if (!com_token[0])
-            break;        // end of file
-        if (strcmp(com_token, "{") != 0)
+        if (strcmp(com_token, "{") != 0) {
             Sys_Error("First token isn't a brace");
+        }
 
         if (entnum == -1) {    // parse the global vars
-            ED_ParseGlobals(start.data());
+            ED_ParseGlobals(start);
         } else {    // parse an edict
-
-            ent = EDICT_NUM(entnum);
+            auto *ent = EDICT_NUM(entnum);
             memset(&ent->v, 0, progs->entityfields * 4);
             ent->free = false;
-            ED_ParseEdict(start.data(), ent);
+            ED_ParseEdict(start, ent);
 
             // link it into the bsp tree
             if (!ent->free)
@@ -636,12 +638,9 @@ void Host_Loadgame_f() {
     }
 
     sv.num_edicts = entnum;
-    sv.time = time;
 
-    fclose(f);
-
-    for (i = 0; i < NUM_SPAWN_PARMS; i++)
-        svs.clients->spawn_parms[i] = spawn_parms[i];
+    for (int i = 0; i < NUM_SPAWN_PARMS; i++)
+        svs.clients->spawn_parms[i] = static_cast<float>(spawn_parms.at(i));
 
     if (cls.state != ca_dedicated) {
         CL_EstablishConnection("local");
@@ -860,7 +859,7 @@ void Host_Name_f() {
     //newName[15] = 0;
 
     if (cmd_source == src_command) {
-        if (Q_strcmp(cl_name.string, newName) == 0)
+        if (cl_name.string == newName)
             return;
         Cvar_Set("_cl_name", newName.data());
         if (cls.state == ca_connected)
@@ -869,7 +868,7 @@ void Host_Name_f() {
     }
 
     if (!host_client->name.empty() && host_client->name != "unconnected")
-        if (Q_strcmp(host_client->name, newName) != 0)
+        if (host_client->name != newName)
             Con_Printf("%s renamed to %s\n", host_client->name, newName);
 
     host_client->name.assign(newName);
@@ -943,10 +942,6 @@ void Host_Please_f (void)
 
 
 void Host_Say(qboolean teamonly) {
-    client_t *client = nullptr;
-    client_t *save = nullptr;
-    int j = 0;
-    char *p = nullptr;
     qboolean fromServer = false;
 
     if (cmd_source == src_command) {
@@ -962,17 +957,15 @@ void Host_Say(qboolean teamonly) {
     if (Cmd_Argc() < 2)
         return;
 
-    save = host_client;
+    auto *save = host_client;
 
-    std::string text = [fromServer, &save](std::string_view args) {
-        std::string output;
-        output.reserve(args.size()); // optional, avoids buffer reallocations in the loop
-        for (char arg : args)
-            if (arg != '"') output += arg; // remove quotes
+    std::string text = [fromServer, save]() {
+        std::string output{Cmd_Args()};
+        std::erase_if(output, [](const auto ch) { return ch == '"'; });
         return fromServer ?
-               fmt::sprintf("%c<%s> ", 1, hostname.string) + output + "\n" :
-               fmt::sprintf("%c%s: ", 1, save->name) + output + "\n";
-    }(Cmd_Args());
+               fmt::sprintf("%c<%s> ", 1, hostname.string) + output + '\n' :
+               fmt::sprintf("%c%s: ", 1, save->name) + output + '\n';
+    }();
 
 // turn on color set 1
 //	if (!fromServer)
@@ -984,7 +977,8 @@ void Host_Say(qboolean teamonly) {
 //	if (Q_strlen(p) > j)
 //		p[j] = 0;
 
-    for (j = 0, client = svs.clients; j < svs.maxclients; j++, client++) {
+    auto *client = svs.clients;
+    for (int j = 0; j < svs.maxclients; j++, client++) {
         if (!client || !client->active || !client->spawned)
             continue;
         if (teamplay.value != 0 && teamonly && client->edict->v.team != save->edict->v.team)
@@ -994,7 +988,7 @@ void Host_Say(qboolean teamonly) {
     }
     host_client = save;
 
-    sysPrintf("%s", &text[1]);
+    sysPrintf("%s", text.substr(1));
 }
 
 
@@ -1017,13 +1011,11 @@ void Host_Tell_f() {
     if (Cmd_Argc() < 3)
         return;
 
-    std::string text = [](std::string_view args) {
-        std::string output;
-        output.reserve(args.size()); // optional, avoids buffer reallocations in the loop
-        for (char arg : args)
-            if (arg != '"') output += arg; // remove quotes
+    std::string text = []() {
+      std::string output{Cmd_Args()};
+      std::erase_if(output, [](const auto ch) { return ch == '"'; });
         return host_client->name + ": " + output + "\n";
-    }(Cmd_Args());
+    }();
 
 // remove quotes if present
 //	if (*p == '"')
@@ -1038,13 +1030,13 @@ void Host_Tell_f() {
 //        p[j] = 0;
 //	}
 
-    const auto save = host_client;
-    auto client = svs.clients;
+    auto *const save = host_client;
+    auto *client = svs.clients;
 
     for (auto j = 0; j < svs.maxclients; j++, client++) {
         if (!client->active || !client->spawned)
             continue;
-        if (Q_strcasecmp(client->name, Cmd_Argv(1)))
+        if (client->name != Cmd_Argv(1))
             continue;
         host_client = client;
         SV_ClientPrintf("%s", text.c_str());
@@ -1354,18 +1346,19 @@ void Host_Kick_f() {
     }
 
     if (i < svs.maxclients) {
-        std::string who{};
-        if (cmd_source == src_command)
-            if (cls.state == ca_dedicated)
-                who = "Console";
-            else
-                who = cl_name.string;
-        else
-            who = save->name;
-
         // can't kick yourself!
         if (host_client == save)
             return;
+
+        auto who = [save]() -> std::string_view {
+          if (cmd_source == src_command)
+            if (cls.state == ca_dedicated)
+              return "Console";
+            else
+              return cl_name.string;
+          else
+            return save->name;
+        }();
 
         if (Cmd_Argc() > 2) {
             auto message = COM_Parse(Cmd_Args());
@@ -1383,10 +1376,10 @@ void Host_Kick_f() {
             if (j <= message.length())
                 message = message.substr(j);
 
-            if (message.length())
-                SV_ClientPrintf("Kicked by %s: %s\n", who.c_str(), message);
+            if (message.length() > 0)
+                SV_ClientPrintf("Kicked by %s: %s\n", who.data(), message);
         } else
-            SV_ClientPrintf("Kicked by %s\n", who.c_str());
+            SV_ClientPrintf("Kicked by %s\n", who.data());
         SV_DropClient(false);
     }
 

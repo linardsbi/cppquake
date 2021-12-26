@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.hpp"
 
 cvar_t *cvar_vars;
-constexpr std::string_view cvar_null_string = "";
 
 /*
 ============
@@ -45,7 +44,7 @@ Cvar_VariableValue
 float Cvar_VariableValue(std::string_view var_name) {
     cvar_t *var = Cvar_FindVar(var_name);
     if (!var)
-        return 0;
+        return 0.0F;
     return std::atof(var->string.c_str());
 }
 
@@ -58,7 +57,7 @@ Cvar_VariableString
 auto Cvar_VariableString(std::string_view var_name) -> std::string_view {
     cvar_t *var = Cvar_FindVar(var_name);
     if (!var)
-        return cvar_null_string;
+        return {};
     return var->string;
 }
 
@@ -70,14 +69,14 @@ Cvar_CompleteVariable
 */
 auto Cvar_CompleteVariable(std::string_view partial) -> std::string_view {
     if (partial.empty())
-        return cvar_null_string;
+        return {};
 
 // check functions
     for (auto cvar = cvar_vars; cvar; cvar = cvar->next)
-        if (!Q_strncmp(partial, cvar->name, partial.length()))
+        if (cvar->name.starts_with(partial))
             return cvar->name;
 
-    return cvar_null_string;
+    return {};
 }
 
 
@@ -86,7 +85,6 @@ auto Cvar_CompleteVariable(std::string_view partial) -> std::string_view {
 Cvar_Set
 ============
 */
-// see if this will work with string_view parameters
 void Cvar_Set(std::string_view var_name, std::string_view value) {
     auto var = Cvar_FindVar(var_name);
     if (!var) {    // there is an error in C code if this happens
@@ -94,12 +92,12 @@ void Cvar_Set(std::string_view var_name, std::string_view value) {
         return;
     }
 
-    auto changed = var->string != value;
+    if (var->string != value) {
+      var->string = value;
+    }
+    var->value = Q_atof(var->string);
 
-    var->string = value;
-    var->value = Q_atof(var->string.c_str());
-
-    if (var->server && changed) {
+    if (var->server && var->string != value) {
         if (sv.active)
             SV_BroadcastPrintf("\"%s\" changed to \"%s\"\n", var->name.data(), var->string.data());
     }
@@ -135,11 +133,11 @@ void Cvar_RegisterVariable(cvar_t *variable) {
 
 // check for overlap with a command
     if (Cmd_Exists(variable->name)) {
-        Con_Printf("Cvar_RegisterVariable: %s is a command\n", variable->name.c_str());
+        Con_Printf("Cvar_RegisterVariable: %s is a command\n", variable->name);
         return;
     }
 
-    variable->value = Q_atof(variable->string.c_str());
+    variable->value = Q_atof(variable->string);
 
 // link the variable in
     variable->next = cvar_vars;
@@ -155,7 +153,7 @@ Handles variable inspection and changing from the console
 */
 qboolean Cvar_Command() {
 // check variables
-    auto v = Cvar_FindVar(Cmd_Argv(0));
+    auto *v = Cvar_FindVar(Cmd_Argv(0));
     if (!v)
         return false;
 
@@ -179,8 +177,8 @@ with the archive flag set to true.
 ============
 */
 void Cvar_WriteVariables(FILE *f) {
-    for (auto var = cvar_vars; var; var = var->next)
+    for (auto *var = cvar_vars; var; var = var->next)
         if (var->archive)
-            fprintf(f, "%s \"%s\"\n", var->name.c_str(), var->string.c_str());
+            fmt::fprintf(f, "%s \"%s\"\n", var->name, var->string);
 }
 
