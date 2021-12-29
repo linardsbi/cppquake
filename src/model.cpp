@@ -320,6 +320,13 @@ auto Mod_ForName(std::string_view name, qboolean crash) -> model_t * {
 
 byte *mod_base;
 
+template <typename DataType>
+static inline std::size_t check_lump_size(const lump_t *l) {
+  const auto in = *std::bit_cast<DataType*>(mod_base + l->fileofs);
+  if (l->filelen % sizeof(in))
+    Sys_Error("Mod_LoadFaces: funny lump size in %s", loadmodel->name);
+  return l->filelen / sizeof(in);
+}
 
 /*
 =================
@@ -327,43 +334,36 @@ Mod_LoadTextures
 =================
 */
 void Mod_LoadTextures(lump_t *l) {
-    int i = 0, j = 0, pixels = 0, num = 0, max = 0, altmax = 0;
-    miptex_t *mt = nullptr;
-    texture_t *tx = nullptr, *tx2 = nullptr;
-    texture_t *anims[10];
-    texture_t *altanims[10];
-    dmiptexlump_t *m = nullptr;
-
-    if (!l->filelen) {
+    if (l->filelen == 0) {
         loadmodel->textures = nullptr;
         return;
     }
-    m = (dmiptexlump_t *) (mod_base + l->fileofs);
+    auto *m = std::bit_cast<dmiptexlump_t*>(mod_base + l->fileofs);
 
     loadmodel->numtextures = m->nummiptex;
     loadmodel->textures = hunkAllocName<decltype(loadmodel->textures)>(
             loadmodel->numtextures * sizeof(*loadmodel->textures), loadname);
 
-    for (i = 0; i < m->nummiptex; i++) {
+    for (int i = 0; i < m->nummiptex; i++) {
         m->dataofs[i] = LittleLong(m->dataofs[i]);
         if (m->dataofs[i] == -1)
             continue;
-        mt = (miptex_t *) ((byte *) m + m->dataofs[i]);
+        auto *mt = std::bit_cast<miptex_t *>((byte *) m + m->dataofs[i]);
         mt->width = LittleLong(mt->width);
         mt->height = LittleLong(mt->height);
-        for (j = 0; j < MIPLEVELS; j++)
+        for (int j = 0; j < MIPLEVELS; j++)
             mt->offsets[j] = LittleLong(mt->offsets[j]);
 
         if ((mt->width & 15) || (mt->height & 15))
             Sys_Error("Texture %s is not 16 aligned", mt->name);
-        pixels = mt->width * mt->height / 64 * 85;
-        tx = hunkAllocName<decltype(tx)>(sizeof(texture_t) + pixels, loadname);
+        const auto pixels = mt->width * mt->height / 64 * 85;
+        auto *tx = hunkAllocName<texture_t *>(sizeof(texture_t) + pixels, loadname);
         loadmodel->textures[i] = tx;
 
         memcpy(tx->name, mt->name, sizeof(tx->name));
         tx->width = mt->width;
         tx->height = mt->height;
-        for (j = 0; j < MIPLEVELS; j++)
+        for (int j = 0; j < MIPLEVELS; j++)
             tx->offsets[j] = mt->offsets[j] + sizeof(texture_t) - sizeof(miptex_t);
         // the pixels immediately follow the structures
         memcpy(tx + 1, mt + 1, pixels);
@@ -375,19 +375,19 @@ void Mod_LoadTextures(lump_t *l) {
 //
 // sequence the animations
 //
-    for (i = 0; i < m->nummiptex; i++) {
-        tx = loadmodel->textures[i];
+    for (int i = 0; i < m->nummiptex; i++) {
+        auto *tx = loadmodel->textures[i];
         if (!tx || tx->name[0] != '+')
             continue;
         if (tx->anim_next)
             continue;    // allready sequenced
 
         // find the number of frames in the animation
-        memset(anims, 0, sizeof(anims));
-        memset(altanims, 0, sizeof(altanims));
+        texture_t *anims[10]{};
+        texture_t *altanims[10]{};
 
-        max = tx->name[1];
-        altmax = 0;
+        auto max = tx->name[1];
+        auto altmax = 0;
         if (max >= 'a' && max <= 'z')
             max -= 'a' - 'A';
         if (max >= '0' && max <= '9') {
@@ -403,14 +403,14 @@ void Mod_LoadTextures(lump_t *l) {
         } else
             Sys_Error("Bad animating texture %s", tx->name);
 
-        for (j = i + 1; j < m->nummiptex; j++) {
-            tx2 = loadmodel->textures[j];
+        for (int j = i + 1; j < m->nummiptex; j++) {
+            auto *tx2 = loadmodel->textures[j];
             if (!tx2 || tx2->name[0] != '+')
                 continue;
             if (strcmp(tx2->name + 2, tx->name + 2) != 0)
                 continue;
 
-            num = tx2->name[1];
+            auto num = tx2->name[1];
             if (num >= 'a' && num <= 'z')
                 num -= 'a' - 'A';
             if (num >= '0' && num <= '9') {
@@ -429,8 +429,8 @@ void Mod_LoadTextures(lump_t *l) {
 
 #define    ANIM_CYCLE    2
         // link them all together
-        for (j = 0; j < max; j++) {
-            tx2 = anims[j];
+        for (int j = 0; j < max; j++) {
+            auto *tx2 = anims[j];
             if (!tx2)
                 Sys_Error("Missing frame %i of %s", j, tx->name);
             tx2->anim_total = max * ANIM_CYCLE;
@@ -440,8 +440,8 @@ void Mod_LoadTextures(lump_t *l) {
             if (altmax)
                 tx2->alternate_anims = altanims[0];
         }
-        for (j = 0; j < altmax; j++) {
-            tx2 = altanims[j];
+        for (int j = 0; j < altmax; j++) {
+            auto *tx2 = altanims[j];
             if (!tx2)
                 Sys_Error("Missing frame %i of %s", j, tx->name);
             tx2->anim_total = altmax * ANIM_CYCLE;
@@ -583,27 +583,22 @@ Mod_LoadTexinfo
 =================
 */
 void Mod_LoadTexinfo(lump_t *l) {
-    texinfo_t *in = nullptr;
-    mtexinfo_t *out = nullptr;
-    int i = 0, j = 0, count = 0;
-    int miptex = 0;
-    float len1 = NAN, len2 = NAN;
-
-    in = reinterpret_cast<decltype(in)>(mod_base + l->fileofs);
-    if (l->filelen % sizeof(*in))
-        Sys_Error("MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-    count = l->filelen / sizeof(*in);
-    out = hunkAllocName<decltype(out)>(count * sizeof(*out), loadname);
+    std::size_t texture_count = check_lump_size<texinfo_t>(l);
+    auto *out = hunkAllocName<mtexinfo_t*>(texture_count * sizeof(mtexinfo_t), loadname);
 
     loadmodel->texinfo = out;
-    loadmodel->numtexinfo = count;
+    loadmodel->numtexinfo = texture_count;
 
-    for (i = 0; i < count; i++, in++, out++) {
-        for (j = 0; j < 8; j++)
-            out->vecs[0][j] = LittleFloat(in->vecs[0][j]);
-        len1 = Length(out->vecs[0]);
-        len2 = Length(out->vecs[1]);
-        len1 = (len1 + len2) / 2;
+    for (int i = 0, offset = 0; i < texture_count; i++, offset += sizeof(texinfo_t), out++) {
+      const auto in = *std::bit_cast<texinfo_t*>(mod_base + l->fileofs + offset);
+        for (int j = 0; j < 4; j++) {
+          out->vecs[0][j] = LittleFloat(in.vecs[0][j]);
+          out->vecs[1][j] = LittleFloat(in.vecs[1][j]);
+        }
+
+        auto len1 = glm::length(out->vecs[0]);
+        const auto len2 = glm::length(out->vecs[1]);
+        len1 = (len1 + len2) / 2.F;
         if (len1 < 0.32)
             out->mipadjust = 4;
         else if (len1 < 0.49)
@@ -619,8 +614,8 @@ void Mod_LoadTexinfo(lump_t *l) {
             out->mipadjust = 1 / floor( (len1+len2)/2 + 0.1 );
 #endif
 
-        miptex = static_cast<decltype(miptex)>(LittleLong(in->miptex));
-        out->flags = static_cast<decltype(out->flags)>(LittleLong(in->flags));
+        const auto miptex = LittleLong(in.miptex);
+        out->flags = static_cast<decltype(out->flags)>(LittleLong(in.flags));
 
         if (!loadmodel->textures) {
             out->texture = r_notexture_mip;    // checkerboard texture
@@ -693,41 +688,37 @@ Mod_LoadFaces
 =================
 */
 void Mod_LoadFaces(lump_t *l) {
-    dface_t *in = nullptr;
-    msurface_t *out = nullptr;
-    int i = 0, count = 0, surfnum = 0;
-    int planenum = 0, side = 0;
-
-    in = reinterpret_cast<decltype(in)>(mod_base + l->fileofs);
-    if (l->filelen % sizeof(*in))
-        Sys_Error("MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-    count = l->filelen / sizeof(*in);
-    out = hunkAllocName<decltype(out)>(count * sizeof(*out), loadname);
+    const auto face_count = check_lump_size<dface_t>(l);
+    auto *out = hunkAllocName<msurface_t *>(face_count * sizeof(msurface_t), loadname);
 
     loadmodel->surfaces = out;
-    loadmodel->numsurfaces = count;
+    loadmodel->numsurfaces = face_count;
 
-    for (surfnum = 0; surfnum < count; surfnum++, in++, out++) {
-        out->firstedge = static_cast<decltype(out->firstedge)>(LittleLong(in->firstedge));
-        out->numedges = LittleShort(in->numedges);
+    for (int current = 0, offset = 0
+         ; current < face_count
+         ; current++, offset += sizeof(dface_t), out++) {
+      const auto in = *std::bit_cast<dface_t*>(mod_base + l->fileofs + offset);
+        out->firstedge = LittleLong(in.firstedge);
+        out->numedges = LittleShort(in.numedges);
         out->flags = 0;
 
-        planenum = LittleShort(in->planenum);
-        side = LittleShort(in->side);
+        const auto planenum = LittleShort(in.planenum);
+        const auto side = LittleShort(in.side);
         if (side)
             out->flags |= SURF_PLANEBACK;
 
         out->plane = loadmodel->planes + planenum;
 
-        out->texinfo = loadmodel->texinfo + LittleShort(in->texinfo);
+        out->texinfo = loadmodel->texinfo + LittleShort(in.texinfo);
 
         CalcSurfaceExtents(out);
 
         // lighting info
 
-        for (i = 0; i < MAXLIGHTMAPS; i++)
-            out->styles[i] = static_cast<byte>(in->styles[i]);
-        i = static_cast<decltype(i)>(LittleLong(in->lightofs));
+        int i = 0;
+        for (; i < MAXLIGHTMAPS; i++)
+            out->styles[i] = static_cast<byte>(in.styles[i]);
+        i = LittleLong(in.lightofs);
         if (i == -1)
             out->samples = nullptr;
         else
@@ -773,33 +764,27 @@ Mod_LoadNodes
 =================
 */
 void Mod_LoadNodes(lump_t *l) {
-    int i = 0, j = 0, p = 0;
-    dnode_t *in = nullptr;
-    mnode_t *out = nullptr;
-
-    in = reinterpret_cast<decltype(in)>(mod_base + l->fileofs);
-    if (l->filelen % sizeof(*in))
-        Sys_Error("MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-    const auto count = l->filelen / sizeof(*in);
-    out = hunkAllocName<decltype(out)>(count * sizeof(*out), loadname);
+    const auto node_count = check_lump_size<dnode_t>(l);
+    auto *out = hunkAllocName<mnode_t*>(node_count * sizeof(mnode_t), loadname);
 
     loadmodel->nodes = out;
-    loadmodel->numnodes = count;
+    loadmodel->numnodes = node_count;
 
-    for (i = 0; i < count; i++, in++, out++) {
-        for (j = 0; j < 3; j++) {
-            out->minmaxs[j] = LittleShort(in->mins[j]);
-            out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
+    for (int i = 0, offset = 0; i < node_count; i++, offset += sizeof(dnode_t), out++) {
+      const auto in = *std::bit_cast<dnode_t*>(mod_base + l->fileofs + offset);
+        for (int j = 0; j < 3; j++) {
+            out->minmaxs[j] = LittleShort(in.mins[j]);
+            out->minmaxs[3 + j] = LittleShort(in.maxs[j]);
         }
 
-        p = static_cast<decltype(p)>(LittleLong(in->planenum));
+        auto p = LittleLong(in.planenum);
         out->plane = loadmodel->planes + p;
 
-        out->firstsurface = in->firstface;
-        out->numsurfaces = in->numfaces;
+        out->firstsurface = in.firstface;
+        out->numsurfaces = in.numfaces;
 
-        for (j = 0; j < 2; j++) {
-            p = LittleShort(in->children[j]);
+        for (int j = 0; j < 2; j++) {
+            p = LittleShort(in.children[j]);
             if (p >= 0)
                 out->children[j] = loadmodel->nodes + p;
             else
@@ -816,41 +801,35 @@ Mod_LoadLeafs
 =================
 */
 void Mod_LoadLeafs(lump_t *l) {
-    dleaf_t *in = nullptr;
-    mleaf_t *out = nullptr;
-    int i = 0, j = 0, count = 0, p = 0;
-
-    in = reinterpret_cast<decltype(in)>(mod_base + l->fileofs);
-    if (l->filelen % sizeof(*in))
-        Sys_Error("MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
-    count = l->filelen / sizeof(*in);
-    out = hunkAllocName<decltype(out)>(count * sizeof(*out), loadname);
+    const auto leaf_count = check_lump_size<dleaf_t>(l);
+    auto *out = hunkAllocName<mleaf_t*>(leaf_count * sizeof(mleaf_t), loadname);
 
     loadmodel->leafs = out;
-    loadmodel->numleafs = count;
+    loadmodel->numleafs = leaf_count;
 
-    for (i = 0; i < count; i++, in++, out++) {
-        for (j = 0; j < 3; j++) {
-            out->minmaxs[j] = LittleShort(in->mins[j]);
-            out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
+    for (int i = 0, offset = 0; i < leaf_count; i++, offset += sizeof(dleaf_t), out++) {
+      const auto in = *std::bit_cast<dleaf_t*>(mod_base + l->fileofs + offset);
+        for (int j = 0; j < 3; j++) {
+            out->minmaxs[j] = LittleShort(in.mins[j]);
+            out->minmaxs[3 + j] = LittleShort(in.maxs[j]);
         }
 
-        p = static_cast<decltype(p)>(LittleLong(in->contents));
+        auto p = LittleLong(in.contents);
         out->contents = p;
 
         out->firstmarksurface = loadmodel->marksurfaces +
-                                in->firstmarksurface;
-        out->nummarksurfaces = in->nummarksurfaces;
+                                in.firstmarksurface;
+        out->nummarksurfaces = in.nummarksurfaces;
 
-        p = static_cast<decltype(p)>(LittleLong(in->visofs));
+        p = LittleLong(in.visofs);
         if (p == -1)
             out->compressed_vis = nullptr;
         else
             out->compressed_vis = loadmodel->visdata + p;
         out->efrags = nullptr;
 
-        for (j = 0; j < 4; j++)
-            out->ambient_sound_level[j] = static_cast<byte>(in->ambient_level[j]);
+        for (int j = 0; j < 4; j++)
+            out->ambient_sound_level[j] = static_cast<byte>(in.ambient_level[j]);
     }
 }
 
@@ -899,9 +878,6 @@ void Mod_LoadClipnodes(lump_t *l) {
 
     for (i = 0; i < count; i++, out++, in++) {
         std::memcpy(out, in, sizeof(dclipnode_t));
-//		out->planenum = static_cast<decltype(out->planenum)>(LittleLong(in->planenum));
-//		out->children[0] = LittleShort(in->children[0]);
-//		out->children[1] = LittleShort(in->children[1]);
     }
 }
 
