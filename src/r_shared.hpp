@@ -54,8 +54,23 @@ extern int r_drawnpolycount;
 
 extern cvar_t r_clearcolor;
 
-extern int sintable[SIN_BUFFER_SIZE];
-extern int intsintable[SIN_BUFFER_SIZE];
+static constexpr std::array<int, SIN_BUFFER_SIZE> sintable = []() {
+  constexpr auto AMP = 8*0x10000;
+  std::array<int, SIN_BUFFER_SIZE> table{};
+  for (int i = 0; i < (SIN_BUFFER_SIZE); i++) {
+    table[i] = AMP + __builtin_sin(i * 3.14159 * 2 / CYCLE) * AMP;
+  }
+  return table;
+}();
+
+static constexpr std::array<int, SIN_BUFFER_SIZE> intsintable = []() {
+  constexpr auto AMP2 = 3;
+  std::array<int, SIN_BUFFER_SIZE> table{};
+  for (int i = 0; i < (SIN_BUFFER_SIZE); i++) {
+    table[i] = AMP2 + __builtin_sin(i * 3.14159 * 2 / CYCLE) * AMP2;    // AMP2, not 20
+  }
+  return table;
+}();
 
 extern vec3_t vup, base_vup;
 extern vec3_t vpn, base_vpn;

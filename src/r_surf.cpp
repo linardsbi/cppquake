@@ -560,11 +560,10 @@ R_GenTurbTile
 ================
 */
 void R_GenTurbTile(pixel_t *pbasetex, void *pdest) {
-    int *turb = nullptr;
     int i = 0, j = 0, s = 0, t = 0;
     byte *pd = nullptr;
 
-    turb = sintable + ((int) (cl.time * SPEED) & (CYCLE - 1));
+    const auto turb = sintable.begin() + ((int) (cl.time * SPEED) & (CYCLE - 1));
     pd = (byte *) pdest;
 
     for (i = 0; i < TILE_SIZE; i++) {
@@ -583,11 +582,10 @@ R_GenTurbTile16
 ================
 */
 void R_GenTurbTile16(pixel_t *pbasetex, void *pdest) {
-    int *turb = nullptr;
     int i = 0, j = 0, s = 0, t = 0;
     unsigned short *pd = nullptr;
 
-    turb = sintable + ((int) (cl.time * SPEED) & (CYCLE - 1));
+    const auto turb = sintable.begin() + ((int) (cl.time * SPEED) & (CYCLE - 1));
     pd = (unsigned short *) pdest;
 
     for (i = 0; i < TILE_SIZE; i++) {

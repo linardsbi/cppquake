@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 unsigned char *r_turb_pbase, *r_turb_pdest;
 fixed16_t r_turb_s, r_turb_t, r_turb_sstep, r_turb_tstep;
-int *r_turb_turb;
+const int *r_turb_turb;
 int r_turb_spancount;
 
 void D_DrawTurbulent8Span(void);
@@ -45,7 +45,6 @@ void D_WarpScreen(void) {
     int w, h;
     int u, v;
     byte *dest;
-    int *turb;
     int *col;
     byte **row;
     byte *rowptr[MAXHEIGHT + (AMP2 * 2)];
@@ -68,7 +67,7 @@ void D_WarpScreen(void) {
                     (int) ((float) u * wratio * w / (w + AMP2 * 2));
     }
 
-    turb = intsintable + ((int) (cl.time * SPEED) & (CYCLE - 1));
+    const auto *turb = intsintable.begin() + ((int) (cl.time * SPEED) & (CYCLE - 1));
     dest = vid.buffer + scr_vrect.y * vid.rowbytes + scr_vrect.x;
 
     for (v = 0; v < scr_vrect.height; v++, dest += vid.rowbytes) {
@@ -118,7 +117,7 @@ void Turbulent8(espan_t *pspan) {
     float sdivz, tdivz, zi, z, du, dv, spancountminus1;
     float sdivz16stepu, tdivz16stepu, zi16stepu;
 
-    r_turb_turb = sintable + ((int) (cl.time * SPEED) & (CYCLE - 1));
+    r_turb_turb = &sintable.front() + ((int) (cl.time * SPEED) & (CYCLE - 1));
 
     r_turb_sstep = 0;    // keep compiler happy
     r_turb_tstep = 0;    // ditto

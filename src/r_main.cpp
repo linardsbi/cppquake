@@ -187,8 +187,6 @@ void R_Init() {
 // get stack position so we can guess if we are going to overflow
     r_stack_start = (byte *) &dummy;
 
-    R_InitTurb();
-
     Cmd_AddCommand("timerefresh", R_TimeRefresh_f);
     Cmd_AddCommand("pointfile", R_ReadPointFile_f);
 
