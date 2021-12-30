@@ -37,7 +37,7 @@ mnode_t *r_pefragtopnode;
 
 efrag_t **lastlink;
 
-vec3_t r_emins, r_emaxs;
+vec3 r_emins, r_emaxs;
 
 entity_t *r_addent;
 
@@ -202,11 +202,8 @@ void R_AddEfrags(entity_t *ent) {
     r_pefragtopnode = nullptr;
 
     entmodel = ent->model;
-
-    for (i = 0; i < 3; i++) {
-        r_emins[i] = ent->origin[i] + entmodel->mins[i];
-        r_emaxs[i] = ent->origin[i] + entmodel->maxs[i];
-    }
+    r_emins = ent->origin + entmodel->mins;
+    r_emaxs = ent->origin + entmodel->maxs;
 
     R_SplitEntityOnNode(cl.worldmodel->nodes);
 

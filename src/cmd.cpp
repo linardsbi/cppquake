@@ -97,7 +97,7 @@ void Cbuf_InsertText(std::string_view text) {
     const auto templen = cmd_text.cursize;
     if (templen > 0) {
         temp = zmalloc<decltype(temp)>(templen);
-        Q_memcpy(temp, cmd_text.data, templen);
+        memcpy(temp, cmd_text.data, templen);
         SZ_Clear(&cmd_text);
     } else
         temp = nullptr;    // shut up compiler

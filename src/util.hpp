@@ -32,11 +32,6 @@ auto getFunctionByNameOffset(unsigned long offset) -> dfunction_t;
 
 auto getFunctionOffsetFromName(std::string_view name) -> unsigned long;
 
-inline auto toString(std::string_view v) -> std::string
-{
-  return { v.data(), v.size() };
-}
-
 auto stringExistsAtOffset(unsigned long offset) -> bool;
 
 

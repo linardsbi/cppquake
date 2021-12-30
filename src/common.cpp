@@ -436,6 +436,18 @@ Handles byte ordering and avoids alignment errors
 // writing functions
 //
 
+template <std::size_t buf_size, typename ...Args>
+inline void MSG_Write(byte *buf, Args... args) {
+    auto write_arg = [buf, index = 0U](const auto arg) mutable {
+        constexpr auto arg_size = buf_size / sizeof...(args);
+        for (unsigned i = 0; i < arg_size; ++i) {
+            buf[index++] = (arg >> (i * 8U)) & 0xff;
+        }
+    };
+
+    (write_arg(args), ...);
+}
+
 void MSG_WriteChar(sizebuf_t *sb, int c) {
 
 #ifdef PARANOID
@@ -470,10 +482,7 @@ void MSG_WriteShort(sizebuf_t *sb, short c) {
 
 void MSG_WriteLong(sizebuf_t *sb, int c) {
     byte *buf = SZGetSpace<decltype(buf)>(sb, 4);
-    buf[0] = c & 0xff;
-    buf[1] = (c >> 8) & 0xff;
-    buf[2] = (c >> 16) & 0xff;
-    buf[3] = c >> 24;
+    MSG_Write<4>(buf, c);
 }
 
 void MSG_WriteFloat(sizebuf_t *sb, float f) {
@@ -497,9 +506,29 @@ void MSG_WriteCoord(sizebuf_t *sb, float f) {
     MSG_WriteShort(sb, static_cast<short>((f * 8)));
 }
 
+void MSG_WriteCoords(sizebuf_t *sb, vec3 coords) {
+    coords *= 8.F;
+    const int x = static_cast<int>(coords[0]);
+    const int y = static_cast<int>(coords[1]);
+    const int z = static_cast<int>(coords[2]);
+
+    byte *buf = SZGetSpace<decltype(buf)>(sb, 6);
+    MSG_Write<6>(buf, x, y, z);
+}
+
 void MSG_WriteAngle(sizebuf_t *sb, float f) {
 //    printf("angle: %d\n", ((int)f *256/360) & 255);
     MSG_WriteByte(sb, ((int) f * 256 / 360) & 255);
+}
+
+void MSG_WriteAngles(sizebuf_t *sb, vec3 angles) {
+    angles = angles * 256.F / 360.F;
+    const int a = static_cast<int>(angles[0]);
+    const int b = static_cast<int>(angles[1]);
+    const int c = static_cast<int>(angles[2]);
+    byte *buf = SZGetSpace<decltype(buf)>(sb, 3);
+
+    MSG_Write<3>(buf, a, b, c);
 }
 
 //
@@ -981,6 +1010,10 @@ void COM_InitArgv(int argc, char **argv) {
 
     if (COM_CheckParm("-hipnotic")) {
         hipnotic = true;
+        standard_quake = false;
+    }
+
+    if (COM_CheckParm("-game")) {
         standard_quake = false;
     }
 }

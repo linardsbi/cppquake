@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef union eval_s {
     string_t string;
     float _float;
-    float vector[3];
+    vec3 vector;
     func_t function;
     int _int;
     int edict;
@@ -51,11 +51,6 @@ typedef struct edict_s {
     entvars_t v;                    // C exported fields from progs
 // other fields from progs come immediately after
 } edict_t;
-
-struct NameOffsetPair {
-    std::string name;
-    unsigned long offset;
-};
 
 #define    EDICT_FROM_AREA(l) STRUCT_FROM_LINK(l,edict_t,area)
 
@@ -130,7 +125,10 @@ auto G_STRING(int o) -> const char *;
 #define    G_INT(o) (*(int *)&pr_globals[o])
 #define    G_EDICT(o) ((edict_t *)((byte *)sv.edicts + *(int *)&pr_globals[o])) // FIXME
 #define G_EDICTNUM(o) NUM_FOR_EDICT(G_EDICT(o))
-#define    G_VECTOR(o) (&pr_globals[o])
+#define    G_VECTOR(o) (vec3{pr_globals[o], pr_globals[o + 1], pr_globals[o + 2]})
+#define    G_VECTOR_SET(offset, vec) pr_globals[offset] = vec[0]; \
+                                  pr_globals[offset + 1] = vec[1]; \
+                                  pr_globals[offset + 2] = vec[2]
 //#define	G_STRING(o) (pr_strings + *(string_t *)&pr_globals[o])
 #define    G_FUNCTION(o) (*(func_t *)&pr_globals[o])
 
@@ -161,6 +159,6 @@ void ED_PrintEdicts();
 
 void ED_PrintNum(int ent);
 
-eval_t *GetEdictFieldValue(edict_t *ed, char *field);
+eval_t *GetEdictFieldValue(edict_t *ed, std::string_view field);
 
 #endif

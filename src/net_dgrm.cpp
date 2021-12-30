@@ -1243,7 +1243,7 @@ static auto _Datagram_Connect(char *host) -> qsocket_t * {
     }
 
     if (ret == CCREP_ACCEPT) {
-        Q_memcpy(&sock->addr, &sendaddr, sizeof(struct qsockaddr));
+        memcpy(&sock->addr, &sendaddr, sizeof(struct qsockaddr));
         dfunc.SetSocketPort(&sock->addr, MSG_ReadLong());
     } else {
         reason = "Bad Response";

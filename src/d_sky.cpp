@@ -34,7 +34,7 @@ D_Sky_uv_To_st
 */
 void D_Sky_uv_To_st(int u, int v, fixed16_t *s, fixed16_t *t) {
     float wu, wv, temp;
-    vec3_t end;
+    vec3 end;
 
     if (r_refdef.vrect.width >= r_refdef.vrect.height)
         temp = (float) r_refdef.vrect.width;
@@ -44,9 +44,7 @@ void D_Sky_uv_To_st(int u, int v, fixed16_t *s, fixed16_t *t) {
     wu = 8192.0 * (float) (u - ((int) vid.width >> 1)) / temp;
     wv = 8192.0 * (float) (((int) vid.height >> 1) - v) / temp;
 
-    end[0] = 4096 * vpn[0] + wu * vright[0] + wv * vup[0];
-    end[1] = 4096 * vpn[1] + wu * vright[1] + wv * vup[1];
-    end[2] = 4096 * vpn[2] + wu * vright[2] + wv * vup[2];
+    end = 4096.0F * vpn + wu * vright + wv * vup;
     end[2] *= 3;
     VectorNormalize(end);
 

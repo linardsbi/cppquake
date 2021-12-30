@@ -134,8 +134,8 @@ void ED_Free(edict_t *ed) {
     ed->v.colormap = 0;
     ed->v.skin = 0;
     ed->v.frame = 0;
-    VectorCopy (vec3_origin, ed->v.origin);
-    VectorCopy (vec3_origin, ed->v.angles);
+    ed->v.origin = vec3_origin;
+    ed->v.angles = vec3_origin;
     ed->v.nextthink = -1;
     ed->v.solid = 0;
 
@@ -208,13 +208,13 @@ auto ED_FindGlobal(std::string_view name) -> ddef_t * {
 }
 
 
-auto GetEdictFieldValue(edict_t *ed, char *field) -> eval_t * {
+auto GetEdictFieldValue(edict_t *ed, std::string_view field) -> eval_t * {
     ddef_t *def = nullptr;
     int i = 0;
     static int rep = 0;
 
     for (i = 0; i < GEFV_CACHESIZE; i++) {
-        if (!strcmp(field, gefvCache[i].field)) {
+        if (!Q_strcmp(field, gefvCache[i].field)) {
             def = gefvCache[i].pcache;
             goto Done;
         }
@@ -222,9 +222,9 @@ auto GetEdictFieldValue(edict_t *ed, char *field) -> eval_t * {
 
     def = ED_FindField(field);
 
-    if (strlen(field) < MAX_FIELD_LEN) {
+    if (field.length() < MAX_FIELD_LEN) {
         gefvCache[rep].pcache = def;
-        strcpy(gefvCache[rep].field, field);
+        strncpy(gefvCache[rep].field, field.data(), field.length());
         rep ^= 1;
     }
 
@@ -243,42 +243,42 @@ PR_ValueString
 Returns a string describing *data in a type specific manner
 =============
 */
-auto PR_ValueString(etype_t type, eval_t *val) -> char * {
-    static char line[256];
+auto PR_ValueString(etype_t type, eval_t *val) -> std::string {
     ddef_t *def = nullptr;
     dfunction_t *f = nullptr;
+    std::string line;
 
     type = static_cast<etype_t>(type & ~DEF_SAVEGLOBAL);
 
     switch (type) {
         case ev_string:
-            sprintf(line, "%s", getStringByOffset(val->string).data());
+            line = fmt::sprintf("%s", getStringByOffset(val->string));
             break;
         case ev_entity:
-            sprintf(line, "entity %i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
+            line = fmt::sprintf("entity %i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
             break;
         case ev_function:
             f = &edictFunctions[val->function];
-            sprintf(line, "%s()", getStringByOffset(f->s_name).data());
+            line = fmt::sprintf("%s()", getStringByOffset(f->s_name));
             break;
         case ev_field:
             def = ED_FieldAtOfs(val->_int);
-            sprintf(line, ".%s", getStringByOffset(def->s_name).data());
+            line = fmt::sprintf(".%s", getStringByOffset(def->s_name));
             break;
         case ev_void:
-            sprintf(line, "void");
+            line = fmt::sprintf("void");
             break;
         case ev_float:
-            sprintf(line, "%5.1f", val->_float);
+            line = fmt::sprintf("%5.1f", val->_float);
             break;
         case ev_vector:
-            sprintf(line, "'%5.1f %5.1f %5.1f'", val->vector[0], val->vector[1], val->vector[2]);
+            line = fmt::sprintf("'%5.1f %5.1f %5.1f'", val->vector[0], val->vector[1], val->vector[2]);
             break;
         case ev_pointer:
-            sprintf(line, "pointer");
+            line = fmt::sprintf("pointer");
             break;
         default:
-            sprintf(line, "bad type %i", type);
+            line = fmt::sprintf("bad type %i", type);
             break;
     }
 
@@ -313,7 +313,7 @@ auto PR_UglyValueString(etype_t type, eval_t *val) -> std::string {
             line << "void";
             break;
         case ev_float:
-            line << val->_float;
+            line << std::fixed << val->_float;
             break;
         case ev_vector:
             line << val->vector[0] << ' ' << val->vector[1] << ' ' << val->vector[2];
@@ -334,44 +334,40 @@ Returns a string with a description and the contents of a global,
 padded to 20 field width
 ============
 */
-auto PR_GlobalString(int ofs) -> char * {
-    char *s = nullptr;
-    int i = 0;
-    ddef_t *def = nullptr;
-    static char line[128];
+auto PR_GlobalString(int ofs, bool print_ofs = true) -> std::string {
+    auto *val = std::bit_cast<eval_t *>(&pr_globals[ofs]);
+    const auto *def = ED_GlobalAtOfs(ofs);
+    std::string line;
 
-    auto val = reinterpret_cast<eval_t *>(&pr_globals[ofs]);
-    def = ED_GlobalAtOfs(ofs);
     if (!def)
-        sprintf(line, "%i(?\?\?)", ofs);
+        line = fmt::sprintf("%i(?\?\?)", ofs);
     else {
-        s = PR_ValueString(static_cast<etype_t>(def->type), val);
-        sprintf(line, "%i(%s)%s", ofs, getStringByOffset(def->s_name).data(), s);
+        const auto s = PR_ValueString(static_cast<etype_t>(def->type), val);
+        if (print_ofs) {
+            line = fmt::sprintf("%i (%s) %s", ofs, getStringByOffset(def->s_name), s);
+        } else {
+            line = fmt::sprintf("(%s) %s", getStringByOffset(def->s_name), s);
+        }
     }
 
-    i = strlen(line);
-    for (; i < 20; i++)
-        strcat(line, " ");
-    strcat(line, " ");
+    if (line.length() < 20) {
+        line.resize(20, ' ');
+    }
 
     return line;
 }
 
-auto PR_GlobalStringNoContents(int ofs) -> char * {
-    int i = 0;
-    ddef_t *def = nullptr;
-    static char line[128];
-
-    def = ED_GlobalAtOfs(ofs);
+auto PR_GlobalStringNoContents(int ofs) -> std::string {
+    const auto *def = ED_GlobalAtOfs(ofs);
+    std::string line;
     if (!def)
-        sprintf(line, "%i(?\?\?)", ofs);
+        line = fmt::sprintf("%i(?\?\?)", ofs);
     else
-        sprintf(line, "%i(%s)", ofs, getStringByOffset(def->s_name).data());
+        line = fmt::sprintf("%i(%s)", ofs, getStringByOffset(def->s_name));
 
-    i = strlen(line);
-    for (; i < 20; i++)
-        strcat(line, " ");
-    strcat(line, " ");
+    if (line.length() < 20) {
+        line.resize(20, ' ');
+    }
 
     return line;
 }

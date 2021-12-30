@@ -1276,9 +1276,8 @@ void Host_Spawn_f() {
 // with a permanent head tilt
     ent = EDICT_NUM(1 + (host_client - svs.clients));
     MSG_WriteByte(&host_client->message, svc_setangle);
-    for (i = 0; i < 2; i++)
-        MSG_WriteAngle(&host_client->message, ent->v.angles[i]);
-    MSG_WriteAngle(&host_client->message, 0);
+
+    MSG_WriteAngles(&host_client->message, {ent->v.angles[0], ent->v.angles[1], 0});
 
     SV_WriteClientdataToMessage(sv_player, &host_client->message);
 
@@ -1377,7 +1376,7 @@ void Host_Kick_f() {
                 message = message.substr(j);
 
             if (message.length() > 0)
-                SV_ClientPrintf("Kicked by %s: %s\n", who.data(), message);
+                SV_ClientPrintf("Kicked by %s: %s\n", who.data(), message.data());
         } else
             SV_ClientPrintf("Kicked by %s\n", who.data());
         SV_DropClient(false);

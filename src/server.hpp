@@ -91,7 +91,7 @@ using client_t = struct client_s {
     struct qsocket_s *netconnection;    // communications handle
 
     usercmd_t cmd;                // movement
-    vec3_t wishdir;            // intended motion calced from cmd
+    vec3 wishdir;            // intended motion calced from cmd
 
     sizebuf_t message{};            // can be added to at any time,
     // copied and clear once per frame
@@ -219,7 +219,7 @@ extern edict_t *sv_player;
 
 void SV_Init();
 
-void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count);
+void SV_StartParticle(vec3 org, vec3 dir, int color, int count);
 
 void SV_StartSound(edict_t *entity, int channel, std::string_view sample, int volume,
                    float attenuation);
@@ -248,7 +248,7 @@ void SV_Physics();
 
 qboolean SV_CheckBottom(edict_t *ent);
 
-qboolean SV_movestep(edict_t *ent, vec3_t move, qboolean relink);
+qboolean SV_movestep(edict_t *ent, vec3 move, qboolean relink);
 
 void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg);
 

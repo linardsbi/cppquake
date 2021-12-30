@@ -26,12 +26,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _R_SHARED_H_
 #define _R_SHARED_H_
 
-#define    MAXVERTS    16                    // max points in a surface polygon
+#define    MAXVERTS    32                    // max points in a surface polygon
 #define MAXWORKINGVERTS    (MAXVERTS+4)    // max points in an intermediate
 //  polygon (while processing)
 // !!! if this is changed, it must be changed in d_ifacea.h too !!!
-#define    MAXHEIGHT        1024
-#define    MAXWIDTH        1280
+#define    MAXHEIGHT        2161
+#define    MAXWIDTH        4097
 #define MAXDIMENSION    ((MAXHEIGHT > MAXWIDTH) ? MAXHEIGHT : MAXWIDTH)
 
 #define SIN_BUFFER_SIZE    (MAXDIMENSION+CYCLE)
@@ -72,9 +72,10 @@ static constexpr std::array<int, SIN_BUFFER_SIZE> intsintable = []() {
   return table;
 }();
 
-extern vec3_t vup, base_vup;
-extern vec3_t vpn, base_vpn;
-extern vec3_t vright, base_vright;
+
+extern vec3 vup, base_vup;
+extern vec3 vpn, base_vpn;
+extern vec3 vright, base_vright;
 extern entity_t *currententity;
 
 #define NUMSTACKEDGES        2400
@@ -121,10 +122,10 @@ extern surf_t *surfaces, *surface_p, *surf_max;
 
 //===================================================================
 
-extern vec3_t sxformaxis[4];    // s axis transformed into viewspace
-extern vec3_t txformaxis[4];    // t axis transformed into viewspac
+extern vec3 sxformaxis[4];    // s axis transformed into viewspace
+extern vec3 txformaxis[4];    // t axis transformed into viewspac
 
-extern vec3_t modelorg, base_modelorg;
+extern vec3 modelorg, base_modelorg;
 
 extern float xcenter, ycenter;
 extern float xscale, yscale;
@@ -133,7 +134,7 @@ extern float xscaleshrink, yscaleshrink;
 
 extern int d_lightstylevalue[256]; // 8.8 frac of base light value
 
-extern void TransformVector(vec3_t in, vec3_t out);
+extern void TransformVector(vec3 in, vec3 &out);
 
 extern void SetUpForLineScan(fixed8_t startvertu, fixed8_t startvertv,
                              fixed8_t endvertu, fixed8_t endvertv);

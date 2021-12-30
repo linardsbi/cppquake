@@ -83,7 +83,7 @@ auto Mod_Extradata(model_t *mod) -> void * {
 Mod_PointInLeaf
 ===============
 */
-auto Mod_PointInLeaf(vec3_t p, model_t *model) -> mleaf_t * {
+auto Mod_PointInLeaf(vec3 &p, model_t *model) -> mleaf_t * {
     mnode_t *node = nullptr;
     float d = NAN;
     mplane_t *plane = nullptr;
@@ -96,7 +96,7 @@ auto Mod_PointInLeaf(vec3_t p, model_t *model) -> mleaf_t * {
         if (node->contents < 0)
             return (mleaf_t *) node;
         plane = node->plane;
-        d = DotProduct (p, plane->normal) - plane->dist;
+        d = glm::dot (p, plane->normal) - plane->dist;
         if (d > 0)
             node = node->children[0];
         else
@@ -640,29 +640,17 @@ Fills in s->texturemins[] and s->extents[]
 ================
 */
 void CalcSurfaceExtents(msurface_t *s) {
-    float mins[2], maxs[2], val = NAN;
-    int i = 0, j = 0, e = 0;
-    mvertex_t *v = nullptr;
-    mtexinfo_t *tex = nullptr;
-    int bmins[2], bmaxs[2];
+  vec2 mins = {999999, 999999};
+  vec2 maxs = {-99999, -99999};
+  const auto *tex = s->texinfo;
+    for (int i = 0; i < s->numedges; i++) {
+        const auto e = loadmodel->surfedges[s->firstedge + i];
 
-    mins[0] = mins[1] = 999999;
-    maxs[0] = maxs[1] = -99999;
+        const auto *v = e >= 0 ? &loadmodel->vertexes[loadmodel->edges[e].v[0]]
+                                 : &loadmodel->vertexes[loadmodel->edges[-e].v[1]];
 
-    tex = s->texinfo;
-
-    for (i = 0; i < s->numedges; i++) {
-        e = loadmodel->surfedges[s->firstedge + i];
-        if (e >= 0)
-            v = &loadmodel->vertexes[loadmodel->edges[e].v[0]];
-        else
-            v = &loadmodel->vertexes[loadmodel->edges[-e].v[1]];
-
-        for (j = 0; j < 2; j++) {
-            val = v->position[0] * tex->vecs[j][0] +
-                  v->position[1] * tex->vecs[j][1] +
-                  v->position[2] * tex->vecs[j][2] +
-                  tex->vecs[j][3];
+        for (int j = 0; j < 2; j++) {
+            const auto val = glm::dot(v->position, {tex->vecs[j]}) + tex->vecs[j][3];
             if (val < mins[j])
                 mins[j] = val;
             if (val > maxs[j])
@@ -670,17 +658,15 @@ void CalcSurfaceExtents(msurface_t *s) {
         }
     }
 
-    for (i = 0; i < 2; i++) {
-        bmins[i] = floor(mins[i] / 16);
-        bmaxs[i] = ceil(maxs[i] / 16);
-
+    vec2 bmins = glm::floor(mins / 16.F);
+    vec2 bmaxs = glm::ceil(maxs / 16.F);
+    for (int i = 0; i < 2; i++) {
         s->texturemins[i] = bmins[i] * 16;
         s->extents[i] = (bmaxs[i] - bmins[i]) * 16;
         if (!(tex->flags & TEX_SPECIAL) && s->extents[i] > 256)
-            Sys_Error("Bad surface extents");
+            Sys_Error("Bad surface extents: %d", s->extents[i]);
     }
 }
-
 
 /*
 =================
@@ -1005,15 +991,14 @@ void Mod_LoadPlanes(lump_t *l) {
 RadiusFromBounds
 =================
 */
-auto RadiusFromBounds(vec3_t mins, vec3_t maxs) -> float {
-    int i = 0;
-    vec3_t corner;
+inline auto RadiusFromBounds(vec3 mins, vec3 maxs) -> float {
+    vec3 corner;
 
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         corner[i] = fabs(mins[i]) > fabs(maxs[i]) ? fabs(mins[i]) : fabs(maxs[i]);
     }
 
-    return Length(corner);
+    return glm::length(corner);
 }
 
 /*
@@ -1078,8 +1063,8 @@ void Mod_LoadBrushModel(model_t *mod, void *buffer) {
         mod->firstmodelsurface = bm->firstface;
         mod->nummodelsurfaces = bm->numfaces;
 
-        VectorCopy (bm->maxs, mod->maxs);
-        VectorCopy (bm->mins, mod->mins);
+        mod->maxs = bm->maxs;
+        mod->mins = bm->mins;
         mod->radius = RadiusFromBounds(mod->mins, mod->maxs);
 
         mod->numleafs = bm->visleafs;
@@ -1225,7 +1210,7 @@ auto Mod_LoadAliasSkin(void *pin, int *pskinindex, int skinsize,
     *pskinindex = (byte *) pskin - (byte *) pheader;
 
     if (r_pixbytes == 1) {
-        Q_memcpy(pskin, pinskin, skinsize);
+        memcpy(pskin, pinskin, skinsize);
     } else if (r_pixbytes == 2) {
         pusskin = (unsigned short *) pskin;
 
@@ -1539,7 +1524,7 @@ auto Mod_LoadSpriteFrame(void *pin, mspriteframe_t **ppframe) -> void * {
     pspriteframe->right = width + origin[0];
 
     if (r_pixbytes == 1) {
-        Q_memcpy(&pspriteframe->pixels[0], (byte *) (pinframe + 1), size);
+        memcpy(&pspriteframe->pixels[0], (byte *) (pinframe + 1), size);
     } else if (r_pixbytes == 2) {
         ppixin = (byte *) (pinframe + 1);
         ppixout = (unsigned short *) &pspriteframe->pixels[0];

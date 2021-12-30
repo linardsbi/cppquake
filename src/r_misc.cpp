@@ -258,21 +258,20 @@ R_TransformFrustum
 ===================
 */
 void R_TransformFrustum() {
-    int i = 0;
-    vec3_t v, v2;
-
-    for (i = 0; i < 4; i++) {
+    vec3 v;
+    for (int i = 0; i < 4; i++) {
         v[0] = screenedge[i].normal[2];
         v[1] = -screenedge[i].normal[0];
         v[2] = screenedge[i].normal[1];
 
-        v2[0] = v[1] * vright[0] + v[2] * vup[0] + v[0] * vpn[0];
-        v2[1] = v[1] * vright[1] + v[2] * vup[1] + v[0] * vpn[1];
-        v2[2] = v[1] * vright[2] + v[2] * vup[2] + v[0] * vpn[2];
+        const auto v2 = v[1] * vright + v[2] * vup + v[0] * vpn;
+//        v2[0] = v[1] * vright[0] + v[2] * vup[0] + v[0] * vpn[0];
+//        v2[1] = v[1] * vright[1] + v[2] * vup[1] + v[0] * vpn[1];
+//        v2[2] = v[1] * vright[2] + v[2] * vup[2] + v[0] * vpn[2];
 
-        VectorCopy (v2, view_clipplanes[i].normal);
+        view_clipplanes[i].normal = v2;
 
-        view_clipplanes[i].dist = DotProduct (modelorg, v2);
+        view_clipplanes[i].dist = glm::dot (modelorg, v2);
     }
 }
 
@@ -284,10 +283,12 @@ void R_TransformFrustum() {
 TransformVector
 ================
 */
-void TransformVector(vec3_t in, vec3_t out) {
-    out[0] = DotProduct(in, vright);
-    out[1] = DotProduct(in, vup);
-    out[2] = DotProduct(in, vpn);
+void TransformVector(vec3 in, vec3 &out) {
+  out = {
+    glm::dot(in, vright),
+    glm::dot(in, vup),
+    glm::dot(in, vpn),
+  };
 }
 
 #endif
@@ -298,10 +299,10 @@ void TransformVector(vec3_t in, vec3_t out) {
 R_TransformPlane
 ================
 */
-void R_TransformPlane(mplane_t *p, float *normal, float *dist) {
+void R_TransformPlane(mplane_t *p, vec3 &normal, float *dist) {
     float d = NAN;
 
-    d = DotProduct (r_origin, p->normal);
+    d = glm::dot (r_origin, p->normal);
     *dist = p->dist - d;
 // TODO: when we have rotating entities, this will need to use the view matrix
     TransformVector(p->normal, normal);
@@ -399,8 +400,8 @@ void R_SetupFrame() {
 #endif
 
 // build the transformation matrix for the given view angles
-    VectorCopy (r_refdef.vieworg, modelorg);
-    VectorCopy (r_refdef.vieworg, r_origin);
+    modelorg = r_refdef.vieworg;
+    r_origin = r_refdef.vieworg;
 
     AngleVectors(r_refdef.viewangles, vpn, vright, vup);
 
@@ -461,10 +462,10 @@ void R_SetupFrame() {
     R_TransformFrustum();
 
 // save base values
-    VectorCopy (vpn, base_vpn);
-    VectorCopy (vright, base_vright);
-    VectorCopy (vup, base_vup);
-    VectorCopy (modelorg, base_modelorg);
+    base_vpn = vpn;
+    base_vright = vright;
+    base_vup = vup;
+    base_modelorg = modelorg;
 
     R_SetSkyFrame();
 

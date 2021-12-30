@@ -29,11 +29,11 @@ extern float v_blend[4];
 extern cvar_t lcd_x;
 
 
-void V_Init(void);
+void V_Init();
 
-void V_RenderView(void);
+void V_RenderView();
 
-float V_CalcRoll(vec3_t angles, vec3_t velocity);
+float V_CalcRoll(vec3 angles, vec3 velocity);
 
-void V_UpdatePalette(void);
+void V_UpdatePalette();
 

@@ -327,9 +327,9 @@ void Cache_Move(cache_system_t *c) {
     if (newCache != nullptr) {
 //		Con_Printf ("cache_move ok\n");
 
-        Q_memcpy(newCache + 1, c + 1, c->size - sizeof(cache_system_t));
+        memcpy(newCache + 1, c + 1, c->size - sizeof(cache_system_t));
         newCache->user = c->user;
-        Q_memcpy(newCache->name, c->name, sizeof(newCache->name));
+        memcpy(newCache->name, c->name, sizeof(newCache->name));
         Cache_Free(c->user);
         newCache->user->data = (void *) (newCache + 1);
     } else {

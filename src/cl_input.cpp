@@ -307,7 +307,7 @@ void CL_BaseMove(usercmd_t *cmd) {
 
     CL_AdjustAngles();
 
-    Q_memset(cmd, 0, sizeof(*cmd));
+    memset(cmd, 0, sizeof(*cmd));
 
     if (in_strafe.state & 1) {
         cmd->sidemove += cl_sidespeed.value * CL_KeyState(&in_right);
@@ -364,8 +364,7 @@ void CL_SendMove(usercmd_t *cmd) {
 
     MSG_WriteFloat(&buf, cl.mtime[0]);    // so server can get ping times
 
-    for (i = 0; i < 3; i++)
-        MSG_WriteAngle(&buf, cl.viewangles[i]);
+    MSG_WriteAngles(&buf, cl.viewangles);
 
     MSG_WriteShort(&buf, cmd->forwardmove);
     MSG_WriteShort(&buf, cmd->sidemove);

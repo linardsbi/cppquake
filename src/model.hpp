@@ -47,7 +47,7 @@ BRUSH MODELS
 //
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct {
-    vec3_t position;
+    vec3 position;
 } mvertex_t;
 
 #define    SIDE_FRONT    0
@@ -58,7 +58,7 @@ typedef struct {
 // plane_t structure
 // !!! if this is changed, it must be changed in asm_i386.h too !!!
 typedef struct mplane_s {
-    vec3_t normal;
+    vec3 normal;
     float dist;
     byte type;            // for texture axis selection and fast side tests
     byte signbits;        // signx + signy<<1 + signz<<1
@@ -90,10 +90,10 @@ typedef struct {
 } medge_t;
 
 typedef struct {
-    float vecs[2][4];
-    float mipadjust;
-    texture_t *texture;
-    int flags;
+    vec4 vecs[2]{};
+    float mipadjust{};
+    texture_t *texture{};
+    int flags{};
 } mtexinfo_t;
 
 typedef struct msurface_s {
@@ -164,8 +164,8 @@ typedef struct {
     mplane_t *planes;
     int firstclipnode;
     int lastclipnode;
-    vec3_t clip_mins;
-    vec3_t clip_maxs;
+    vec3 clip_mins;
+    vec3 clip_maxs;
 } hull_t;
 
 /*
@@ -295,7 +295,7 @@ typedef struct model_s {
 //
 // volume occupied by the model
 //		
-    vec3_t mins, maxs;
+    vec3 mins, maxs;
     float radius;
 
 //
@@ -363,7 +363,7 @@ model_t *Mod_ForName(std::string_view name, qboolean crash);
 void *Mod_Extradata(model_t *mod);    // handles caching
 void Mod_TouchModel(char *name);
 
-mleaf_t *Mod_PointInLeaf(float *p, model_t *model);
+mleaf_t *Mod_PointInLeaf(vec3 &p, model_t *model);
 
 byte *Mod_LeafPVS(mleaf_t *leaf, model_t *model);
 

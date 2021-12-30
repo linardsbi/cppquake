@@ -174,8 +174,8 @@ void Con_CheckResize(void) {
         if (con_linewidth < numchars)
             numchars = con_linewidth;
 
-        Q_memcpy(tbuf, con_text, CON_TEXTSIZE);
-        Q_memset(con_text, ' ', CON_TEXTSIZE);
+        memcpy(tbuf, con_text, CON_TEXTSIZE);
+        memset(con_text, ' ', CON_TEXTSIZE);
 
         for (i = 0; i < numlines; i++) {
             for (j = 0; j < numchars; j++) {

@@ -82,8 +82,8 @@ typedef struct {
 #define    HEADER_LUMPS    15
 
 typedef struct {
-    float mins[3]{}, maxs[3]{};
-    float origin[3]{};
+    vec3 mins{}, maxs{};
+    vec3 origin{};
     int headnode[MAX_MAP_HULLS]{};
     int visleafs{};        // not including the solid leaf 0
     int firstface{}, numfaces{};
@@ -108,7 +108,7 @@ typedef struct miptex_s {
 
 
 struct dvertex_t {
-    float point[3];
+    vec3 point;
 };
 
 
@@ -123,9 +123,9 @@ struct dvertex_t {
 #define    PLANE_ANYZ        5
 
 typedef struct {
-    float normal[3];
-    float dist;
-    int type;        // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
+    vec3 normal{};
+    float dist{};
+    int type{};        // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 } dplane_t;
 
 
@@ -163,7 +163,7 @@ typedef struct {
 
 
 typedef struct texinfo_s {
-    float vecs[2][4];        // [s/t][xyz offset]
+    vec4 vecs[2];        // [s/t][xyz offset]
     int miptex;
     int flags;
 } texinfo_t;
@@ -288,7 +288,7 @@ typedef struct epair_s
 
 typedef struct
 {
-    vec3_t		origin;
+    vec3		origin;
     int			firstbrush;
     int			numbrushes;
     epair_t		*epairs;
@@ -305,7 +305,7 @@ char 	*ValueForKey (entity_t *ent, char *key);
 // will return "" if not present
 
 vec_t	FloatForKey (entity_t *ent, char *key);
-void 	GetVectorForKey (entity_t *ent, char *key, vec3_t vec);
+void 	GetVectorForKey (entity_t *ent, char *key, vec3 vec);
 
 epair_t *ParseEpair (void);
 

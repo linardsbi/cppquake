@@ -97,7 +97,7 @@ CL_ParseStartSoundPacket
 ==================
 */
 void CL_ParseStartSoundPacket() {
-    vec3_t pos;
+    vec3 pos;
     int channel = 0, ent = 0;
     int sound_num = 0;
     int volume = 0;
@@ -417,8 +417,8 @@ void CL_ParseUpdate(int bits) {
         ent->effects = ent->baseline.effects;
 
 // shift the known values for interpolation
-    VectorCopy (ent->msg_origins[0], ent->msg_origins[1]);
-    VectorCopy (ent->msg_angles[0], ent->msg_angles[1]);
+    ent->msg_origins[1] = ent->msg_origins[0];
+    ent->msg_angles[1] = ent->msg_angles[0];
 
     if (bits & U_ORIGIN1)
         ent->msg_origins[0][0] = MSG_ReadCoord();
@@ -451,10 +451,10 @@ void CL_ParseUpdate(int bits) {
         ent->forcelink = true;
 
     if (forcelink) {    // didn't have an update last message
-        VectorCopy (ent->msg_origins[0], ent->msg_origins[1]);
-        VectorCopy (ent->msg_origins[0], ent->origin);
-        VectorCopy (ent->msg_angles[0], ent->msg_angles[1]);
-        VectorCopy (ent->msg_angles[0], ent->angles);
+        ent->msg_origins[1] = ent->msg_origins[0];
+        ent->origin = ent->msg_origins[0];
+        ent->msg_angles[1] = ent->msg_angles[0];
+        ent->angles = ent->msg_angles[0];
         ent->forcelink = true;
     }
 }
@@ -465,13 +465,11 @@ CL_ParseBaseline
 ==================
 */
 void CL_ParseBaseline(entity_t *ent) {
-    int i = 0;
-
     ent->baseline.modelindex = MSG_ReadByte();
     ent->baseline.frame = MSG_ReadByte();
     ent->baseline.colormap = MSG_ReadByte();
     ent->baseline.skin = MSG_ReadByte();
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         ent->baseline.origin[i] = MSG_ReadCoord();
         ent->baseline.angles[i] = MSG_ReadAngle();
     }
@@ -498,7 +496,7 @@ void CL_ParseClientdata(int bits) {
     else
         cl.idealpitch = 0;
 
-    VectorCopy (cl.mvelocity[0], cl.mvelocity[1]);
+    cl.mvelocity[1] = cl.mvelocity[0];
     for (i = 0; i < 3; i++) {
         if (bits & (SU_PUNCH1 << i))
             cl.punchangle[i] = MSG_ReadChar();
@@ -641,8 +639,8 @@ void CL_ParseStatic() {
     ent->skinnum = ent->baseline.skin;
     ent->effects = ent->baseline.effects;
 
-    VectorCopy (ent->baseline.origin, ent->origin);
-    VectorCopy (ent->baseline.angles, ent->angles);
+    ent->origin = ent->baseline.origin;
+    ent->angles = ent->baseline.angles;
     R_AddEfrags(ent);
 }
 
@@ -652,7 +650,7 @@ CL_ParseStaticSound
 ===================
 */
 void CL_ParseStaticSound() {
-    vec3_t org;
+    vec3 org;
     int sound_num = 0, vol = 0, atten = 0;
     int i = 0;
 

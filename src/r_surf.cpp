@@ -66,7 +66,7 @@ void R_AddDynamicLights() {
     int lnum = 0;
     int sd = 0, td = 0;
     float dist = NAN, rad = NAN, minlight = NAN;
-    vec3_t impact, local;
+    vec3 impact, local;
     int s = 0, t = 0;
     int i = 0;
     int smax = 0, tmax = 0;
@@ -82,7 +82,7 @@ void R_AddDynamicLights() {
             continue;        // not lit by this light
 
         rad = cl_dlights[lnum].radius;
-        dist = DotProduct (cl_dlights[lnum].origin, surf->plane->normal) -
+        dist = glm::dot (cl_dlights[lnum].origin, surf->plane->normal) -
                surf->plane->dist;
         rad -= fabs(dist);
         minlight = cl_dlights[lnum].minlight;
@@ -95,8 +95,8 @@ void R_AddDynamicLights() {
                         surf->plane->normal[i] * dist;
         }
 
-        local[0] = DotProduct (impact, tex->vecs[0]) + tex->vecs[0][3];
-        local[1] = DotProduct (impact, tex->vecs[1]) + tex->vecs[1][3];
+        local[0] = glm::dot (impact, vec3{tex->vecs[0][0], tex->vecs[0][1], tex->vecs[0][2]}) + tex->vecs[0][3];
+        local[1] = glm::dot (impact, vec3{tex->vecs[1][0], tex->vecs[1][1], tex->vecs[1][2]}) + tex->vecs[1][3];
 
         local[0] -= surf->texturemins[0];
         local[1] -= surf->texturemins[1];

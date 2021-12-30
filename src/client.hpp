@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "vid.hpp"
 
 typedef struct {
-    vec3_t viewangles;
+    vec3 viewangles;
 
 // intended velocities
     float forwardmove;
@@ -72,7 +72,7 @@ typedef struct {
 
 #define    MAX_DLIGHTS        32
 typedef struct {
-    vec3_t origin;
+    vec3 origin;
     float radius;
     float die;                // stop lighting after this time
     float decay;                // drop this each second
@@ -89,7 +89,7 @@ typedef struct {
     int entity;
     struct model_s *model;
     float endtime;
-    vec3_t start, end;
+    vec3 start, end;
 } beam_t;
 
 #define    MAX_EFRAGS        640
@@ -164,15 +164,15 @@ typedef struct {
 // sent to the server each frame.  The server sets punchangle when
 // the view is temporarliy offset, and an angle reset commands at the start
 // of each level and after teleporting.
-    vec3_t mviewangles[2];    // during demo playback viewangles is lerped
+    vec3 mviewangles[2];    // during demo playback viewangles is lerped
     // between these
-    vec3_t viewangles;
+    vec3 viewangles;
 
-    vec3_t mvelocity[2];    // update by server, used for lean+bob
+    vec3 mvelocity[2];    // update by server, used for lean+bob
     // (0 is newest)
-    vec3_t velocity;        // lerped between mvelocity[0] and [1]
+    vec3 velocity;        // lerped between mvelocity[0] and [1]
 
-    vec3_t punchangle;        // temporary offset
+    vec3 punchangle;        // temporary offset
 
 // pitch drifting vars
     float idealpitch;

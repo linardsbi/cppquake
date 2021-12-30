@@ -28,12 +28,12 @@ using prstack_t = struct {
     dfunction_t *f;
 };
 
-#define    MAX_STACK_DEPTH        32
-prstack_t pr_stack[MAX_STACK_DEPTH];
+#define    MAX_STACK_DEPTH        64
+std::array<prstack_t, MAX_STACK_DEPTH> pr_stack;
 int pr_depth;
 
 #define    LOCALSTACK_SIZE        2048
-int localstack[LOCALSTACK_SIZE];
+std::array<int, LOCALSTACK_SIZE> localstack;
 int localstack_used;
 
 
@@ -44,7 +44,7 @@ int pr_xstatement;
 
 int pr_argc;
 
-char *pr_opnames[] =
+constexpr std::array pr_opnames =
         {
                 "DONE",
 
@@ -133,9 +133,9 @@ char *pr_opnames[] =
                 "BITOR"
         };
 
-auto PR_GlobalString(int ofs) -> char *;
+auto PR_GlobalString(int ofs, bool print_ofs = true) -> std::string;
 
-auto PR_GlobalStringNoContents(int ofs) -> char *;
+auto PR_GlobalStringNoContents(int ofs) -> std::string;
 
 
 //=============================================================================
@@ -149,7 +149,7 @@ void PR_PrintStatement(dstatement_t *s) {
     int i = 0;
 
     if ((unsigned) s->op < sizeof(pr_opnames) / sizeof(pr_opnames[0])) {
-        Con_Printf("%s ", pr_opnames[s->op]);
+        Con_Printf("At: %s ", pr_opnames[s->op]);
         i = strlen(pr_opnames[s->op]);
         for (; i < 10; i++)
             Con_Printf(" ");
@@ -164,9 +164,9 @@ void PR_PrintStatement(dstatement_t *s) {
         Con_Printf("%s", PR_GlobalStringNoContents(s->b));
     } else {
         if (s->a)
-            Con_Printf("%s", PR_GlobalString(s->a));
+            Con_Printf("%s", PR_GlobalString(s->a, false));
         if (s->b)
-            Con_Printf("%s", PR_GlobalString(s->b));
+            Con_Printf("%s", PR_GlobalString(s->b, false));
         if (s->c)
             Con_Printf("%s", PR_GlobalStringNoContents(s->c));
     }
@@ -191,10 +191,16 @@ void PR_StackTrace() {
     for (i = pr_depth; i >= 0; i--) {
         f = pr_stack[i].f;
 
-        if (!f) {
-            Con_Printf("<NO FUNCTION>\n");
-        } else
-            Con_Printf("%12s : %s\n", getGlobalString(f->s_file), getGlobalString(f->s_name));
+        if (f) {
+            const auto filename = getStringByOffset(f->s_file);
+            if (filename.empty()) {
+
+                Con_Printf("In <UNKNOWN FILE> : %s\n", getStringByOffset(f->s_name));
+            } else {
+                Con_Printf("In %s : %s\n", filename, getStringByOffset(f->s_name));
+            }
+        }
+        PR_PrintStatement(pr_statements + pr_stack[i].s);
     }
 }
 
@@ -247,9 +253,9 @@ void PR_RunError(const char *error, ...) {
     vsprintf(string, error, argptr);
     va_end (argptr);
 
-    PR_PrintStatement(pr_statements + pr_xstatement);
+    Con_Printf("\nRuntime error: %s\n", string);
+//    PR_PrintStatement(pr_statements + pr_xstatement);
     PR_StackTrace();
-    Con_Printf("%s\n", string);
 
     pr_depth = 0;        // dump the stack so host_error can shutdown functions
 
@@ -383,37 +389,27 @@ void PR_ExecuteProgram(func_t fnum) {
                 c->_float = a->_float + b->_float;
                 break;
             case OP_ADD_V:
-                c->vector[0] = a->vector[0] + b->vector[0];
-                c->vector[1] = a->vector[1] + b->vector[1];
-                c->vector[2] = a->vector[2] + b->vector[2];
+                c->vector = a->vector + b->vector;
                 break;
 
             case OP_SUB_F:
                 c->_float = a->_float - b->_float;
                 break;
             case OP_SUB_V:
-                c->vector[0] = a->vector[0] - b->vector[0];
-                c->vector[1] = a->vector[1] - b->vector[1];
-                c->vector[2] = a->vector[2] - b->vector[2];
+                c->vector = a->vector - b->vector;
                 break;
 
             case OP_MUL_F:
                 c->_float = a->_float * b->_float;
                 break;
             case OP_MUL_V:
-                c->_float = a->vector[0] * b->vector[0]
-                            + a->vector[1] * b->vector[1]
-                            + a->vector[2] * b->vector[2];
+                c->_float = glm::dot(a->vector, b->vector);
                 break;
             case OP_MUL_FV:
-                c->vector[0] = a->_float * b->vector[0];
-                c->vector[1] = a->_float * b->vector[1];
-                c->vector[2] = a->_float * b->vector[2];
+                c->vector = a->_float * b->vector;
                 break;
             case OP_MUL_VF:
-                c->vector[0] = b->_float * a->vector[0];
-                c->vector[1] = b->_float * a->vector[1];
-                c->vector[2] = b->_float * a->vector[2];
+                c->vector = b->_float * a->vector;
                 break;
 
             case OP_DIV_F:
@@ -468,9 +464,7 @@ void PR_ExecuteProgram(func_t fnum) {
                 c->_float = a->_float == b->_float;
                 break;
             case OP_EQ_V:
-                c->_float = (a->vector[0] == b->vector[0]) &&
-                            (a->vector[1] == b->vector[1]) &&
-                            (a->vector[2] == b->vector[2]);
+                c->_float = a->vector == b->vector;
                 break;
             case OP_EQ_S:
                 if (getStringByOffset(a->string).empty()) break;
@@ -488,9 +482,7 @@ void PR_ExecuteProgram(func_t fnum) {
                 c->_float = a->_float != b->_float;
                 break;
             case OP_NE_V:
-                c->_float = (a->vector[0] != b->vector[0]) ||
-                            (a->vector[1] != b->vector[1]) ||
-                            (a->vector[2] != b->vector[2]);
+                c->_float = a->vector != b->vector;
                 break;
             case OP_NE_S:
                 c->_float = Q_strcmp(getStringByOffset(a->string), getStringByOffset(b->string));
@@ -511,9 +503,7 @@ void PR_ExecuteProgram(func_t fnum) {
                 b->_int = a->_int;
                 break;
             case OP_STORE_V:
-                b->vector[0] = a->vector[0];
-                b->vector[1] = a->vector[1];
-                b->vector[2] = a->vector[2];
+                b->vector = a->vector;
                 break;
 
             case OP_STOREP_F:
@@ -526,9 +516,7 @@ void PR_ExecuteProgram(func_t fnum) {
                 break;
             case OP_STOREP_V:
                 ptr = (eval_t *) ((byte *) sv.edicts + b->_int);
-                ptr->vector[0] = a->vector[0];
-                ptr->vector[1] = a->vector[1];
-                ptr->vector[2] = a->vector[2];
+                ptr->vector = a->vector;
                 break;
 
             case OP_ADDRESS:
@@ -560,9 +548,7 @@ void PR_ExecuteProgram(func_t fnum) {
                 NUM_FOR_EDICT(ed);        // make sure it's in range
 #endif
                 a = (eval_t *) ((int *) &ed->v + b->_int);
-                c->vector[0] = a->vector[0];
-                c->vector[1] = a->vector[1];
-                c->vector[2] = a->vector[2];
+                c->vector = a->vector;
                 break;
 
 //==================

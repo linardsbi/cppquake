@@ -412,9 +412,9 @@ void CL_RelinkEntities() {
     entity_t *ent = nullptr;
     int i = 0, j = 0;
     float frac = NAN, f = NAN, d = NAN;
-    vec3_t delta;
+    vec3 delta;
     float bobjrotate = NAN;
-    vec3_t oldorg;
+    vec3 oldorg;
     dlight_t *dl = nullptr;
 
 // determine partial update time	
@@ -457,12 +457,12 @@ void CL_RelinkEntities() {
             continue;
         }
 
-        VectorCopy (ent->origin, oldorg);
+        oldorg = ent->origin;
 
         if (ent->forcelink) {    // the entity was not updated in the last message
             // so move to the final spot
-            VectorCopy (ent->msg_origins[0], ent->origin);
-            VectorCopy (ent->msg_angles[0], ent->angles);
+             ent->origin = ent->msg_origins[0];
+            ent->angles = ent->msg_angles[0];
         } else {    // if the delta is large, assume a teleport and don't lerp
             f = frac;
             for (j = 0; j < 3; j++) {
@@ -496,10 +496,10 @@ void CL_RelinkEntities() {
             R_DarkFieldParticles (ent);
 #endif
         if (ent->effects & EF_MUZZLEFLASH) {
-            vec3_t fv, rv, uv;
+            vec3 fv, rv, uv;
 
             dl = CL_AllocDlight(i);
-            VectorCopy (ent->origin, dl->origin);
+            dl->origin = ent->origin;
             dl->origin[2] += 16;
             AngleVectors(ent->angles, fv, rv, uv);
 
@@ -510,14 +510,14 @@ void CL_RelinkEntities() {
         }
         if (ent->effects & EF_BRIGHTLIGHT) {
             dl = CL_AllocDlight(i);
-            VectorCopy (ent->origin, dl->origin);
+            dl->origin = ent->origin;
             dl->origin[2] += 16;
             dl->radius = 400 + (rand() & 31);
             dl->die = cl.time + 0.001;
         }
         if (ent->effects & EF_DIMLIGHT) {
             dl = CL_AllocDlight(i);
-            VectorCopy (ent->origin, dl->origin);
+            dl->origin = ent->origin;
             dl->radius = 200 + (rand() & 31);
             dl->die = cl.time + 0.001;
         }
@@ -525,7 +525,7 @@ void CL_RelinkEntities() {
         if (ent->effects & EF_DARKLIGHT)
         {
             dl = CL_AllocDlight (i);
-            VectorCopy (ent->origin,  dl->origin);
+             dl->origin = ent->origin;
             dl->radius = 200.0 + (rand()&31);
             dl->die = cl.time + 0.001;
             dl->dark = true;
@@ -533,7 +533,7 @@ void CL_RelinkEntities() {
         if (ent->effects & EF_LIGHT)
         {
             dl = CL_AllocDlight (i);
-            VectorCopy (ent->origin,  dl->origin);
+             dl->origin = ent->origin;
             dl->radius = 200;
             dl->die = cl.time + 0.001;
         }
@@ -550,7 +550,7 @@ void CL_RelinkEntities() {
         else if (ent->model->flags & EF_ROCKET) {
             R_RocketTrail(oldorg, ent->origin, 0);
             dl = CL_AllocDlight(i);
-            VectorCopy (ent->origin, dl->origin);
+            dl->origin = ent->origin;
             dl->radius = 200;
             dl->die = cl.time + 0.01;
         } else if (ent->model->flags & EF_GRENADE)

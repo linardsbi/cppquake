@@ -51,18 +51,18 @@ D_DrawParticle
 ==============
 */
 void D_DrawParticle(particle_t *pparticle) {
-    vec3_t local, transformed;
+    vec3 local, transformed;
     float zi;
     byte *pdest;
     short *pz;
     int i, izi, pix, count, u, v;
 
 // transform point
-    VectorSubtract (pparticle->org, r_origin, local);
+    local = pparticle->org - r_origin;
 
-    transformed[0] = DotProduct(local, r_pright);
-    transformed[1] = DotProduct(local, r_pup);
-    transformed[2] = DotProduct(local, r_ppn);
+    transformed[0] = glm::dot(local, r_pright);
+    transformed[1] = glm::dot(local, r_pup);
+    transformed[2] = glm::dot(local, r_ppn);
 
     if (transformed[2] < PARTICLE_Z_CLIP)
         return;

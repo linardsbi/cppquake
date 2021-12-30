@@ -40,11 +40,11 @@ typedef enum {
 // !!! if this is changed, it must be changed in d_ifacea.h too !!!
 typedef struct particle_s {
 // driver-usable fields
-    vec3_t org;
+    vec3 org;
     float color;
 // drivers never touch the following fields
     struct particle_s *next;
-    vec3_t vel;
+    vec3 vel;
     float ramp;
     float die;
     ptype_t type;
@@ -94,7 +94,7 @@ typedef struct {
     //  if the driver wants to duplicate element [0] at
     //  element [nump] to avoid dealing with wrapping
     mspriteframe_t *pspriteframe;
-    vec3_t vup, vright, vpn;    // in worldspace
+    vec3 vup, vright, vpn;    // in worldspace
     float nearzi;
 } spritedesc_t;
 
@@ -137,7 +137,7 @@ extern int d_con_indirect;    // if 0, Quake will draw console directly
 //  draw console via D_DrawRect. Must be
 //  defined by driver
 
-extern vec3_t r_pright, r_pup, r_ppn;
+extern vec3 r_pright, r_pup, r_ppn;
 
 
 void D_Aff8Patch(void *pcolormap);
