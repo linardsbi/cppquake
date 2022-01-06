@@ -50,9 +50,6 @@ qboolean r_leftclipped, r_rightclipped;
 static qboolean makeleftedge, makerightedge;
 qboolean r_nearzionly;
 
-int sintable[SIN_BUFFER_SIZE];
-int intsintable[SIN_BUFFER_SIZE];
-
 mvertex_t r_leftenter, r_leftexit;
 mvertex_t r_rightenter, r_rightexit;
 
@@ -80,11 +77,11 @@ void R_EmitEdge(mvertex_t *pv0, mvertex_t *pv1) {
     edge_t *edge = nullptr, *pcheck = nullptr;
     int u_check = 0;
     float u = NAN, u_step = NAN;
-    vec3_t local, transformed;
-    float *world = nullptr;
+    vec3 local, transformed;
     int v = 0, v2 = 0, ceilv0 = 0;
     float scale = NAN, lzi0 = NAN, u0 = NAN, v0 = NAN;
     int side = 0;
+    vec3 world;
 
     if (r_lastvertvalid) {
         u0 = r_u1;
@@ -92,10 +89,10 @@ void R_EmitEdge(mvertex_t *pv0, mvertex_t *pv1) {
         lzi0 = r_lzi1;
         ceilv0 = r_ceilv1;
     } else {
-        world = &pv0->position[0];
+        world = pv0->position;
 
         // transform and project
-        VectorSubtract (world, modelorg, local);
+        local = world - modelorg;
         TransformVector(local, transformed);
 
         if (transformed[2] < NEAR_CLIP)
@@ -121,10 +118,10 @@ void R_EmitEdge(mvertex_t *pv0, mvertex_t *pv1) {
         ceilv0 = (int) ceil(v0);
     }
 
-    world = &pv1->position[0];
+    world = pv1->position;
 
 // transform and project
-    VectorSubtract (world, modelorg, local);
+    local = world - modelorg;
     TransformVector(local, transformed);
 
     if (transformed[2] < NEAR_CLIP)
@@ -249,8 +246,8 @@ void R_ClipEdge(mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip) {
 
     if (clip) {
         do {
-            d0 = DotProduct (pv0->position, clip->normal) - clip->dist;
-            d1 = DotProduct (pv1->position, clip->normal) - clip->dist;
+            d0 = glm::dot (pv0->position, clip->normal) - clip->dist;
+            d1 = glm::dot (pv1->position, clip->normal) - clip->dist;
 
             if (d0 >= 0) {
                 // point 0 is unclipped
@@ -360,7 +357,7 @@ void R_RenderFace(msurface_t *fa, int clipflags) {
     unsigned mask = 0;
     mplane_t *pplane = nullptr;
     float distinv = NAN;
-    vec3_t p_normal;
+    vec3 p_normal;
     medge_t *pedges = nullptr, tedge;
     clipplane_t *pclip = nullptr;
 
@@ -512,7 +509,7 @@ void R_RenderFace(msurface_t *fa, int clipflags) {
 // FIXME: cache this?
     TransformVector(pplane->normal, p_normal);
 // FIXME: cache this?
-    distinv = 1.0 / (pplane->dist - DotProduct (modelorg, pplane->normal));
+    distinv = 1.0 / (pplane->dist - glm::dot (modelorg, pplane->normal));
 
     surface_p->d_zistepu = p_normal[0] * xscaleinv * distinv;
     surface_p->d_zistepv = -p_normal[1] * yscaleinv * distinv;
@@ -520,7 +517,7 @@ void R_RenderFace(msurface_t *fa, int clipflags) {
                             xcenter * surface_p->d_zistepu -
                             ycenter * surface_p->d_zistepv;
 
-//JDC	VectorCopy (r_worldmodelorg, surface_p->modelorg);
+//JDC	surface_p->modelorg = r_worldmodelorg;
     surface_p++;
 }
 
@@ -535,7 +532,7 @@ void R_RenderBmodelFace(bedge_t *pedges, msurface_t *psurf) {
     unsigned mask = 0;
     mplane_t *pplane = nullptr;
     float distinv = NAN;
-    vec3_t p_normal;
+    vec3 p_normal;
     medge_t tedge;
     clipplane_t *pclip = nullptr;
 
@@ -619,7 +616,7 @@ void R_RenderBmodelFace(bedge_t *pedges, msurface_t *psurf) {
 // FIXME: cache this?
     TransformVector(pplane->normal, p_normal);
 // FIXME: cache this?
-    distinv = 1.0 / (pplane->dist - DotProduct (modelorg, pplane->normal));
+    distinv = 1.0 / (pplane->dist - glm::dot (modelorg, pplane->normal));
 
     surface_p->d_zistepu = p_normal[0] * xscaleinv * distinv;
     surface_p->d_zistepv = -p_normal[1] * yscaleinv * distinv;
@@ -627,7 +624,7 @@ void R_RenderBmodelFace(bedge_t *pedges, msurface_t *psurf) {
                             xcenter * surface_p->d_zistepu -
                             ycenter * surface_p->d_zistepv;
 
-//JDC	VectorCopy (r_worldmodelorg, surface_p->modelorg);
+//JDC	surface_p->modelorg = r_worldmodelorg;
     surface_p++;
 }
 
@@ -641,7 +638,7 @@ void R_RenderPoly(msurface_t *fa, int clipflags) {
     int i = 0, lindex = 0, lnumverts = 0, s_axis = 0, t_axis = 0;
     float dist = NAN, lastdist = NAN, lzi = NAN, scale = NAN, u = NAN, v = NAN, frac = NAN;
     unsigned mask = 0;
-    vec3_t local, transformed;
+    vec3 local, transformed;
     clipplane_t *pclip = nullptr;
     medge_t *pedges = nullptr;
     mplane_t *pplane = nullptr;
@@ -681,7 +678,7 @@ void R_RenderPoly(msurface_t *fa, int clipflags) {
 // clip the polygon, done if not visible
     while (pclip) {
         lastvert = lnumverts - 1;
-        lastdist = DotProduct (verts[vertpage][lastvert].position,
+        lastdist = glm::dot (verts[vertpage][lastvert].position,
                                pclip->normal) - pclip->dist;
 
         visible = false;
@@ -689,7 +686,7 @@ void R_RenderPoly(msurface_t *fa, int clipflags) {
         newpage = vertpage ^ 1;
 
         for (i = 0; i < lnumverts; i++) {
-            dist = DotProduct (verts[vertpage][i].position, pclip->normal) -
+            dist = glm::dot (verts[vertpage][i].position, pclip->normal) -
                    pclip->dist;
 
             if ((lastdist > 0) != (dist > 0)) {
@@ -752,7 +749,7 @@ void R_RenderPoly(msurface_t *fa, int clipflags) {
 
     for (i = 0; i < lnumverts; i++) {
         // transform and project
-        VectorSubtract (verts[vertpage][i].position, modelorg, local);
+        local = verts[vertpage][i].position - modelorg;
         TransformVector(local, transformed);
 
         if (transformed[2] < NEAR_CLIP)
@@ -815,7 +812,7 @@ void R_ZDrawSubmodelPolys(model_t *pmodel) {
         // find which side of the node we are on
         pplane = psurf->plane;
 
-        dot = DotProduct (modelorg, pplane->normal) - pplane->dist;
+        dot = glm::dot (modelorg, pplane->normal) - pplane->dist;
 
         // draw the polygon
         if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||

@@ -25,96 +25,76 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 void Sys_Error(const char *error, ...);
 
-vec3_t vec3_origin = {0, 0, 0};
 int nanmask = 255 << 23;
 
 /*-----------------------------------------------------------------*/
 
-#define DEG2RAD(a) (( (a) * M_PI ) / 180.0F)
+constexpr auto degrees_to_radians(const float deg)
+{
+  return ( (deg) * M_PI ) / 180.0F;
+}
 
-void ProjectPointOnPlane(vec3_t dst, const vec3_t p, const vec3_t normal) {
-    float d = NAN;
-    vec3_t n;
-    float inv_denom = NAN;
+auto VectorNormalize(vec3 &v) -> float {
+    if (v == vec3{0.F}) {
+        return 0.F;
+    }
 
-    inv_denom = 1.0F / DotProduct(normal, normal);
+    const auto length = glm::length(v);
+    v = glm::normalize(v);
 
-    d = DotProduct(normal, p) * inv_denom;
+    return length;
+}
 
-    n[0] = normal[0] * inv_denom;
-    n[1] = normal[1] * inv_denom;
-    n[2] = normal[2] * inv_denom;
+void ProjectPointOnPlane(vec3 &dst, const vec3 p, const vec3 normal) {
+    const auto inv_denom = 1.0F / glm::dot(normal, normal);
+    const auto d = glm::dot(normal, p) * inv_denom;
+    const vec3 n = normal * inv_denom;
 
-    dst[0] = p[0] - d * n[0];
-    dst[1] = p[1] - d * n[1];
-    dst[2] = p[2] - d * n[2];
+    dst = p - d * n;
 }
 
 /*
 ** assumes "src" is normalized
 */
-void PerpendicularVector(vec3_t dst, const vec3_t src) {
-    int pos = 0;
-    int i = 0;
-    float minelem = 1.0F;
-    vec3_t tempvec;
-
-    /*
-    ** find the smallest magnitude axially aligned vector
-    */
-    for (pos = 0, i = 0; i < 3; i++) {
-        if (fabs(src[i]) < minelem) {
-            pos = i;
-            minelem = fabs(src[i]);
-        }
-    }
-    tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
-    tempvec[pos] = 1.0F;
-
-    /*
-    ** project the point onto the plane defined by src
-    */
-    ProjectPointOnPlane(dst, tempvec, src);
-
-    /*
-    ** normalize the result
-    */
-    VectorNormalize(dst);
+void PerpendicularVector(vec3 &dst, const vec3 src) {
+  dst = glm::perp(dst, src);
+//    int pos = 0;
+//    int i = 0;
+//    float minelem = 1.0F;
+//    vec3 tempvec;
+//
+//    /*
+//    ** find the smallest magnitude axially aligned vector
+//    */
+//    for (pos = 0, i = 0; i < 3; i++) {
+//        if (fabs(src[i]) < minelem) {
+//            pos = i;
+//            minelem = fabs(src[i]);
+//        }
+//    }
+//    tempvec[0] = tempvec[1] = tempvec[2] = 0.0F;
+//    tempvec[pos] = 1.0F;
+//
+//    /*
+//    ** project the point onto the plane defined by src
+//    */
+//    ProjectPointOnPlane(dst, tempvec, src);
+//
+//    /*
+//    ** normalize the result
+//    */
+//    VectorNormalize(dst);
 }
 
-#ifdef _WIN32
-#pragma optimize( "", off )
-#endif
 
-
-void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, float degrees) {
-    float m[3][3];
-    float im[3][3];
-    float zrot[3][3];
-    float tmpmat[3][3];
-    float rot[3][3];
-    int i = 0;
-    vec3_t vr, vup, vf;
-
-    vf[0] = dir[0];
-    vf[1] = dir[1];
-    vf[2] = dir[2];
-
+void RotatePointAroundVector(vec3 &dst, const vec3 dir, const vec3 point, float degrees) {
+    vec3 vr;
     PerpendicularVector(vr, dir);
-    CrossProduct(vr, vf, vup);
 
-    m[0][0] = vr[0];
-    m[1][0] = vr[1];
-    m[2][0] = vr[2];
+    const auto vup = glm::cross(vr, dir);
 
-    m[0][1] = vup[0];
-    m[1][1] = vup[1];
-    m[2][1] = vup[2];
-
-    m[0][2] = vf[0];
-    m[1][2] = vf[1];
-    m[2][2] = vf[2];
-
+    vec3 m[3] = {vr, vup, dir};
+    vec3 im[3];
     memcpy(im, m, sizeof(im));
 
     im[0][1] = m[1][0];
@@ -124,39 +104,26 @@ void RotatePointAroundVector(vec3_t dst, const vec3_t dir, const vec3_t point, f
     im[2][0] = m[0][2];
     im[2][1] = m[1][2];
 
-    memset(zrot, 0, sizeof(zrot));
+    vec3 zrot[3]{};
     zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0F;
 
-    zrot[0][0] = cos(DEG2RAD(degrees));
-    zrot[0][1] = sin(DEG2RAD(degrees));
-    zrot[1][0] = -sin(DEG2RAD(degrees));
-    zrot[1][1] = cos(DEG2RAD(degrees));
+    zrot[0][0] = cos(degrees_to_radians(degrees));
+    zrot[0][1] = sin(degrees_to_radians(degrees));
+    zrot[1][0] = -sin(degrees_to_radians(degrees));
+    zrot[1][1] = cos(degrees_to_radians(degrees));
 
+    vec3 tmpmat[3];
+    vec3 rot[3];
     R_ConcatRotations(m, zrot, tmpmat);
     R_ConcatRotations(tmpmat, im, rot);
 
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         dst[i] = rot[i][0] * point[0] + rot[i][1] * point[1] + rot[i][2] * point[2];
     }
 }
 
-#ifdef _WIN32
-#pragma optimize( "", on )
-#endif
-
 /*-----------------------------------------------------------------*/
 
-
-auto anglemod(float a) -> float {
-#if 0
-    if (a >= 0)
-        a -= 360*(int)(a/360);
-    else
-        a += 360*( 1 + (int)(-a/360) );
-#endif
-    a = (360.0 / 65536) * ((int) (a * (65536 / 360.0)) & 65535);
-    return a;
-}
 
 /*
 ==================
@@ -179,9 +146,8 @@ BoxOnPlaneSide
 Returns 1, 2, or 1 + 2
 ==================
 */
-auto BoxOnPlaneSide(vec3_t emins, vec3_t emaxs, mplane_t *p) -> int {
+auto BoxOnPlaneSide(vec3 emins, vec3 emaxs, mplane_t *p) -> int {
     float dist1 = NAN, dist2 = NAN;
-    int sides = 0;
 
 #if 0    // this is done by the BOX_ON_PLANE_SIDE macro before calling this
     // function
@@ -231,14 +197,13 @@ if (p->type < 3)
             dist2 = p->normal[0] * emaxs[0] + p->normal[1] * emaxs[1] + p->normal[2] * emaxs[2];
             break;
         default:
-            dist1 = dist2 = 0;        // shut up compiler
             BOPS_Error();
             break;
     }
 
 #if 0
     int		i;
-    vec3_t	corners[2];
+    vec3	corners[2];
 
     for (i=0 ; i<3 ; i++)
     {
@@ -253,8 +218,8 @@ if (p->type < 3)
             corners[0][i] = emaxs[i];
         }
     }
-    dist = DotProduct (plane->normal, corners[0]) - plane->dist;
-    dist2 = DotProduct (plane->normal, corners[1]) - plane->dist;
+    dist = glm::dot (plane->normal, corners[0]) - plane->dist;
+    dist2 = glm::dot (plane->normal, corners[1]) - plane->dist;
     sides = 0;
     if (dist1 >= 0)
         sides = 1;
@@ -263,7 +228,7 @@ if (p->type < 3)
 
 #endif
 
-    sides = 0;
+    int sides = 0;
     if (dist1 >= p->dist)
         sides = 1;
     if (dist2 < p->dist)
@@ -280,11 +245,10 @@ if (p->type < 3)
 #endif
 
 
-void AngleVectors(vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) {
-    float angle = NAN;
+void AngleVectors(vec3 angles, vec3 &forward, vec3 &right, vec3 &up) {
     float sr = NAN, sp = NAN, sy = NAN, cr = NAN, cp = NAN, cy = NAN;
 
-    angle = angles[YAW] * (M_PI * 2 / 360);
+    auto angle = angles[YAW] * (M_PI * 2 / 360);
     sy = sin(angle);
     cy = cos(angle);
     angle = angles[PITCH] * (M_PI * 2 / 360);
@@ -305,109 +269,12 @@ void AngleVectors(vec3_t angles, vec3_t forward, vec3_t right, vec3_t up) {
     up[2] = cr * cp;
 }
 
-auto VectorCompare(vec3_t v1, vec3_t v2) -> int {
-    int i = 0;
-
-    for (i = 0; i < 3; i++)
-        if (v1[i] != v2[i])
-            return 0;
-
-    return 1;
-}
-
-void VectorMA(vec3_t veca, float scale, vec3_t vecb, vec3_t vecc) {
-    vecc[0] = veca[0] + scale * vecb[0];
-    vecc[1] = veca[1] + scale * vecb[1];
-    vecc[2] = veca[2] + scale * vecb[2];
-}
-
-
-auto _DotProduct(vec3_t v1, vec3_t v2) -> vec_t {
-    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-}
-
-void _VectorSubtract(vec3_t veca, vec3_t vecb, vec3_t out) {
-    out[0] = veca[0] - vecb[0];
-    out[1] = veca[1] - vecb[1];
-    out[2] = veca[2] - vecb[2];
-}
-
-void _VectorAdd(vec3_t veca, vec3_t vecb, vec3_t out) {
-    out[0] = veca[0] + vecb[0];
-    out[1] = veca[1] + vecb[1];
-    out[2] = veca[2] + vecb[2];
-}
-
-void _VectorCopy(vec3_t in, vec3_t out) {
-    out[0] = in[0];
-    out[1] = in[1];
-    out[2] = in[2];
-}
-
-void CrossProduct(vec3_t v1, vec3_t v2, vec3_t cross) {
-    cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
-    cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
-}
-
-auto sqrt(double x) -> double;
-
-auto Length(vec3_t v) -> vec_t {
-    int i = 0;
-    float length = NAN;
-
-    length = 0;
-    for (i = 0; i < 3; i++)
-        length += v[i] * v[i];
-    length = sqrt(length);        // FIXME
-
-    return length;
-}
-
-auto VectorNormalize(vec3_t v) -> float {
-    float length = NAN, ilength = NAN;
-
-    length = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-    length = sqrt(length);        // FIXME
-
-    if (length) {
-        ilength = 1 / length;
-        v[0] *= ilength;
-        v[1] *= ilength;
-        v[2] *= ilength;
-    }
-
-    return length;
-
-}
-
-void VectorInverse(vec3_t v) {
-    v[0] = -v[0];
-    v[1] = -v[1];
-    v[2] = -v[2];
-}
-
-void VectorScale(vec3_t in, vec_t scale, vec3_t out) {
-    out[0] = in[0] * scale;
-    out[1] = in[1] * scale;
-    out[2] = in[2] * scale;
-}
-
-
-auto Q_log2(int val) -> int {
-    int answer = 0;
-    while (val >>= 1)
-        answer++;
-    return answer;
-}
-
-
 /*
 ================
 R_ConcatRotations
 ================
 */
-void R_ConcatRotations(float in1[3][3], float in2[3][3], float out[3][3]) {
+void R_ConcatRotations(const vec3 in1[3], const vec3 in2[3], vec3 out[3]) {
     out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
                 in1[0][2] * in2[2][0];
     out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] +
@@ -434,7 +301,7 @@ void R_ConcatRotations(float in1[3][3], float in2[3][3], float out[3][3]) {
 R_ConcatTransforms
 ================
 */
-void R_ConcatTransforms(float in1[3][4], float in2[3][4], float out[3][4]) {
+void R_ConcatTransforms(const vec4 in1[3], const vec4 in2[3], vec4 out[3]) {
     out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
                 in1[0][2] * in2[2][0];
     out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] +
@@ -506,24 +373,6 @@ void FloorDivMod(double numer, double denom, int *quotient,
 
     *quotient = q;
     *rem = r;
-}
-
-
-/*
-===================
-GreatestCommonDivisor
-====================
-*/
-auto GreatestCommonDivisor(int i1, int i2) -> int {
-    if (i1 > i2) {
-        if (i2 == 0)
-            return (i1);
-        return GreatestCommonDivisor(i2, i1 % i2);
-    } else {
-        if (i1 == 0)
-            return (i2);
-        return GreatestCommonDivisor(i1, i2 % i1);
-    }
 }
 
 

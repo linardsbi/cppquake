@@ -64,7 +64,7 @@ CL_ParseBeam
 */
 void CL_ParseBeam(model_t *m) {
     int ent = 0;
-    vec3_t start, end;
+    vec3 start, end;
     beam_t *b = nullptr;
     int i = 0;
 
@@ -84,8 +84,8 @@ void CL_ParseBeam(model_t *m) {
             b->entity = ent;
             b->model = m;
             b->endtime = cl.time + 0.2;
-            VectorCopy (start, b->start);
-            VectorCopy (end, b->end);
+            b->start = start;
+            b->end = end;
             return;
         }
 
@@ -95,8 +95,8 @@ void CL_ParseBeam(model_t *m) {
             b->entity = ent;
             b->model = m;
             b->endtime = cl.time + 0.2;
-            VectorCopy (start, b->start);
-            VectorCopy (end, b->end);
+            b->start = start;
+            b->end = end;
             return;
         }
     }
@@ -110,9 +110,9 @@ CL_ParseTEnt
 */
 void CL_ParseTEnt() {
     int type = 0;
-    vec3_t pos;
+    vec3 pos;
 #ifdef QUAKE2
-    vec3_t	endpos;
+    vec3	endpos;
 #endif
     dlight_t *dl = nullptr;
     int rnd = 0;
@@ -189,7 +189,7 @@ void CL_ParseTEnt() {
             pos[2] = MSG_ReadCoord();
             R_ParticleExplosion(pos);
             dl = CL_AllocDlight(0);
-            VectorCopy (pos, dl->origin);
+            dl->origin = pos;
             dl->radius = 350;
             dl->die = cl.time + 0.5;
             dl->decay = 300;
@@ -245,7 +245,7 @@ void CL_ParseTEnt() {
             colorLength = MSG_ReadByte();
             R_ParticleExplosion2(pos, colorStart, colorLength);
             dl = CL_AllocDlight(0);
-            VectorCopy (pos, dl->origin);
+            dl->origin = pos;
             dl->radius = 350;
             dl->die = cl.time + 0.5;
             dl->decay = 300;
@@ -272,7 +272,7 @@ void CL_ParseTEnt() {
                 R_RocketTrail (pos, endpos, 0+128);
                 R_ParticleExplosion (endpos);
                 dl = CL_AllocDlight (-1);
-                VectorCopy (endpos, dl->origin);
+                dl->origin = endpos;
                 dl->radius = 350;
                 dl->die = cl.time + 0.5;
                 dl->decay = 300;
@@ -316,7 +316,7 @@ CL_UpdateTEnts
 void CL_UpdateTEnts() {
     int i = 0;
     beam_t *b = nullptr;
-    vec3_t dist, org;
+    vec3 dist, org;
     float d = NAN;
     entity_t *ent = nullptr;
     float yaw = NAN, pitch = NAN;
@@ -331,11 +331,11 @@ void CL_UpdateTEnts() {
 
         // if coming from the player, update the start position
         if (b->entity == cl.viewentity) {
-            VectorCopy (cl_entities[cl.viewentity].origin, b->start);
+            b->start = cl_entities[cl.viewentity].origin;
         }
 
         // calculate pitch and yaw
-        VectorSubtract (b->end, b->start, dist);
+        dist = b->end - b->start;
 
         if (dist[1] == 0 && dist[0] == 0) {
             yaw = 0;
@@ -355,13 +355,13 @@ void CL_UpdateTEnts() {
         }
 
         // add new entities for the lightning
-        VectorCopy (b->start, org);
+        org = b->start;
         d = VectorNormalize(dist);
         while (d > 0) {
             ent = CL_NewTempEntity();
             if (!ent)
                 return;
-            VectorCopy (org, ent->origin);
+            ent->origin = org;
             ent->model = b->model;
             ent->angles[0] = pitch;
             ent->angles[1] = yaw;

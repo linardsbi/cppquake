@@ -27,8 +27,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //define	PASSAGES
 
 void *colormap;
-vec3_t viewlightvec;
-alight_t r_viewlighting = {128, 192, viewlightvec};
+vec3 viewlightvec{};
+alight_t r_viewlighting = {128, 192, &viewlightvec};
 float r_time1;
 int r_numallocatededges;
 qboolean r_drawpolys;
@@ -60,10 +60,10 @@ qboolean r_fov_greater_than_90;
 //
 // view origin
 //
-vec3_t vup, base_vup;
-vec3_t vpn, base_vpn;
-vec3_t vright, base_vright;
-vec3_t r_origin;
+vec3 vup{}, base_vup{};
+vec3 vpn{}, base_vpn{};
+vec3 vright{}, base_vright{};
+vec3 r_origin{};
 
 //
 // screen size info
@@ -187,8 +187,6 @@ void R_Init() {
 // get stack position so we can guess if we are going to overflow
     r_stack_start = (byte *) &dummy;
 
-    R_InitTurb();
-
     Cmd_AddCommand("timerefresh", R_TimeRefresh_f);
     Cmd_AddCommand("pointfile", R_ReadPointFile_f);
 
@@ -256,7 +254,7 @@ void R_NewMap() {
 
     r_cnumsurfs = r_maxsurfs.value;
 
-    if (r_cnumsurfs <= MINSURFACES)
+    if (r_cnumsurfs < MINSURFACES)
         r_cnumsurfs = MINSURFACES;
 
     if (r_cnumsurfs > NUMSTACKSURFACES) {
@@ -513,8 +511,7 @@ void R_DrawEntitiesOnList() {
     int lnum = 0;
     alight_t lighting;
 // FIXME: remove and do real lighting
-    float lightvec[3] = {-1, 0, 0};
-    vec3_t dist;
+    static vec3 lightvec = {-1, 0, 0};
     float add = NAN;
 
     if (!r_drawentities.value)
@@ -527,49 +524,47 @@ void R_DrawEntitiesOnList() {
             continue;    // don't draw the player
 
         switch (currententity->model->type) {
-            case mod_sprite: VectorCopy (currententity->origin, r_entorigin);
-                VectorSubtract (r_origin, r_entorigin, modelorg);
-                R_DrawSprite();
-                break;
+        case mod_sprite: r_entorigin = currententity->origin;
+            modelorg = r_origin - r_entorigin;
+            R_DrawSprite();
+            break;
 
-            case mod_alias: VectorCopy (currententity->origin, r_entorigin);
-                VectorSubtract (r_origin, r_entorigin, modelorg);
+        case mod_alias: r_entorigin = currententity->origin;
+            modelorg = r_origin - r_entorigin;
 
-                // see if the bounding box lets us trivially reject, also sets
-                // trivial accept status
-                if (R_AliasCheckBBox()) {
-                    j = R_LightPoint(currententity->origin);
+            // see if the bounding box lets us trivially reject, also sets
+            // trivial accept status
+            if (R_AliasCheckBBox()) {
+                j = R_LightPoint(currententity->origin);
 
-                    lighting.ambientlight = j;
-                    lighting.shadelight = j;
+                lighting.ambientlight = j;
+                lighting.shadelight = j;
 
-                    lighting.plightvec = lightvec;
+                lighting.plightvec = &lightvec;
 
-                    for (lnum = 0; lnum < MAX_DLIGHTS; lnum++) {
-                        if (cl_dlights[lnum].die >= cl.time) {
-                            VectorSubtract (currententity->origin,
-                                            cl_dlights[lnum].origin,
-                                            dist);
-                            add = cl_dlights[lnum].radius - Length(dist);
+                for (lnum = 0; lnum < MAX_DLIGHTS; lnum++) {
+                    if (cl_dlights[lnum].die >= cl.time) {
+                        const auto dist = currententity->origin - cl_dlights[lnum].origin;
+                        add = cl_dlights[lnum].radius - glm::length(dist);
 
-                            if (add > 0)
-                                lighting.ambientlight += add;
-                        }
+                        if (add > 0)
+                            lighting.ambientlight += add;
                     }
-
-                    // clamp lighting so it doesn't overbright as much
-                    if (lighting.ambientlight > 128)
-                        lighting.ambientlight = 128;
-                    if (lighting.ambientlight + lighting.shadelight > 192)
-                        lighting.shadelight = 192 - lighting.ambientlight;
-
-                    R_AliasDrawModel(&lighting);
                 }
 
-                break;
+                // clamp lighting so it doesn't overbright as much
+                if (lighting.ambientlight > 128)
+                    lighting.ambientlight = 128;
+                if (lighting.ambientlight + lighting.shadelight > 192)
+                    lighting.shadelight = 192 - lighting.ambientlight;
 
-            default:
-                break;
+                R_AliasDrawModel(&lighting);
+            }
+
+            break;
+
+        default:
+            break;
         }
     }
 }
@@ -581,10 +576,10 @@ R_DrawViewModel
 */
 void R_DrawViewModel() {
 // FIXME: remove and do real lighting
-    float lightvec[3] = {-1, 0, 0};
+    vec3 lightvec = {-1, 0, 0};
     int j = 0;
     int lnum = 0;
-    vec3_t dist;
+    vec3 dist;
     float add = NAN;
     dlight_t *dl = nullptr;
 
@@ -601,11 +596,10 @@ void R_DrawViewModel() {
     if (!currententity->model)
         return;
 
-    VectorCopy (currententity->origin, r_entorigin);
-    VectorSubtract (r_origin, r_entorigin, modelorg);
+    r_entorigin = currententity->origin;
+    modelorg = r_origin - r_entorigin;
 
-    VectorCopy (vup, viewlightvec);
-    VectorInverse(viewlightvec);
+    viewlightvec = -vup;
 
     j = R_LightPoint(currententity->origin);
 
@@ -624,8 +618,8 @@ void R_DrawViewModel() {
         if (dl->die < cl.time)
             continue;
 
-        VectorSubtract (currententity->origin, dl->origin, dist);
-        add = dl->radius - Length(dist);
+        dist = currententity->origin - dl->origin;
+        add = dl->radius - glm::length(dist);
         if (add > 0)
             r_viewlighting.ambientlight += add;
     }
@@ -636,7 +630,7 @@ void R_DrawViewModel() {
     if (r_viewlighting.ambientlight + r_viewlighting.shadelight > 192)
         r_viewlighting.shadelight = 192 - r_viewlighting.ambientlight;
 
-    r_viewlighting.plightvec = lightvec;
+    r_viewlighting.plightvec = &lightvec;
 
 #ifdef QUAKE2
     cl.light_level = r_viewlighting.ambientlight;
@@ -653,7 +647,7 @@ R_BmodelCheckBBox
 */
 auto R_BmodelCheckBBox(model_t *clmodel, float *minmaxs) -> int {
     int i = 0, *pindex = nullptr, clipflags = 0;
-    vec3_t acceptpt, rejectpt;
+    vec3 acceptpt, rejectpt;
     double d = NAN;
 
     clipflags = 0;
@@ -661,7 +655,7 @@ auto R_BmodelCheckBBox(model_t *clmodel, float *minmaxs) -> int {
     if (currententity->angles[0] || currententity->angles[1]
         || currententity->angles[2]) {
         for (i = 0; i < 4; i++) {
-            d = DotProduct (currententity->origin, view_clipplanes[i].normal);
+            d = glm::dot (currententity->origin, view_clipplanes[i].normal);
             d -= view_clipplanes[i].dist;
 
             if (d <= -clmodel->radius)
@@ -682,7 +676,7 @@ auto R_BmodelCheckBBox(model_t *clmodel, float *minmaxs) -> int {
             rejectpt[1] = minmaxs[pindex[1]];
             rejectpt[2] = minmaxs[pindex[2]];
 
-            d = DotProduct (rejectpt, view_clipplanes[i].normal);
+            d = glm::dot (rejectpt, view_clipplanes[i].normal);
             d -= view_clipplanes[i].dist;
 
             if (d <= 0)
@@ -692,7 +686,7 @@ auto R_BmodelCheckBBox(model_t *clmodel, float *minmaxs) -> int {
             acceptpt[1] = minmaxs[pindex[3 + 1]];
             acceptpt[2] = minmaxs[pindex[3 + 2]];
 
-            d = DotProduct (acceptpt, view_clipplanes[i].normal);
+            d = glm::dot (acceptpt, view_clipplanes[i].normal);
             d -= view_clipplanes[i].dist;
 
             if (d <= 0)
@@ -711,14 +705,14 @@ R_DrawBEntitiesOnList
 */
 void R_DrawBEntitiesOnList() {
     int i = 0, j = 0, k = 0, clipflags = 0;
-    vec3_t oldorigin;
+    vec3 oldorigin;
     model_t *clmodel = nullptr;
     float minmaxs[6];
 
     if (!r_drawentities.value)
         return;
 
-    VectorCopy (modelorg, oldorigin);
+    oldorigin = modelorg;
     insubmodel = true;
     r_dlightframecount = r_framecount;
 
@@ -742,10 +736,10 @@ void R_DrawBEntitiesOnList() {
                 clipflags = R_BmodelCheckBBox(clmodel, minmaxs);
 
                 if (clipflags != BMODEL_FULLY_CLIPPED) {
-                    VectorCopy (currententity->origin, r_entorigin);
-                    VectorSubtract (r_origin, r_entorigin, modelorg);
+                    r_entorigin = currententity->origin;
+                    modelorg = r_origin - r_entorigin;
                     // FIXME: is this needed?
-                    VectorCopy (modelorg, r_worldmodelorg);
+                    r_worldmodelorg = modelorg;
 
                     r_pcurrentvertbase = clmodel->vertexes;
 
@@ -801,11 +795,11 @@ void R_DrawBEntitiesOnList() {
 
                     // put back world rotation and frustum clipping
                     // FIXME: R_RotateBmodel should just work off base_vxx
-                    VectorCopy (base_vpn, vpn);
-                    VectorCopy (base_vup, vup);
-                    VectorCopy (base_vright, vright);
-                    VectorCopy (base_modelorg, modelorg);
-                    VectorCopy (oldorigin, modelorg);
+                    vpn = base_vpn;
+                    vup = base_vup;
+                    vright = base_vright;
+                    modelorg = base_modelorg;
+                    modelorg = oldorigin;
                     R_TransformFrustum();
                 }
 
@@ -1002,18 +996,3 @@ void R_RenderView() {
 
     R_RenderView_();
 }
-
-/*
-================
-R_InitTurb
-================
-*/
-void R_InitTurb() {
-    int i = 0;
-
-    for (i = 0; i < (SIN_BUFFER_SIZE); i++) {
-        sintable[i] = AMP + sin(i * 3.14159 * 2 / CYCLE) * AMP;
-        intsintable[i] = AMP2 + sin(i * 3.14159 * 2 / CYCLE) * AMP2;    // AMP2, not 20
-    }
-}
-

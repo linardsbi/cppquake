@@ -235,7 +235,7 @@ auto D_CacheSurface(msurface_t *surface, const int miplevel) -> surfcache_t * {
 //
 // see if the cache holds apropriate data
 //
-    auto cache = surface->cachespots[miplevel];
+    auto *cache = surface->cachespots[miplevel];
 
     if (cache && !cache->dlight && surface->dlightframe != r_framecount
         && cache->texture == r_drawsurf.texture

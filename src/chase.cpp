@@ -27,11 +27,11 @@ cvar_t chase_up = {"chase_up", "16"};
 cvar_t chase_right = {"chase_right", "0"};
 cvar_t chase_active = {"chase_active", "0"};
 
-vec3_t chase_pos;
-vec3_t chase_angles;
+vec3 chase_pos;
+vec3 chase_angles;
 
-vec3_t chase_dest;
-vec3_t chase_dest_angles;
+vec3 chase_dest;
+vec3 chase_dest_angles;
 
 
 void Chase_Init() {
@@ -46,20 +46,20 @@ void Chase_Reset() {
 //	start position 12 units behind head
 }
 
-void TraceLine(vec3_t start, vec3_t end, vec3_t impact) {
+void TraceLine(vec3 start, vec3 end, vec3 &impact) {
     trace_t trace;
 
     memset(&trace, 0, sizeof(trace));
     SV_RecursiveHullCheck(cl.worldmodel->hulls, 0, 0, 1, start, end, &trace);
 
-    VectorCopy (trace.endpos, impact);
+    impact = trace.endpos;
 }
 
 void Chase_Update() {
     int i = 0;
     float dist = NAN;
-    vec3_t forward, up, right;
-    vec3_t dest, stop;
+    vec3 forward, up, right;
+    vec3 dest, stop;
 
 
     // if can't see player, reset
@@ -77,14 +77,14 @@ void Chase_Update() {
     TraceLine(r_refdef.vieworg, dest, stop);
 
     // calculate pitch to look at the same spot from camera
-    VectorSubtract (stop, r_refdef.vieworg, stop);
-    dist = DotProduct (stop, forward);
+    stop -= r_refdef.vieworg;
+    dist = glm::dot(stop, forward);
     if (dist < 1)
         dist = 1;
     r_refdef.viewangles[PITCH] = -atan(stop[2] / dist) / M_PI * 180;
 
     // move towards destination
-    VectorCopy (chase_dest, r_refdef.vieworg);
+    r_refdef.vieworg = chase_dest;
 }
 
 

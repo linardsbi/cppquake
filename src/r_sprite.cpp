@@ -36,14 +36,14 @@ R_RotateSprite
 ================
 */
 void R_RotateSprite(float beamlength) {
-    vec3_t vec;
+    vec3 vec;
 
     if (beamlength == 0.0)
         return;
 
-    VectorScale(r_spritedesc.vpn, -beamlength, vec);
-    VectorAdd (r_entorigin, vec, r_entorigin);
-    VectorSubtract (modelorg, vec, modelorg);
+    vec = r_spritedesc.vpn * -beamlength;
+    r_entorigin = r_entorigin + vec;
+    modelorg = modelorg - vec;
 }
 
 
@@ -58,11 +58,11 @@ Throws out the back side
 auto R_ClipSpriteFace(int nump, clipplane_t *pclipplane) -> int {
     int i = 0, outcount = 0;
     float dists[MAXWORKINGVERTS + 1];
-    float frac = NAN, clipdist = NAN, *pclipnormal = nullptr;
-    float *in = nullptr, *instep = nullptr, *outstep = nullptr, *vert2 = nullptr;
+    float frac = NAN, clipdist = NAN;
+    float *in = nullptr, *outstep = nullptr, *vert2 = nullptr;
 
     clipdist = pclipplane->dist;
-    pclipnormal = pclipplane->normal;
+    const auto pclipnormal = pclipplane->normal;
 
 // calc dists
     if (clip_current) {
@@ -75,14 +75,14 @@ auto R_ClipSpriteFace(int nump, clipplane_t *pclipplane) -> int {
         clip_current = 1;
     }
 
-    instep = in;
+    auto instep = in;
     for (i = 0; i < nump; i++, instep += sizeof(vec5_t) / sizeof(float)) {
-        dists[i] = DotProduct (instep, pclipnormal) - clipdist;
+        dists[i] = glm::dot ({instep[0], instep[1], instep[2]}, pclipnormal) - clipdist;
     }
 
 // handle wraparound case
     dists[nump] = dists[0];
-    Q_memcpy(instep, in, sizeof(vec5_t));
+    memcpy(instep, in, sizeof(vec5_t));
 
 
 // clip the winding
@@ -91,7 +91,7 @@ auto R_ClipSpriteFace(int nump, clipplane_t *pclipplane) -> int {
 
     for (i = 0; i < nump; i++, instep += sizeof(vec5_t) / sizeof(float)) {
         if (dists[i] >= 0) {
-            Q_memcpy(outstep, instep, sizeof(vec5_t));
+            memcpy(outstep, instep, sizeof(vec5_t));
             outstep += sizeof(vec5_t) / sizeof(float);
             outcount++;
         }
@@ -128,22 +128,22 @@ R_SetupAndDrawSprite
 */
 void R_SetupAndDrawSprite() {
     int i = 0, nump = 0;
-    float dot = NAN, scale = NAN, *pv = nullptr;
+    float dot = NAN, scale = NAN;
     vec5_t *pverts = nullptr;
-    vec3_t left, up, right, down, transformed, local;
+    vec3 left, up, right, down, transformed, local;
     emitpoint_t outverts[MAXWORKINGVERTS + 1], *pout = nullptr;
 
-    dot = DotProduct (r_spritedesc.vpn, modelorg);
+    dot = glm::dot (r_spritedesc.vpn, modelorg);
 
 // backface cull
     if (dot >= 0)
         return;
 
 // build the sprite poster in worldspace
-    VectorScale(r_spritedesc.vright, r_spritedesc.pspriteframe->right, right);
-    VectorScale(r_spritedesc.vup, r_spritedesc.pspriteframe->up, up);
-    VectorScale(r_spritedesc.vright, r_spritedesc.pspriteframe->left, left);
-    VectorScale(r_spritedesc.vup, r_spritedesc.pspriteframe->down, down);
+    right = r_spritedesc.vright * r_spritedesc.pspriteframe->right;
+    up = r_spritedesc.vup * r_spritedesc.pspriteframe->up;
+    left = r_spritedesc.vright * r_spritedesc.pspriteframe->left;
+    down = r_spritedesc.vup * r_spritedesc.pspriteframe->down;
 
     pverts = clip_verts[0];
 
@@ -184,11 +184,11 @@ void R_SetupAndDrawSprite() {
     }
 
 // transform vertices into viewspace and project
-    pv = &clip_verts[clip_current][0][0];
+    auto *pv = &clip_verts[clip_current][0][0];
     r_spritedesc.nearzi = -999999;
 
     for (i = 0; i < nump; i++) {
-        VectorSubtract (pv, r_origin, local);
+        local = vec3{pv[0], pv[1], pv[2]} - r_origin;
         TransformVector(local, transformed);
 
         if (transformed[2] < NEAR_CLIP)
@@ -270,7 +270,7 @@ R_DrawSprite
 void R_DrawSprite() {
     int i = 0;
 
-    vec3_t tvec;
+    vec3 tvec;
     float dot = NAN, angle = NAN, sr = NAN, cr = NAN;
 
     auto *psprite = static_cast<msprite_t *>(currententity->model->cache.data);
@@ -292,7 +292,7 @@ void R_DrawSprite() {
         tvec[1] = -modelorg[1];
         tvec[2] = -modelorg[2];
         VectorNormalize(tvec);
-        dot = tvec[2];    // same as DotProduct (tvec, r_spritedesc.vup) because
+        dot = tvec[2];    // same as glm::dot (tvec, r_spritedesc.vup) because
         //  r_spritedesc.vup is 0, 0, 1
         if ((dot > 0.999848) || (dot < -0.999848))    // cos(1 degree) = 0.999848
             return;
@@ -326,7 +326,7 @@ void R_DrawSprite() {
         // down, because the cross product will be between two nearly parallel
         // vectors and starts to approach an undefined state, so we don't draw if
         // the two vectors are less than 1 degree apart
-        dot = vpn[2];    // same as DotProduct (vpn, r_spritedesc.vup) because
+        dot = vpn[2];    // same as glm::dot (vpn, r_spritedesc.vup) because
         //  r_spritedesc.vup is 0, 0, 1
         if ((dot > 0.999848) || (dot < -0.999848))    // cos(1 degree) = 0.999848
             return;

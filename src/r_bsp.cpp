@@ -28,15 +28,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 qboolean insubmodel;
 entity_t *currententity;
-vec3_t modelorg, base_modelorg;
+vec3 modelorg, base_modelorg;
 // modelorg is the viewpoint reletive to
 // the currently rendering entity
-vec3_t r_entorigin;    // the currently rendering entity in world
+vec3 r_entorigin;    // the currently rendering entity in world
 // coordinates
 
-float entity_rotation[3][3];
+vec3 entity_rotation[3];
 
-vec3_t r_worldmodelorg;
+vec3 r_worldmodelorg;
 
 int r_currentbkey;
 
@@ -63,13 +63,13 @@ static qboolean makeclippededge;
 R_EntityRotate
 ================
 */
-void R_EntityRotate(vec3_t vec) {
-    vec3_t tvec;
+void R_EntityRotate(vec3 &vec) {
+    vec3 tvec;
 
-    VectorCopy (vec, tvec);
-    vec[0] = DotProduct (entity_rotation[0], tvec);
-    vec[1] = DotProduct (entity_rotation[1], tvec);
-    vec[2] = DotProduct (entity_rotation[2], tvec);
+    tvec = vec;
+    vec[0] = glm::dot (entity_rotation[0], tvec);
+    vec[1] = glm::dot (entity_rotation[1], tvec);
+    vec[2] = glm::dot (entity_rotation[2], tvec);
 }
 
 
@@ -79,19 +79,21 @@ R_RotateBmodel
 ================
 */
 void R_RotateBmodel() {
-    float angle = NAN, s = NAN, c = NAN, temp1[3][3], temp2[3][3], temp3[3][3];
-
 // TODO: should use a look-up table
 // TODO: should really be stored with the entity instead of being reconstructed
 // TODO: could cache lazily, stored in the entity
 // TODO: share work with R_SetUpAliasTransform
 
 // yaw
-    angle = currententity->angles[YAW];
+    auto angle = currententity->angles[YAW];
     angle = angle * M_PI * 2 / 360;
-    s = sin(angle);
-    c = cos(angle);
+    auto s = sin(angle);
+    auto c = cos(angle);
 
+    vec3 temp[3];
+    vec3 temp1[3];
+    vec3 temp2[3];
+    vec3 temp3[3];
     temp1[0][0] = c;
     temp1[0][1] = s;
     temp1[0][2] = 0;
@@ -101,7 +103,6 @@ void R_RotateBmodel() {
     temp1[2][0] = 0;
     temp1[2][1] = 0;
     temp1[2][2] = 1;
-
 
 // pitch
     angle = currententity->angles[PITCH];
@@ -172,10 +173,10 @@ void R_RecursiveClipBPoly(bedge_t *pedges, mnode_t *pnode, msurface_t *psurf) {
 // FIXME: cache these?
     splitplane = pnode->plane;
     tplane.dist = splitplane->dist -
-                  DotProduct(r_entorigin, splitplane->normal);
-    tplane.normal[0] = DotProduct (entity_rotation[0], splitplane->normal);
-    tplane.normal[1] = DotProduct (entity_rotation[1], splitplane->normal);
-    tplane.normal[2] = DotProduct (entity_rotation[2], splitplane->normal);
+                  glm::dot(r_entorigin, splitplane->normal);
+    tplane.normal[0] = glm::dot (entity_rotation[0], splitplane->normal);
+    tplane.normal[1] = glm::dot (entity_rotation[1], splitplane->normal);
+    tplane.normal[2] = glm::dot (entity_rotation[2], splitplane->normal);
 
 // clip edges to BSP plane
     for (; pedges; pedges = pnextedge) {
@@ -184,7 +185,7 @@ void R_RecursiveClipBPoly(bedge_t *pedges, mnode_t *pnode, msurface_t *psurf) {
         // set the status for the last point as the previous point
         // FIXME: cache this stuff somehow?
         plastvert = pedges->v[0];
-        lastdist = DotProduct (plastvert->position, tplane.normal) -
+        lastdist = glm::dot (plastvert->position, tplane.normal) -
                    tplane.dist;
 
         if (lastdist > 0)
@@ -194,7 +195,7 @@ void R_RecursiveClipBPoly(bedge_t *pedges, mnode_t *pnode, msurface_t *psurf) {
 
         pvert = pedges->v[1];
 
-        dist = DotProduct (pvert->position, tplane.normal) - tplane.dist;
+        dist = glm::dot (pvert->position, tplane.normal) - tplane.dist;
 
         if (dist > 0)
             side = 0;
@@ -328,7 +329,7 @@ void R_DrawSolidClippedSubmodelPolygons(model_t *pmodel) {
         // find which side of the node we are on
         pplane = psurf->plane;
 
-        dot = DotProduct (modelorg, pplane->normal) - pplane->dist;
+        dot = glm::dot (modelorg, pplane->normal) - pplane->dist;
 
         // draw the polygon
         if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
@@ -396,7 +397,7 @@ void R_DrawSubmodelPolygons(model_t *pmodel, int clipflags) {
         // find which side of the node we are on
         pplane = psurf->plane;
 
-        dot = DotProduct (modelorg, pplane->normal) - pplane->dist;
+        dot = glm::dot (modelorg, pplane->normal) - pplane->dist;
 
         // draw the polygon
         if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
@@ -417,7 +418,7 @@ R_RecursiveWorldNode
 */
 void R_RecursiveWorldNode(mnode_t *node, int clipflags) {
     int i = 0, c = 0, side = 0, *pindex = nullptr;
-    vec3_t acceptpt, rejectpt;
+    vec3 acceptpt, rejectpt;
     mplane_t *plane = nullptr;
     msurface_t *surf = nullptr, **mark = nullptr;
     mleaf_t *pleaf = nullptr;
@@ -447,7 +448,7 @@ void R_RecursiveWorldNode(mnode_t *node, int clipflags) {
             rejectpt[1] = (float) node->minmaxs[pindex[1]];
             rejectpt[2] = (float) node->minmaxs[pindex[2]];
 
-            d = DotProduct (rejectpt, view_clipplanes[i].normal);
+            d = glm::dot (rejectpt, view_clipplanes[i].normal);
             d -= view_clipplanes[i].dist;
 
             if (d <= 0)
@@ -457,7 +458,7 @@ void R_RecursiveWorldNode(mnode_t *node, int clipflags) {
             acceptpt[1] = (float) node->minmaxs[pindex[3 + 1]];
             acceptpt[2] = (float) node->minmaxs[pindex[3 + 2]];
 
-            d = DotProduct (acceptpt, view_clipplanes[i].normal);
+            d = glm::dot (acceptpt, view_clipplanes[i].normal);
             d -= view_clipplanes[i].dist;
 
             if (d >= 0)
@@ -503,7 +504,7 @@ void R_RecursiveWorldNode(mnode_t *node, int clipflags) {
                 dot = modelorg[2] - plane->dist;
                 break;
             default:
-                dot = DotProduct (modelorg, plane->normal) - plane->dist;
+                dot = glm::dot (modelorg, plane->normal) - plane->dist;
                 break;
         }
 
@@ -590,7 +591,7 @@ void R_RenderWorld() {
     pbtofpolys = btofpolys;
 
     currententity = &cl_entities[0];
-    VectorCopy (r_origin, modelorg);
+    modelorg = r_origin;
     clmodel = currententity->model;
     r_pcurrentvertbase = clmodel->vertexes;
 

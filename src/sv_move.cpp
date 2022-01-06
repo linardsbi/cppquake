@@ -36,13 +36,13 @@ is not a staircase.
 int c_yes, c_no;
 
 auto SV_CheckBottom(edict_t *ent) -> qboolean {
-    vec3_t mins, maxs, start, stop;
+    vec3 mins, maxs, start, stop;
     trace_t trace;
     int x = 0, y = 0;
     float mid = NAN, bottom = NAN;
 
-    VectorAdd (ent->v.origin, ent->v.mins, mins);
-    VectorAdd (ent->v.origin, ent->v.maxs, maxs);
+    mins = ent->v.origin + ent->v.mins;
+    maxs = ent->v.origin + ent->v.maxs;
 
 // if all of the points under the corners are solid world, don't bother
 // with the tougher checks
@@ -105,22 +105,22 @@ possible, no move is done, false is returned, and
 pr_global_struct->trace_normal is set to the normal of the blocking wall
 =============
 */
-auto SV_movestep(edict_t *ent, vec3_t move, qboolean relink) -> qboolean {
+auto SV_movestep(edict_t *ent, vec3 move, qboolean relink) -> qboolean {
     float dz = NAN;
-    vec3_t oldorg, neworg, end;
+    vec3 oldorg, neworg, end;
     trace_t trace;
     int i = 0;
     edict_t *enemy = nullptr;
 
 // try the move	
-    VectorCopy (ent->v.origin, oldorg);
-    VectorAdd (ent->v.origin, move, neworg);
+    oldorg = ent->v.origin;
+    neworg = ent->v.origin + move;
 
 // flying monsters don't step up
     if ((int) ent->v.flags & (FL_SWIM | FL_FLY)) {
         // try one move with vertical motion, then one without
         for (i = 0; i < 2; i++) {
-            VectorAdd (ent->v.origin, move, neworg);
+            neworg = ent->v.origin + move;
             enemy = PROG_TO_EDICT(ent->v.enemy);
             if (i == 0 && enemy != sv.edicts) {
                 dz = ent->v.origin[2] - PROG_TO_EDICT(ent->v.enemy)->v.origin[2];
@@ -135,7 +135,7 @@ auto SV_movestep(edict_t *ent, vec3_t move, qboolean relink) -> qboolean {
                 if (((int) ent->v.flags & FL_SWIM) && SV_PointContents(trace.endpos) == CONTENTS_EMPTY)
                     return false;    // swim monster left water
 
-                VectorCopy (trace.endpos, ent->v.origin);
+                ent->v.origin = trace.endpos;
                 if (relink)
                     SV_LinkEdict(ent, true);
                 return true;
@@ -150,7 +150,7 @@ auto SV_movestep(edict_t *ent, vec3_t move, qboolean relink) -> qboolean {
 
 // push down from a step height above the wished position
     neworg[2] += STEPSIZE;
-    VectorCopy (neworg, end);
+    end = neworg;
     end[2] -= STEPSIZE * 2;
 
     trace = SV_Move(neworg, ent->v.mins, ent->v.maxs, end, false, ent);
@@ -167,7 +167,7 @@ auto SV_movestep(edict_t *ent, vec3_t move, qboolean relink) -> qboolean {
     if (trace.fraction == 1) {
         // if monster had the ground pulled out, go ahead and fall
         if ((int) ent->v.flags & FL_PARTIALGROUND) {
-            VectorAdd (ent->v.origin, move, ent->v.origin);
+            ent->v.origin = ent->v.origin + move;
             if (relink)
                 SV_LinkEdict(ent, true);
             ent->v.flags = (int) ent->v.flags & ~FL_ONGROUND;
@@ -179,7 +179,7 @@ auto SV_movestep(edict_t *ent, vec3_t move, qboolean relink) -> qboolean {
     }
 
 // check point traces down for dangling corners
-    VectorCopy (trace.endpos, ent->v.origin);
+    ent->v.origin = trace.endpos;
 
     if (!SV_CheckBottom(ent)) {
         if ((int) ent->v.flags & FL_PARTIALGROUND) {    // entity had floor mostly pulled out from underneath it
@@ -188,7 +188,7 @@ auto SV_movestep(edict_t *ent, vec3_t move, qboolean relink) -> qboolean {
                 SV_LinkEdict(ent, true);
             return true;
         }
-        VectorCopy (oldorg, ent->v.origin);
+        ent->v.origin = oldorg;
         return false;
     }
 
@@ -219,7 +219,7 @@ facing it.
 void PF_changeyaw();
 
 auto SV_StepDirection(edict_t *ent, float yaw, float dist) -> qboolean {
-    vec3_t move, oldorigin;
+    vec3 move, oldorigin;
     float delta = NAN;
 
     ent->v.ideal_yaw = yaw;
@@ -230,11 +230,11 @@ auto SV_StepDirection(edict_t *ent, float yaw, float dist) -> qboolean {
     move[1] = sin(yaw) * dist;
     move[2] = 0;
 
-    VectorCopy (ent->v.origin, oldorigin);
+    oldorigin = ent->v.origin;
     if (SV_movestep(ent, move, false)) {
         delta = ent->v.angles[YAW] - ent->v.ideal_yaw;
         if (delta > 45 && delta < 315) {        // not turned far enough, so don't take the step
-            VectorCopy (oldorigin, ent->v.origin);
+            ent->v.origin = oldorigin;
         }
         SV_LinkEdict(ent, true);
         return true;

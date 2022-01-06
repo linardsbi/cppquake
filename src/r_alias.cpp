@@ -37,7 +37,7 @@ trivertx_t *r_apverts;
 
 // TODO: these probably will go away with optimized rasterization
 mdl_t *pmdl;
-vec3_t r_plightvec;
+vec3 r_plightvec;
 int r_ambientlight;
 float r_shadelight;
 aliashdr_t *paliashdr;
@@ -46,7 +46,7 @@ auxvert_t *pauxverts;
 static float ziscale;
 static model_t *pmodel;
 
-static vec3_t alias_forward, alias_right, alias_up;
+static vec3 alias_forward, alias_right, alias_up;
 
 static maliasskindesc_t *pskindesc;
 
@@ -54,14 +54,14 @@ int r_amodels_drawn;
 int a_skinwidth;
 int r_anumverts;
 
-float aliastransform[3][4];
+vec4 aliastransform[3]{};
 
 using aedge_t = struct {
     int index0;
     int index1;
 };
 
-static aedge_t aedges[12] = {
+static constexpr aedge_t aedges[12] = {
         {0, 1},
         {1, 2},
         {2, 3},
@@ -78,7 +78,7 @@ static aedge_t aedges[12] = {
 
 #define NUMVERTEXNORMALS    162
 
-float r_avertexnormals[NUMVERTEXNORMALS][3] = {
+vec3 r_avertexnormals[NUMVERTEXNORMALS] = {
 #include "anorms.hpp"
 };
 
@@ -87,7 +87,7 @@ void R_AliasTransformAndProjectFinalVerts(finalvert_t *fv,
 
 void R_AliasSetUpTransform(int trivial_accept);
 
-void R_AliasTransformVector(vec3_t in, vec3_t out);
+void R_AliasTransformVector(vec3 in, vec3 &out);
 
 void R_AliasTransformFinalVert(finalvert_t *fv, auxvert_t *av,
                                trivertx_t *pverts, stvert_t *pstverts);
@@ -103,7 +103,7 @@ R_AliasCheckBBox
 auto R_AliasCheckBBox() -> qboolean {
     int i = 0, flags = 0, frame = 0, numv = 0;
     aliashdr_t *pahdr = nullptr;
-    float zi = NAN, basepts[8][3], v0 = NAN, v1 = NAN, frac = NAN;
+    float zi = NAN, frac = NAN;
     finalvert_t *pv0 = nullptr, *pv1 = nullptr, viewpts[16];
     auxvert_t *pa0 = nullptr, *pa1 = nullptr, viewaux[16];
     maliasframedesc_t *pframedesc = nullptr;
@@ -131,6 +131,7 @@ auto R_AliasCheckBBox() -> qboolean {
 
     pframedesc = &pahdr->frames[frame];
 
+    std::array<vec3, 8> basepts{};
 // x worldspace coordinates
     basepts[0][0] = basepts[1][0] = basepts[2][0] = basepts[3][0] =
             (float) pframedesc->bboxmin.v[0];
@@ -154,7 +155,7 @@ auto R_AliasCheckBBox() -> qboolean {
 
     minz = 9999;
     for (i = 0; i < 8; i++) {
-        R_AliasTransformVector(&basepts[i][0], &viewaux[i].fv[0]);
+        R_AliasTransformVector(basepts[i], viewaux[i].fv);
 
         if (viewaux[i].fv[2] < ALIAS_Z_CLIP_PLANE) {
             // we must clip points that are closer than the near clip plane
@@ -204,7 +205,6 @@ auto R_AliasCheckBBox() -> qboolean {
     anyclip = 0;
     allclip = ALIAS_XY_CLIP_MASK;
 
-// TODO: probably should do this loop in ASM, especially if we use floats
     for (i = 0; i < numv; i++) {
         // we don't need to bother with vertices that were z-clipped
         if (viewpts[i].flags & ALIAS_Z_CLIP)
@@ -213,8 +213,8 @@ auto R_AliasCheckBBox() -> qboolean {
         zi = 1.0 / viewaux[i].fv[2];
 
         // FIXME: do with chop mode in ASM, or convert to float
-        v0 = (viewaux[i].fv[0] * xscale * zi) + xcenter;
-        v1 = (viewaux[i].fv[1] * yscale * zi) + ycenter;
+        const auto v0 = (viewaux[i].fv[0] * xscale * zi) + xcenter;
+        const auto v1 = (viewaux[i].fv[1] * yscale * zi) + ycenter;
 
         flags = 0;
 
@@ -251,10 +251,10 @@ auto R_AliasCheckBBox() -> qboolean {
 R_AliasTransformVector
 ================
 */
-void R_AliasTransformVector(vec3_t in, vec3_t out) {
-    out[0] = DotProduct(in, aliastransform[0]) + aliastransform[0][3];
-    out[1] = DotProduct(in, aliastransform[1]) + aliastransform[1][3];
-    out[2] = DotProduct(in, aliastransform[2]) + aliastransform[2][3];
+void R_AliasTransformVector(vec3 in, vec3 &out) {
+    out[0] = glm::dot(in, vec3{aliastransform[0]}) + aliastransform[0][3];
+    out[1] = glm::dot(in, vec3{aliastransform[1]}) + aliastransform[1][3];
+    out[2] = glm::dot(in, vec3{aliastransform[2]}) + aliastransform[2][3];
 }
 
 
@@ -329,10 +329,10 @@ R_AliasSetUpTransform
 */
 void R_AliasSetUpTransform(int trivial_accept) {
     int i = 0;
-    float rotationmatrix[3][4], t2matrix[3][4];
-    static float tmatrix[3][4];
-    static float viewmatrix[3][4];
-    vec3_t angles;
+    vec4 rotationmatrix[3]{};
+    vec4 t2matrix[3]{};
+    static vec4 tmatrix[3]{};
+    vec3 angles;
 
 // TODO: should really be stored with the entity instead of being reconstructed
 // TODO: should use a look-up table
@@ -367,14 +367,7 @@ void R_AliasSetUpTransform(int trivial_accept) {
     R_ConcatTransforms(t2matrix, tmatrix, rotationmatrix);
 
 // TODO: should be global, set when vright, etc., set
-    VectorCopy (vright, viewmatrix[0]);
-    VectorCopy (vup, viewmatrix[1]);
-    VectorInverse(viewmatrix[1]);
-    VectorCopy (vpn, viewmatrix[2]);
-
-//	viewmatrix[0][3] = 0;
-//	viewmatrix[1][3] = 0;
-//	viewmatrix[2][3] = 0;
+    const vec4 viewmatrix[3] = { to_vec4(vright), to_vec4(-vup), to_vec4(vpn)};
 
     R_ConcatTransforms(viewmatrix, rotationmatrix, aliastransform);
 
@@ -383,15 +376,10 @@ void R_AliasSetUpTransform(int trivial_accept) {
 // Also scale down z, so 1/z is scaled 31 bits for free, and scale down x and y
 // correspondingly so the projected x and y come out right
 // FIXME: make this work for clipped case too?
-    if (trivial_accept) {
-        for (i = 0; i < 4; i++) {
-            aliastransform[0][i] *= aliasxscale *
-                                    (1.0f / ((float) 0x8000 * 0x10000));
-            aliastransform[1][i] *= aliasyscale *
-                                    (1.0f / ((float) 0x8000 * 0x10000));
-            aliastransform[2][i] *= 1.0f / ((float) 0x8000 * 0x10000);
-
-        }
+    if (trivial_accept != 0) {
+        aliastransform[0] *= aliasxscale * (1.0f / ((float) 0x8000 * 0x10000));
+        aliastransform[1] *= aliasyscale * (1.0f / ((float) 0x8000 * 0x10000));
+        aliastransform[2] *= 1.0f / ((float) 0x8000 * 0x10000);
     }
 }
 
@@ -403,14 +391,14 @@ R_AliasTransformFinalVert
 */
 void R_AliasTransformFinalVert(finalvert_t *fv, auxvert_t *av,
                                trivertx_t *pverts, stvert_t *pstverts) {
-    int temp = 0;
-    float lightcos = NAN, *plightnormal = nullptr;
 
-    av->fv[0] = DotProduct(pverts->v, aliastransform[0]) +
+  const vec3 tempvert = {pverts->v[0], pverts->v[1], pverts->v[2]};
+
+    av->fv[0] = glm::dot(tempvert, vec3(aliastransform[0])) +
                 aliastransform[0][3];
-    av->fv[1] = DotProduct(pverts->v, aliastransform[1]) +
+    av->fv[1] = glm::dot(tempvert, vec3{aliastransform[1]}) +
                 aliastransform[1][3];
-    av->fv[2] = DotProduct(pverts->v, aliastransform[2]) +
+    av->fv[2] = glm::dot(tempvert, vec3{aliastransform[2]}) +
                 aliastransform[2][3];
 
     fv->v[2] = pstverts->s;
@@ -419,9 +407,9 @@ void R_AliasTransformFinalVert(finalvert_t *fv, auxvert_t *av,
     fv->flags = pstverts->onseam;
 
 // lighting
-    plightnormal = r_avertexnormals[pverts->lightnormalindex];
-    lightcos = DotProduct (plightnormal, r_plightvec);
-    temp = r_ambientlight;
+    const vec3 plightnormal = r_avertexnormals[pverts->lightnormalindex];
+    const auto lightcos = glm::dot (plightnormal, r_plightvec);
+    auto temp = r_ambientlight;
 
     if (lightcos < 0) {
         temp += (int) (r_shadelight * lightcos);
@@ -444,38 +432,31 @@ R_AliasTransformAndProjectFinalVerts
 ================
 */
 void R_AliasTransformAndProjectFinalVerts(finalvert_t *fv, stvert_t *pstverts) {
-    int i = 0, temp = 0;
-    float lightcos = NAN, *plightnormal = nullptr, zi = NAN;
-    trivertx_t *pverts = nullptr;
-
-    pverts = r_apverts;
-
-    for (i = 0; i < r_anumverts; i++, fv++, pverts++, pstverts++) {
+    auto *pverts = r_apverts;
+    for (int i = 0; i < r_anumverts; i++, fv++, pverts++, pstverts++) {
+        const vec3 temp_pvert = { pverts->v[0], pverts->v[1], pverts->v[2] };
         // transform and project
-        zi = 1.0 / (DotProduct(pverts->v, aliastransform[2]) +
-                    aliastransform[2][3]);
+        const auto zi = 1.F / (glm::dot(temp_pvert, vec3{ aliastransform[2] }) + aliastransform[2][3]);
 
         // x, y, and z are scaled down by 1/2**31 in the transform, so 1/z is
         // scaled up by 1/2**31, and the scaling cancels out for x and y in the
         // projection
         fv->v[5] = zi;
 
-        fv->v[0] = ((DotProduct(pverts->v, aliastransform[0]) +
-                     aliastransform[0][3]) * zi) + aliasxcenter;
-        fv->v[1] = ((DotProduct(pverts->v, aliastransform[1]) +
-                     aliastransform[1][3]) * zi) + aliasycenter;
+        fv->v[0] = ((glm::dot(temp_pvert, { aliastransform[0] }) + aliastransform[0][3]) * zi) + aliasxcenter;
+        fv->v[1] = ((glm::dot(temp_pvert, { aliastransform[1] }) + aliastransform[1][3]) * zi) + aliasycenter;
 
         fv->v[2] = pstverts->s;
         fv->v[3] = pstverts->t;
         fv->flags = pstverts->onseam;
 
         // lighting
-        plightnormal = r_avertexnormals[pverts->lightnormalindex];
-        lightcos = DotProduct (plightnormal, r_plightvec);
-        temp = r_ambientlight;
+        const auto plightnormal = r_avertexnormals[pverts->lightnormalindex];
+        const auto lightcos = glm::dot(plightnormal, r_plightvec);
+        auto temp = r_ambientlight;
 
         if (lightcos < 0) {
-            temp += (int) (r_shadelight * lightcos);
+            temp += (int)(r_shadelight * lightcos);
 
             // clamp; because we limited the minimum ambient and shading light, we
             // don't have to clamp low light, just bright
@@ -614,9 +595,9 @@ void R_AliasSetupLighting(alight_t *plighting) {
     r_shadelight *= VID_GRADES;
 
 // rotate the lighting vector into the model's frame of reference
-    r_plightvec[0] = DotProduct (plighting->plightvec, alias_forward);
-    r_plightvec[1] = -DotProduct (plighting->plightvec, alias_right);
-    r_plightvec[2] = DotProduct (plighting->plightvec, alias_up);
+    r_plightvec[0] = glm::dot (*plighting->plightvec, alias_forward);
+    r_plightvec[1] = -glm::dot (*plighting->plightvec, alias_right);
+    r_plightvec[2] = glm::dot (*plighting->plightvec, alias_up);
 }
 
 /*

@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 // comndef.h  -- general definitions
 #include <string_view>
+#include "mathlib.hpp"
 #include <fmt/printf.h>
 
 
@@ -121,8 +122,10 @@ void MSG_WriteFloat(sizebuf_t *sb, float f);
 void MSG_WriteString(sizebuf_t *sb, std::string_view s);
 
 void MSG_WriteCoord(sizebuf_t *sb, float f);
+void MSG_WriteCoords(sizebuf_t *sb, vec3 coords);
 
 void MSG_WriteAngle(sizebuf_t *sb, float f);
+void MSG_WriteAngles(sizebuf_t *sb, vec3 angles);
 
 extern int msg_readcount;
 extern qboolean msg_badread;        // set if a read goes beyond end of message
@@ -267,7 +270,7 @@ MemType SZGetSpace(sizebuf_t *buf, int length) {
             Sys_Error("SZ_GetSpace: %i is > full buffer size", length);
 
         buf->overflowed = true;
-        Con_Printf("%s", "SZ_GetSpace: overflow");
+        Con_Printf("SZ_GetSpace: overflow");
         SZ_Clear(buf);
     }
 

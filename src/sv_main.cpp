@@ -79,15 +79,14 @@ SV_StartParticle
 Make sure the event gets sent to all clients
 ==================
 */
-void SV_StartParticle(vec3_t org, vec3_t dir, int color, int count) {
+void SV_StartParticle(vec3 org, vec3 dir, int color, int count) {
     int i = 0, v = 0;
 
     if (sv.datagram.cursize > MAX_DATAGRAM - 16)
         return;
     MSG_WriteByte(&sv.datagram, svc_particle);
-    MSG_WriteCoord(&sv.datagram, org[0]);
-    MSG_WriteCoord(&sv.datagram, org[1]);
-    MSG_WriteCoord(&sv.datagram, org[2]);
+    MSG_WriteCoords(&sv.datagram, org);
+
     for (i = 0; i < 3; i++) {
         v = dir[i] * 16;
         if (v > 127)
@@ -164,8 +163,7 @@ void SV_StartSound(edict_t *entity, int channel, std::string_view sample, int vo
         MSG_WriteByte(&sv.datagram, attenuation * 64);
     MSG_WriteShort(&sv.datagram, channel);
     MSG_WriteByte(&sv.datagram, sound_num);
-    for (i = 0; i < 3; i++)
-        MSG_WriteCoord(&sv.datagram, entity->v.origin[i] + 0.5 * (entity->v.mins[i] + entity->v.maxs[i]));
+    MSG_WriteCoords(&sv.datagram, entity->v.origin + 0.5F * (entity->v.mins + entity->v.maxs));
 }
 
 /*
@@ -341,7 +339,7 @@ crosses a waterline.
 
 static std::array<byte, MAX_MAP_LEAFS / 8> fatpvs{};
 
-void SV_AddToFatPVS(const vec3_t org, mnode_t *node, const auto fatbytes) {
+void SV_AddToFatPVS(const vec3 org, mnode_t *node, const auto fatbytes) {
     while (true) {
         // if this is a leaf, accumulate the pvs bits
         if (node->contents < 0) {
@@ -354,7 +352,7 @@ void SV_AddToFatPVS(const vec3_t org, mnode_t *node, const auto fatbytes) {
         }
 
         const auto *plane = node->plane;
-        const auto d = DotProduct (org, plane->normal) - plane->dist;
+        const auto d = glm::dot(org, plane->normal) - plane->dist;
         if (d > 8)
             node = node->children[0];
         else if (d < -8)
@@ -374,7 +372,7 @@ Calculates a PVS that is the inclusive or of all leafs within 8 pixels of the
 given point.
 =============
 */
-inline auto SV_FatPVS(const vec3_t org) {
+inline auto SV_FatPVS(const vec3 org) {
     const auto fatbytes = static_cast<unsigned>(sv.worldmodel->numleafs + 31) >> 3U;
     memset(fatpvs.data(), 0, fatbytes);
     SV_AddToFatPVS(org, sv.worldmodel->nodes, fatbytes);
@@ -391,10 +389,10 @@ SV_WriteEntitiesToClient
 =============
 */
 void SV_WriteEntitiesToClient(edict_t *clent, sizebuf_t *msg) {
-    vec3_t org;
+    vec3 org;
 
 // find the client's PVS
-    VectorAdd (clent->v.origin, clent->v.view_ofs, org);
+    org = clent->v.origin + clent->v.view_ofs;
     const auto *pvs = SV_FatPVS(org);
 
 // send over all entities (excpet the client) that touch the pvs
@@ -534,8 +532,7 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
         MSG_WriteByte(msg, svc_damage);
         MSG_WriteByte(msg, ent->v.dmg_save);
         MSG_WriteByte(msg, ent->v.dmg_take);
-        for (int i = 0; i < 3; i++)
-            MSG_WriteCoord(msg, other->v.origin[i] + 0.5 * (other->v.mins[i] + other->v.maxs[i]));
+        MSG_WriteCoords(msg, other->v.origin + 0.5F * (other->v.mins + other->v.maxs));
 
         ent->v.dmg_take = 0;
         ent->v.dmg_save = 0;
@@ -549,8 +546,7 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
 // a fixangle might get lost in a dropped packet.  Oh well.
     if (ent->v.fixangle) {
         MSG_WriteByte(msg, svc_setangle);
-        for (int i = 0; i < 3; i++)
-            MSG_WriteAngle(msg, ent->v.angles[i]);
+        MSG_WriteAngles(msg, ent->v.angles);
         ent->v.fixangle = 0;
     }
 
@@ -617,11 +613,11 @@ void SV_WriteClientdataToMessage(edict_t *ent, sizebuf_t *msg) {
         if (bits & (SU_PUNCH1 << i))
             MSG_WriteChar(msg, ent->v.punchangle[i]);
         if (bits & (SU_VELOCITY1 << i))
-            MSG_WriteChar(msg, ent->v.velocity[i] / 16);
+            MSG_WriteChar(msg, ent->v.velocity[i] / 16.F);
     }
 
 // [always sent]	if (bits & SU_ITEMS)
-    MSG_WriteLong(msg, get_items());
+    MSG_WriteLong(msg, static_cast<int>(get_items()));
 
     if (bits & SU_WEAPONFRAME)
         MSG_WriteByte(msg, ent->v.weaponframe);
@@ -832,8 +828,8 @@ void SV_CreateBaseline() {
         //
         // create entity baseline
         //
-        VectorCopy (svent->v.origin, svent->baseline.origin);
-        VectorCopy (svent->v.angles, svent->baseline.angles);
+        svent->baseline.origin = svent->v.origin;
+        svent->baseline.angles = svent->v.angles;
         svent->baseline.frame = svent->v.frame;
         svent->baseline.skin = svent->v.skin;
         if (entnum > 0 && entnum <= svs.maxclients) {
@@ -952,7 +948,7 @@ void SV_SpawnServer(const std::string &server)
 #endif
 {
     // let's not have any servers with no name
-    if (hostname.string[0] == 0)
+    if (hostname.string.empty())
         Cvar_Set("hostname", "UNNAMED");
     scr_centertime_off = 0;
 

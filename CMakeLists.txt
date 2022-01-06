@@ -3,6 +3,7 @@ project(sdlquake)
 
 find_package(SDL2 REQUIRED)
 find_package(fmt REQUIRED)
+find_package(glm REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
@@ -114,6 +115,7 @@ add_executable(sdlquake
 
 target_link_libraries(sdlquake
         ${SDL_LIBRARY}
+        ${GLM_LIBRARY}
         fmt::fmt
         SDL2::SDL2
         )

@@ -216,8 +216,8 @@ void	VID_UnlockBuffer ();
 #include "common.hpp"
 
 //struct entity_state_t {
-//    vec3_t origin;
-//    vec3_t angles;
+//    vec3 origin;
+//    vec3 angles;
 //    int modelindex;
 //    int frame;
 //    int colormap;

@@ -73,8 +73,8 @@ objerror(value)
 =================
 */
 void PF_objerror() {
-    Con_Printf("======OBJECT ERROR in %s:\n%s\n", getStringByOffset(pr_xfunction->s_name).data(),
-               PF_VarString(0).c_str());
+    Con_Printf("======OBJECT ERROR in %s:\n%s\n", getStringByOffset(pr_xfunction->s_name),
+               PF_VarString(0));
     edict_t *ed = PROG_TO_EDICT(pr_global_struct->self);
     ED_Print(ed);
     ED_Free(ed);
@@ -105,37 +105,30 @@ setorigin (entity, origin)
 =================
 */
 void PF_setorigin() {
-    edict_t *e = nullptr;
-    float *org = nullptr;
-
-    e = G_EDICT(OFS_PARM0);
-    org = G_VECTOR(OFS_PARM1);
-    VectorCopy (org, e->v.origin);
+    auto *e = G_EDICT(OFS_PARM0);
+    auto org = G_VECTOR(OFS_PARM1);
+    e->v.origin = org;
     SV_LinkEdict(e, false);
 }
 
 
-void SetMinMaxSize(edict_t *e, float *min, float *max, qboolean rotate) {
-    float *angles = nullptr;
-    vec3_t rmin, rmax;
-    float bounds[2][3];
-    float xvector[2], yvector[2];
-    float a = NAN;
-    vec3_t base, transformed;
-    int i = 0, j = 0, k = 0, l = 0;
+void SetMinMaxSize(edict_t *e, vec3 min, vec3 max, qboolean rotate) {
+    vec3 rmin, rmax;
 
-    for (i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++)
         if (min[i] > max[i])
-            PR_RunError("backwards mins/maxs");
+            PR_RunError("backwards mins/maxs (entity size might be negative)");
 
     rotate = false;        // FIXME: implement rotation properly again
 
     if (!rotate) {
-        VectorCopy (min, rmin);
-        VectorCopy (max, rmax);
+        rmin = min;
+        rmax = max;
     } else {
+      float xvector[2], yvector[2];
+      float a = NAN;
         // find min / max for rotations
-        angles = e->v.angles;
+        const auto angles = e->v.angles;
 
         a = angles[1] / 180 * M_PI;
 
@@ -144,25 +137,27 @@ void SetMinMaxSize(edict_t *e, float *min, float *max, qboolean rotate) {
         yvector[0] = -sin(a);
         yvector[1] = cos(a);
 
-        VectorCopy (min, bounds[0]);
-        VectorCopy (max, bounds[1]);
+        vec3 bounds[2] = {min, max};
 
         rmin[0] = rmin[1] = rmin[2] = 9999;
         rmax[0] = rmax[1] = rmax[2] = -9999;
 
-        for (i = 0; i <= 1; i++) {
+        vec3 base;
+        for (int i = 0; i <= 1; i++) {
             base[0] = bounds[i][0];
-            for (j = 0; j <= 1; j++) {
+            for (int j = 0; j <= 1; j++) {
                 base[1] = bounds[j][1];
-                for (k = 0; k <= 1; k++) {
+                for (int k = 0; k <= 1; k++) {
                     base[2] = bounds[k][2];
-
                     // transform the point
-                    transformed[0] = xvector[0] * base[0] + yvector[0] * base[1];
-                    transformed[1] = xvector[1] * base[0] + yvector[1] * base[1];
-                    transformed[2] = base[2];
+                    vec3 transformed = {
+                      xvector[0] * base[0] + yvector[0] * base[1],
+                      xvector[1] * base[0] + yvector[1] * base[1],
+                      base[2],
+                    };
 
-                    for (l = 0; l < 3; l++) {
+
+                    for (int l = 0; l < 3; l++) {
                         if (transformed[l] < rmin[l])
                             rmin[l] = transformed[l];
                         if (transformed[l] > rmax[l])
@@ -174,9 +169,9 @@ void SetMinMaxSize(edict_t *e, float *min, float *max, qboolean rotate) {
     }
 
 // set derived values
-    VectorCopy (rmin, e->v.mins);
-    VectorCopy (rmax, e->v.maxs);
-    VectorSubtract (max, min, e->v.size);
+    e->v.mins = rmin;
+    e->v.maxs = rmax;
+    e->v.size = max - min;
 
     SV_LinkEdict(e, false);
 }
@@ -191,13 +186,7 @@ setsize (entity, minvector, maxvector)
 =================
 */
 void PF_setsize() {
-    edict_t *e = nullptr;
-    float *min = nullptr, *max = nullptr;
-
-    e = G_EDICT(OFS_PARM0);
-    min = G_VECTOR(OFS_PARM1);
-    max = G_VECTOR(OFS_PARM2);
-    SetMinMaxSize(e, min, max, false);
+    SetMinMaxSize(G_EDICT(OFS_PARM0), G_VECTOR(OFS_PARM1), G_VECTOR(OFS_PARM2), false);
 }
 
 
@@ -305,25 +294,8 @@ vector normalize(vector)
 =================
 */
 void PF_normalize() {
-    float *value1 = nullptr;
-    vec3_t newvvalue;
-    float newv = NAN;
-
-    value1 = G_VECTOR(OFS_PARM0);
-
-    newv = value1[0] * value1[0] + value1[1] * value1[1] + value1[2] * value1[2];
-    newv = sqrt(newv);
-
-    if (newv == 0)
-        newvvalue[0] = newvvalue[1] = newvvalue[2] = 0;
-    else {
-        newv = 1 / newv;
-        newvvalue[0] = value1[0] * newv;
-        newvvalue[1] = value1[1] * newv;
-        newvvalue[2] = value1[2] * newv;
-    }
-
-    VectorCopy (newvvalue, G_VECTOR(OFS_RETURN));
+  const auto normalized = glm::normalize(G_VECTOR(OFS_PARM0));
+  G_VECTOR_SET(OFS_RETURN, normalized);
 }
 
 /*
@@ -334,15 +306,7 @@ scalar vlen(vector)
 =================
 */
 void PF_vlen() {
-    float *value1 = nullptr;
-    float newv = NAN;
-
-    value1 = G_VECTOR(OFS_PARM0);
-
-    newv = value1[0] * value1[0] + value1[1] * value1[1] + value1[2] * value1[2];
-    newv = sqrt(newv);
-
-    G_FLOAT(OFS_RETURN) = newv;
+    G_FLOAT(OFS_RETURN) = glm::length(G_VECTOR(OFS_PARM0));
 }
 
 /*
@@ -353,11 +317,8 @@ float vectoyaw(vector)
 =================
 */
 void PF_vectoyaw() {
-    float *value1 = nullptr;
-    float yaw = NAN;
-
-    value1 = G_VECTOR(OFS_PARM0);
-
+    const vec3 value1 = G_VECTOR(OFS_PARM0);
+    float yaw{};
     if (value1[1] == 0 && value1[0] == 0)
         yaw = 0;
     else {
@@ -378,11 +339,8 @@ vector vectoangles(vector)
 =================
 */
 void PF_vectoangles() {
-    float *value1 = nullptr;
-    float forward = NAN;
     float yaw = NAN, pitch = NAN;
-
-    value1 = G_VECTOR(OFS_PARM0);
+    const auto value1 = G_VECTOR(OFS_PARM0);
 
     if (value1[1] == 0 && value1[0] == 0) {
         yaw = 0;
@@ -395,7 +353,7 @@ void PF_vectoangles() {
         if (yaw < 0)
             yaw += 360;
 
-        forward = sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
+        const auto forward = sqrt(value1[0] * value1[0] + value1[1] * value1[1]);
         pitch = (int) (atan2(value1[2], forward) * 180 / M_PI);
         if (pitch < 0)
             pitch += 360;
@@ -431,15 +389,9 @@ particle(origin, color, count)
 =================
 */
 void PF_particle() {
-    float *org = nullptr, *dir = nullptr;
-    float color = NAN;
-    float count = NAN;
-
-    org = G_VECTOR(OFS_PARM0);
-    dir = G_VECTOR(OFS_PARM1);
-    color = G_FLOAT(OFS_PARM2);
-    count = G_FLOAT(OFS_PARM3);
-    SV_StartParticle(org, dir, color, count);
+    const auto color = G_FLOAT(OFS_PARM2);
+    const auto count = G_FLOAT(OFS_PARM3);
+    SV_StartParticle(G_VECTOR(OFS_PARM0), G_VECTOR(OFS_PARM1), color, count);
 }
 
 
@@ -451,17 +403,14 @@ PF_ambientsound
 */
 void PF_ambientsound() {
     char **check = nullptr;
-    float *pos = nullptr;
-    float vol = NAN, attenuation = NAN;
-    int i = 0, soundnum = 0;
 
-    pos = G_VECTOR (OFS_PARM0);
     std::string_view samp = getGlobalString(OFS_PARM1);
-    vol = G_FLOAT(OFS_PARM2);
-    attenuation = G_FLOAT(OFS_PARM3);
+    const auto vol = G_FLOAT(OFS_PARM2);
+    const auto attenuation = G_FLOAT(OFS_PARM3);
 
+    int soundnum = 0;
 // check to see if samp was properly precached
-    for (soundnum = 0, check = sv.sound_precache; *check; check++, soundnum++)
+    for (check = sv.sound_precache; *check; check++, soundnum++)
         if (!Q_strcmp(*check, samp))
             break;
 
@@ -471,10 +420,9 @@ void PF_ambientsound() {
     }
 
 // add an svc_spawnambient command to the level signon packet
-
+    const auto pos = G_VECTOR (OFS_PARM0);
     MSG_WriteByte(&sv.signon, svc_spawnstaticsound);
-    for (i = 0; i < 3; i++)
-        MSG_WriteCoord(&sv.signon, pos[i]);
+    MSG_WriteCoords(&sv.signon, pos);
 
     MSG_WriteByte(&sv.signon, soundnum);
 
@@ -519,7 +467,7 @@ void PF_sound() {
     if (channel < 0 || channel > 7)
         Sys_Error("SV_StartSound: channel = %i", channel);
 
-    SV_StartSound(entity, channel, sample.data(), volume, attenuation);
+    SV_StartSound(entity, channel, sample, volume, attenuation);
 }
 
 /*
@@ -547,13 +495,12 @@ traceline (vector1, vector2, tryents)
 =================
 */
 void PF_traceline() {
-    float *v1 = nullptr, *v2 = nullptr;
     trace_t trace;
     int nomonsters = 0;
     edict_t *ent = nullptr;
 
-    v1 = G_VECTOR(OFS_PARM0);
-    v2 = G_VECTOR(OFS_PARM1);
+    auto v1 = G_VECTOR(OFS_PARM0);
+    auto v2 = G_VECTOR(OFS_PARM1);
     nomonsters = G_FLOAT(OFS_PARM2);
     ent = G_EDICT(OFS_PARM3);
 
@@ -564,8 +511,8 @@ void PF_traceline() {
     pr_global_struct->trace_fraction = trace.fraction;
     pr_global_struct->trace_inwater = trace.inwater;
     pr_global_struct->trace_inopen = trace.inopen;
-    VectorCopy (trace.endpos, pr_global_struct->trace_endpos);
-    VectorCopy (trace.plane.normal, pr_global_struct->trace_plane_normal);
+    pr_global_struct->trace_endpos = trace.endpos;
+    pr_global_struct->trace_plane_normal = trace.plane.normal;
     pr_global_struct->trace_plane_dist = trace.plane.dist;
     if (trace.ent)
         pr_global_struct->trace_ent = EDICT_TO_PROG(trace.ent);
@@ -593,8 +540,8 @@ void PF_TraceToss (void)
     pr_global_struct->trace_fraction = trace.fraction;
     pr_global_struct->trace_inwater = trace.inwater;
     pr_global_struct->trace_inopen = trace.inopen;
-    VectorCopy (trace.endpos, pr_global_struct->trace_endpos);
-    VectorCopy (trace.plane.normal, pr_global_struct->trace_plane_normal);
+    pr_global_struct->trace_endpos = trace.endpos;
+    pr_global_struct->trace_plane_normal = trace.plane.normal;
     pr_global_struct->trace_plane_dist =  trace.plane.dist;
     if (trace.ent)
         pr_global_struct->trace_ent = EDICT_TO_PROG(trace.ent);
@@ -626,7 +573,7 @@ auto PF_newcheckclient(int check) -> int {
     byte *pvs = nullptr;
     edict_t *ent = nullptr;
     mleaf_t *leaf = nullptr;
-    vec3_t org;
+    vec3 org;
 
 // cycle to the next one
 
@@ -661,7 +608,7 @@ auto PF_newcheckclient(int check) -> int {
     }
 
 // get the PVS for the entity
-    VectorAdd (ent->v.origin, ent->v.view_ofs, org);
+    org = ent->v.origin + ent->v.view_ofs;
     leaf = Mod_PointInLeaf(org, sv.worldmodel);
     pvs = Mod_LeafPVS(leaf, sv.worldmodel);
     memcpy(checkpvs, pvs, (sv.worldmodel->numleafs + 7) >> 3);
@@ -691,7 +638,7 @@ void PF_checkclient() {
     edict_t *ent = nullptr, *self = nullptr;
     mleaf_t *leaf = nullptr;
     int l = 0;
-    vec3_t view;
+    vec3 view;
 
 // find a newv check if on a newv frame
     if (sv.time - sv.lastchecktime >= 0.1) {
@@ -708,7 +655,7 @@ void PF_checkclient() {
 
 // if current entity can't possibly see the check entity, return 0
     self = PROG_TO_EDICT(pr_global_struct->self);
-    VectorAdd (self->v.origin, self->v.view_ofs, view);
+    view = self->v.origin + self->v.view_ofs;
     leaf = Mod_PointInLeaf(view, sv.worldmodel);
     l = (leaf - sv.worldmodel->leafs) - 1;
     if ((l < 0) || !(checkpvs[l >> 3] & (1 << (l & 7)))) {
@@ -794,26 +741,21 @@ findradius (origin, radius)
 =================
 */
 void PF_findradius() {
-    edict_t *ent = nullptr, *chain = nullptr;
-    float rad = NAN;
-    float *org = nullptr;
-    vec3_t eorg;
-    int i = 0, j = 0;
+    const auto *chain = (edict_t *) sv.edicts;
 
-    chain = (edict_t *) sv.edicts;
+    const auto org = G_VECTOR(OFS_PARM0);
+    const auto rad = G_FLOAT(OFS_PARM1);
 
-    org = G_VECTOR(OFS_PARM0);
-    rad = G_FLOAT(OFS_PARM1);
-
-    ent = NEXT_EDICT(sv.edicts);
-    for (i = 1; i < sv.num_edicts; i++, ent = NEXT_EDICT(ent)) {
+    auto *ent = NEXT_EDICT(sv.edicts);
+    for (int i = 1; i < sv.num_edicts; i++, ent = NEXT_EDICT(ent)) {
         if (ent->free)
             continue;
         if (ent->v.solid == SOLID_NOT)
             continue;
-        for (j = 0; j < 3; j++)
-            eorg[j] = org[j] - (ent->v.origin[j] + (ent->v.mins[j] + ent->v.maxs[j]) * 0.5);
-        if (Length(eorg) > rad)
+
+        const auto eorg = org - (ent->v.origin + (ent->v.mins + ent->v.maxs) * 0.5F);
+
+        if (glm::length(eorg) > rad)
             continue;
 
         ent->v.chain = EDICT_TO_PROG(chain);
@@ -951,7 +893,7 @@ void PF_Find()
 
         if (t.empty())
             continue;
-        if (!Q_strcmp(t, s)) {
+        if (t == s) {
             RETURN_EDICT(ed);
             return;
         }
@@ -1045,7 +987,7 @@ float(float yaw, float dist) walkmove
 void PF_walkmove() {
     edict_t *ent = nullptr;
     float yaw = NAN, dist = NAN;
-    vec3_t move;
+    vec3 move;
     dfunction_t *oldf = nullptr;
     int oldself = 0;
 
@@ -1085,12 +1027,12 @@ void() droptofloor
 */
 void PF_droptofloor() {
     edict_t *ent = nullptr;
-    vec3_t end;
+    vec3 end;
     trace_t trace;
 
     ent = PROG_TO_EDICT(pr_global_struct->self);
 
-    VectorCopy (ent->v.origin, end);
+    end = ent->v.origin;
     end[2] -= 256;
 
     trace = SV_Move(ent->v.origin, ent->v.mins, ent->v.maxs, end, false, ent);
@@ -1098,7 +1040,7 @@ void PF_droptofloor() {
     if (trace.fraction == 1 || trace.allsolid)
         G_FLOAT(OFS_RETURN) = 0;
     else {
-        VectorCopy (trace.endpos, ent->v.origin);
+        ent->v.origin = trace.endpos;
         SV_LinkEdict(ent, false);
         ent->v.flags = (int) ent->v.flags | FL_ONGROUND;
         ent->v.groundentity = EDICT_TO_PROG(trace.ent);
@@ -1170,11 +1112,7 @@ PF_pointcontents
 =============
 */
 void PF_pointcontents() {
-    float *v = nullptr;
-
-    v = G_VECTOR(OFS_PARM0);
-
-    G_FLOAT(OFS_RETURN) = SV_PointContents(v);
+    G_FLOAT(OFS_RETURN) = SV_PointContents(G_VECTOR(OFS_PARM0));
 }
 
 /*
@@ -1215,7 +1153,7 @@ cvar_t sv_aim = {"sv_aim", "0.93"};
 
 void PF_aim() {
     edict_t *ent = nullptr, *check = nullptr, *bestent = nullptr;
-    vec3_t start, dir, end, bestdir;
+    vec3 start, dir, end, bestdir;
     int i = 0, j = 0;
     trace_t tr;
     float dist = NAN, bestdist = NAN;
@@ -1224,22 +1162,22 @@ void PF_aim() {
     ent = G_EDICT(OFS_PARM0);
     speed = G_FLOAT(OFS_PARM1);
 
-    VectorCopy (ent->v.origin, start);
+    start = ent->v.origin;
     start[2] += 20;
 
 // try sending a trace straight
-    VectorCopy (pr_global_struct->v_forward, dir);
+    dir = pr_global_struct->v_forward;
     VectorMA(start, 2048, dir, end);
     tr = SV_Move(start, vec3_origin, vec3_origin, end, false, ent);
     if (tr.ent && tr.ent->v.takedamage == DAMAGE_AIM
         && (!teamplay.value || ent->v.team <= 0 || ent->v.team != tr.ent->v.team)) {
-        VectorCopy (pr_global_struct->v_forward, G_VECTOR(OFS_RETURN));
+        G_VECTOR_SET(OFS_RETURN, pr_global_struct->v_forward);
         return;
     }
 
 
 // try all possible entities
-    VectorCopy (dir, bestdir);
+    bestdir = dir;
     bestdist = sv_aim.value;
     bestent = nullptr;
 
@@ -1254,9 +1192,9 @@ void PF_aim() {
         for (j = 0; j < 3; j++)
             end[j] = check->v.origin[j]
                      + 0.5 * (check->v.mins[j] + check->v.maxs[j]);
-        VectorSubtract (end, start, dir);
+        dir = end - start;
         VectorNormalize(dir);
-        dist = DotProduct (dir, pr_global_struct->v_forward);
+        dist = glm::dot (dir, pr_global_struct->v_forward);
         if (dist < bestdist)
             continue;    // to far to turn
         tr = SV_Move(start, vec3_origin, vec3_origin, end, false, ent);
@@ -1267,14 +1205,14 @@ void PF_aim() {
     }
 
     if (bestent) {
-        VectorSubtract (bestent->v.origin, ent->v.origin, dir);
-        dist = DotProduct (dir, pr_global_struct->v_forward);
-        VectorScale(pr_global_struct->v_forward, dist, end);
+        dir = bestent->v.origin - ent->v.origin;
+        dist = glm::dot (dir, pr_global_struct->v_forward);
+        end = pr_global_struct->v_forward * dist;
         end[2] = dir[2];
         VectorNormalize(end);
-        VectorCopy (end, G_VECTOR(OFS_RETURN));
+        G_VECTOR_SET(OFS_RETURN, end);
     } else {
-        VectorCopy (bestdir, G_VECTOR(OFS_RETURN));
+        G_VECTOR_SET(OFS_RETURN, bestdir);
     }
 }
 

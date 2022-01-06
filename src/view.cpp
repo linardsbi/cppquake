@@ -77,17 +77,17 @@ V_CalcRoll
 Used by view and sv_user
 ===============
 */
-vec3_t forward, right, up;
+static vec3 forward{}, right{}, up{};
 
-auto V_CalcRoll(vec3_t angles, vec3_t velocity) -> float {
+auto V_CalcRoll(vec3 angles, vec3 velocity) -> float {
     float sign = NAN;
     float side = NAN;
     float value = NAN;
 
     AngleVectors(angles, forward, right, up);
-    side = DotProduct (velocity, right);
+    side = glm::dot(velocity, right);
     sign = side < 0 ? -1 : 1;
-    side = fabs(side);
+    side = fabsf(side);
 
     value = cl_rollangle.value;
 //	if (cl.inwater)
@@ -124,7 +124,7 @@ auto V_CalcBob() -> float {
 // (don't count Z, or jumping messes it up)
 
     bob = sqrt(cl.velocity[0] * cl.velocity[0] + cl.velocity[1] * cl.velocity[1]) * cl_bob.value;
-//Con_Printf ("speed: %5.1f\n", Length(cl.velocity));
+//Con_Printf ("speed: %5.1f\n", glm::length(cl.velocity));
     bob = bob * 0.3 + bob * 0.7 * sin(cycle);
     if (bob > 4)
         bob = 4;
@@ -240,31 +240,10 @@ cshift_t cshift_lava = {{255, 80, 0}, 150};
 
 cvar_t v_gamma = {"gamma", "1", true};
 
-byte gammatable[256];    // palette is sent through this
-
 #ifdef    GLQUAKE
 byte		ramps[3][256];
 float		v_blend[4];		// rgba 0.0 - 1.0
 #endif    // GLQUAKE
-
-void BuildGammaTable(float g) {
-    int i = 0, inf = 0;
-
-    if (g == 1.0) {
-        for (i = 0; i < 256; i++)
-            gammatable[i] = i;
-        return;
-    }
-
-    for (i = 0; i < 256; i++) {
-        inf = 255 * pow((i + 0.5) / 255.5, g) + 0.5;
-        if (inf < 0)
-            inf = 0;
-        if (inf > 255)
-            inf = 255;
-        gammatable[i] = inf;
-    }
-}
 
 /*
 =================
@@ -272,7 +251,7 @@ V_CheckGamma
 =================
 */
 auto V_CheckGamma() -> qboolean {
-    static float oldgammavalue;
+    static float oldgammavalue = default_gamma;
 
     if (v_gamma.value == oldgammavalue)
         return false;
@@ -292,9 +271,9 @@ V_ParseDamage
 */
 void V_ParseDamage() {
     int armor = 0, blood = 0;
-    vec3_t from;
+    vec3 from;
     int i = 0;
-    vec3_t forward, right, up;
+    vec3 forward, right, up;
     entity_t *ent = nullptr;
     float side = NAN;
     float count = NAN;
@@ -335,15 +314,15 @@ void V_ParseDamage() {
 //
     ent = &cl_entities[cl.viewentity];
 
-    VectorSubtract (from, ent->origin, from);
+    from -= ent->origin;
     VectorNormalize(from);
 
     AngleVectors(ent->angles, forward, right, up);
 
-    side = DotProduct (from, right);
+    side = glm::dot (from, right);
     v_dmg_roll = count * side * v_kickroll.value;
 
-    side = DotProduct (from, forward);
+    side = glm::dot (from, forward);
     v_dmg_pitch = count * side * v_kickpitch.value;
 
     v_dmg_time = v_kicktime.value;
@@ -651,6 +630,8 @@ auto angledelta(float a) -> float {
 /*
 ==================
 CalcGunAngle
+
+TODO: add left/right handedness
 ==================
 */
 void CalcGunAngle() {
@@ -782,8 +763,8 @@ void V_CalcIntermissionRefdef() {
 // view is the weapon model (only visible from inside body)
     view = &cl.viewent;
 
-    VectorCopy (ent->origin, r_refdef.vieworg);
-    VectorCopy (ent->angles, r_refdef.viewangles);
+    r_refdef.vieworg = ent->origin;
+    r_refdef.viewangles = ent->angles;
     view->model = nullptr;
 
 // allways idle in intermission
@@ -802,8 +783,8 @@ V_CalcRefdef
 void V_CalcRefdef() {
     entity_t *ent = nullptr, *view = nullptr;
     int i = 0;
-    vec3_t forward, right, up;
-    vec3_t angles;
+    vec3 forward, right, up;
+    vec3 angles;
     float bob = NAN;
     static float oldz = 0;
 
@@ -826,17 +807,15 @@ void V_CalcRefdef() {
     bob = V_CalcBob();
 
 // refresh position
-    VectorCopy (ent->origin, r_refdef.vieworg);
+    r_refdef.vieworg = ent->origin;
     r_refdef.vieworg[2] += cl.viewheight + bob;
 
 // never let it sit exactly on a node line, because a water plane can
 // dissapear when viewed with the eye exactly on it.
 // the server protocol only specifies to 1/16 pixel, so add 1/32 in each axis
-    r_refdef.vieworg[0] += 1.0 / 32;
-    r_refdef.vieworg[1] += 1.0 / 32;
-    r_refdef.vieworg[2] += 1.0 / 32;
+    r_refdef.vieworg += 1.0 / 32;
 
-    VectorCopy (cl.viewangles, r_refdef.viewangles);
+    r_refdef.viewangles = cl.viewangles;
     V_CalcViewRoll();
     V_AddIdle();
 
@@ -857,11 +836,11 @@ void V_CalcRefdef() {
     V_BoundOffsets();
 
 // set up gun position
-    VectorCopy (cl.viewangles, view->angles);
+    view->angles = cl.viewangles;
 
     CalcGunAngle();
 
-    VectorCopy (ent->origin, view->origin);
+    view->origin = ent->origin;
     view->origin[2] += cl.viewheight;
 
     for (i = 0; i < 3; i++) {
@@ -891,7 +870,7 @@ void V_CalcRefdef() {
     view->colormap = vid.colormap;
 
 // set up the refresh position
-    VectorAdd (r_refdef.viewangles, cl.punchangle, r_refdef.viewangles);
+    r_refdef.viewangles += cl.punchangle;
 
 // smooth out stair step ups
     if (cl.onground && ent->origin[2] - oldz > 0) {
@@ -1031,7 +1010,6 @@ void V_Init() {
     Cvar_RegisterVariable(&v_kickroll);
     Cvar_RegisterVariable(&v_kickpitch);
 
-    BuildGammaTable(1.0);    // no gamma yet
     Cvar_RegisterVariable(&v_gamma);
 }
 

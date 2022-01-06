@@ -36,7 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 typedef struct {
     int ambientlight;
     int shadelight;
-    float *plightvec;
+    vec3* plightvec;
 } alight_t;
 
 //===========================================================================
@@ -48,7 +48,7 @@ typedef struct bedge_s {
 } bedge_t;
 
 typedef struct {
-    float fv[3];        // viewspace x, y
+    vec3 fv;        // viewspace x, y
 } auxvert_t;
 
 //===========================================================================
@@ -85,7 +85,7 @@ extern cvar_t r_numedges;
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct clipplane_s {
-    vec3_t normal;
+    vec3 normal;
     float dist;
     struct clipplane_s *next;
     byte leftedge;
@@ -103,9 +103,9 @@ void R_RenderWorld(void);
 
 extern mplane_t screenedge[4];
 
-extern vec3_t r_origin;
+extern vec3 r_origin;
 
-extern vec3_t r_entorigin;
+extern vec3 r_entorigin;
 
 extern float screenAspect;
 extern float verticalFieldOfView;
@@ -126,7 +126,7 @@ void R_DrawPolyList(void);
 // current entity info
 //
 extern qboolean insubmodel;
-extern vec3_t r_worldmodelorg;
+extern vec3 r_worldmodelorg;
 
 
 void R_DrawSprite(void);
@@ -137,7 +137,7 @@ void R_RenderPoly(msurface_t *fa, int clipflags);
 
 void R_RenderBmodelFace(bedge_t *pedges, msurface_t *psurf);
 
-void R_TransformPlane(mplane_t *p, float *normal, float *dist);
+void R_TransformPlane(mplane_t *p, vec3 &normal, float *dist);
 
 void R_TransformFrustum(void);
 
@@ -223,8 +223,8 @@ extern fixed16_t bbextents, bbextentt;
 //  to the world BSP
 extern mvertex_t *r_ptverts, *r_ptvertsmax;
 
-extern vec3_t sbaseaxis[3], tbaseaxis[3];
-extern float entity_rotation[3][3];
+extern vec3 sbaseaxis[3], tbaseaxis[3];
+extern vec3 entity_rotation[3];
 
 extern int reinit_surfcache;
 
@@ -240,8 +240,6 @@ typedef struct btofpoly_s {
 
 extern int numbtofpolys;
 extern btofpoly_t *pbtofpolys;
-
-void R_InitTurb(void);
 
 void R_ZDrawSubmodelPolys(model_t *clmodel);
 
@@ -324,7 +322,7 @@ extern qboolean r_dowarpold, r_viewchanged;
 
 extern mleaf_t *r_viewleaf, *r_oldviewleaf;
 
-extern vec3_t r_emins, r_emaxs;
+extern vec3 r_emins, r_emaxs;
 extern mnode_t *r_pefragtopnode;
 extern int r_clipflags;
 extern int r_dlightframecount;
@@ -344,7 +342,7 @@ void R_PrintDSpeeds(void);
 
 void R_AnimateLight(void);
 
-int R_LightPoint(vec3_t p);
+int R_LightPoint(vec3 p);
 
 void R_SetupFrame(void);
 

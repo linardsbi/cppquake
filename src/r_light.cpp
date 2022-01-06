@@ -84,7 +84,7 @@ void R_MarkLights(dlight_t *light, int bit, mnode_t *node) {
         return;
 
     splitplane = node->plane;
-    dist = DotProduct (light->origin, splitplane->normal) - splitplane->dist;
+    dist = glm::dot (light->origin, splitplane->normal) - splitplane->dist;
 
     if (dist > light->radius) {
         R_MarkLights(light, bit, node->children[0]);
@@ -139,41 +139,27 @@ LIGHT SAMPLING
 =============================================================================
 */
 
-auto RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end) -> int {
-    int r = 0;
-    float front = NAN, back = NAN, frac = NAN;
-    int side = 0;
-    mplane_t *plane = nullptr;
-    vec3_t mid;
-    msurface_t *surf = nullptr;
-    int s = 0, t = 0, ds = 0, dt = 0;
-    int i = 0;
-    mtexinfo_t *tex = nullptr;
-    byte *lightmap = nullptr;
-    unsigned scale = 0;
-    int maps = 0;
-
+auto RecursiveLightPoint(mnode_t *node, vec3 start, vec3 end) -> int {
     if (node->contents < 0)
         return -1;        // didn't hit anything
 
 // calculate mid point
 
 // FIXME: optimize for axial
-    plane = node->plane;
-    front = DotProduct (start, plane->normal) - plane->dist;
-    back = DotProduct (end, plane->normal) - plane->dist;
-    side = front < 0;
+    const auto plane = node->plane;
+    const auto front = glm::dot (start, plane->normal) - plane->dist;
+    const auto back = glm::dot (end, plane->normal) - plane->dist;
+    const auto side = front < 0;
 
     if ((back < 0) == side)
         return RecursiveLightPoint(node->children[side], start, end);
 
-    frac = front / (front - back);
-    mid[0] = start[0] + (end[0] - start[0]) * frac;
-    mid[1] = start[1] + (end[1] - start[1]) * frac;
-    mid[2] = start[2] + (end[2] - start[2]) * frac;
+
+    const auto frac = front / (front - back);
+    vec3 mid = start + (end - start) * frac;
 
 // go down front side	
-    r = RecursiveLightPoint(node->children[side], start, mid);
+    auto r = RecursiveLightPoint(node->children[side], start, mid);
     if (r >= 0)
         return r;        // hit something
 
@@ -182,22 +168,22 @@ auto RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end) -> int {
 
 // check for impact on this node
 
-    surf = cl.worldmodel->surfaces + node->firstsurface;
-    for (i = 0; i < node->numsurfaces; i++, surf++) {
+    auto *surf = cl.worldmodel->surfaces + node->firstsurface;
+    for (int i = 0; i < node->numsurfaces; i++, surf++) {
         if (surf->flags & SURF_DRAWTILED)
             continue;    // no lightmaps
 
-        tex = surf->texinfo;
+        const auto tex = surf->texinfo;
 
-        s = DotProduct (mid, tex->vecs[0]) + tex->vecs[0][3];
-        t = DotProduct (mid, tex->vecs[1]) + tex->vecs[1][3];;
+        const auto s = glm::dot (mid, vec3{tex->vecs[0]}) + tex->vecs[0][3];
+        const auto t = glm::dot (mid, vec3{tex->vecs[1]}) + tex->vecs[1][3];
 
         if (s < surf->texturemins[0] ||
             t < surf->texturemins[1])
             continue;
 
-        ds = s - surf->texturemins[0];
-        dt = t - surf->texturemins[1];
+        short ds = s - surf->texturemins[0];
+        short dt = t - surf->texturemins[1];
 
         if (ds > surf->extents[0] || dt > surf->extents[1])
             continue;
@@ -208,15 +194,14 @@ auto RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end) -> int {
         ds >>= 4;
         dt >>= 4;
 
-        lightmap = surf->samples;
+        auto lightmap = surf->samples;
         r = 0;
         if (lightmap) {
-
             lightmap += dt * ((surf->extents[0] >> 4) + 1) + ds;
 
-            for (maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255;
+            for (int maps = 0; maps < MAXLIGHTMAPS && surf->styles[maps] != 255;
                  maps++) {
-                scale = d_lightstylevalue[surf->styles[maps]];
+                const auto scale = d_lightstylevalue[surf->styles[maps]];
                 r += *lightmap * scale;
                 lightmap += ((surf->extents[0] >> 4) + 1) *
                             ((surf->extents[1] >> 4) + 1);
@@ -232,8 +217,8 @@ auto RecursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end) -> int {
     return RecursiveLightPoint(node->children[!side], mid, end);
 }
 
-auto R_LightPoint(vec3_t p) -> int {
-    vec3_t end;
+auto R_LightPoint(vec3 p) -> int {
+    vec3 end;
     int r = 0;
 
     if (!cl.worldmodel->lightdata)

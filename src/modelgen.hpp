@@ -65,10 +65,10 @@ enum aliasskintype_t {
 struct mdl_t {
     int ident;
     int version;
-    vec3_t scale;
-    vec3_t scale_origin;
+    vec3 scale;
+    vec3 scale_origin;
     float boundingradius;
-    vec3_t eyeposition;
+    vec3 eyeposition;
     int numskins;
     int skinwidth;
     int skinheight;

@@ -36,7 +36,7 @@ particle_t *active_particles, *free_particles;
 particle_t *particles;
 int r_numparticles;
 
-vec3_t r_pright, r_pup, r_ppn;
+vec3 r_pright, r_pup, r_ppn;
 
 
 /*
@@ -65,8 +65,8 @@ void R_DarkFieldParticles (entity_t *ent)
     int			i, j, k;
     particle_t	*p;
     float		vel;
-    vec3_t		dir;
-    vec3_t		org;
+    vec3		dir;
+    vec3		org;
 
     org[0] = ent->origin[0];
     org[1] = ent->origin[1];
@@ -109,10 +109,10 @@ R_EntityParticles
 */
 
 #define NUMVERTEXNORMALS    162
-extern float r_avertexnormals[NUMVERTEXNORMALS][3];
-vec3_t avelocities[NUMVERTEXNORMALS];
+extern vec3 r_avertexnormals[NUMVERTEXNORMALS];
+vec3 avelocities[NUMVERTEXNORMALS];
 float beamlength = 16;
-vec3_t avelocity = {23, 7, 3};
+vec3 avelocity = {23, 7, 3};
 float partstep = 0.01;
 float timescale = 0.01;
 
@@ -122,7 +122,7 @@ void R_EntityParticles(entity_t *ent) {
     particle_t *p = nullptr;
     float angle = NAN;
     float sr = NAN, sp = NAN, sy = NAN, cr = NAN, cp = NAN, cy = NAN;
-    vec3_t forward;
+    vec3 forward;
     float dist = NAN;
 
     dist = 64;
@@ -160,9 +160,7 @@ void R_EntityParticles(entity_t *ent) {
         p->color = 0x6f;
         p->type = pt_explode;
 
-        p->org[0] = ent->origin[0] + r_avertexnormals[i][0] * dist + forward[0] * beamlength;
-        p->org[1] = ent->origin[1] + r_avertexnormals[i][1] * dist + forward[1] * beamlength;
-        p->org[2] = ent->origin[2] + r_avertexnormals[i][2] * dist + forward[2] * beamlength;
+        p->org = ent->origin + r_avertexnormals[i] * dist + forward * beamlength;
     }
 }
 
@@ -186,7 +184,7 @@ void R_ClearParticles() {
 
 void R_ReadPointFile_f() {
     FILE *f = nullptr;
-    vec3_t org;
+    vec3 org;
     int r = 0;
     int c = 0;
     particle_t *p = nullptr;
@@ -220,8 +218,8 @@ void R_ReadPointFile_f() {
         p->die = 99999;
         p->color = static_cast<float>((-c) & 15);
         p->type = pt_static;
-        VectorCopy (vec3_origin, p->vel);
-        VectorCopy (org, p->org);
+        p->vel = vec3_origin;
+        p->org = org;
     }
 
     fclose(f);
@@ -236,7 +234,7 @@ Parse an effect out of the server message
 ===============
 */
 void R_ParseParticleEffect() {
-    vec3_t org, dir;
+    vec3 org, dir;
     int i = 0, count = 0, msgcount = 0, color = 0;
 
     for (i = 0; i < 3; i++)
@@ -260,10 +258,11 @@ R_ParticleExplosion
 
 ===============
 */
-void R_ParticleExplosion(const vec3_t org) {
+void R_ParticleExplosion(const vec3 org) {
     int i = 0, j = 0;
     particle_t *p = nullptr;
 
+    //todo: add an option to change particle amount (or change it depending on resolution)
     for (i = 0; i < 1024; i++) {
         if (!free_particles)
             return;
@@ -297,7 +296,7 @@ R_ParticleExplosion2
 
 ===============
 */
-void R_ParticleExplosion2(const vec3_t org, int colorStart, int colorLength) {
+void R_ParticleExplosion2(const vec3 org, int colorStart, int colorLength) {
     int i = 0, j = 0;
     particle_t *p = nullptr;
     int colorMod = 0;
@@ -328,7 +327,7 @@ R_BlobExplosion
 
 ===============
 */
-void R_BlobExplosion(const vec3_t org) {
+void R_BlobExplosion(const vec3 org) {
     int i = 0, j = 0;
     particle_t *p = nullptr;
 
@@ -366,7 +365,7 @@ R_RunParticleEffect
 
 ===============
 */
-void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count) {
+void R_RunParticleEffect(vec3 org, vec3 dir, int color, int count) {
     int i = 0, j = 0;
     particle_t *p = nullptr;
 
@@ -414,11 +413,11 @@ R_LavaSplash
 
 ===============
 */
-void R_LavaSplash(vec3_t org) {
+void R_LavaSplash(vec3 org) {
     int i = 0, j = 0, k = 0;
     particle_t *p = nullptr;
     float vel = NAN;
-    vec3_t dir;
+    vec3 dir;
 
     for (i = -16; i < 16; i++)
         for (j = -16; j < 16; j++)
@@ -444,7 +443,7 @@ void R_LavaSplash(vec3_t org) {
 
                 VectorNormalize(dir);
                 vel = 50 + (rand() & 63);
-                VectorScale(dir, vel, p->vel);
+                p->vel = dir * vel;
             }
 }
 
@@ -454,11 +453,11 @@ R_TeleportSplash
 
 ===============
 */
-void R_TeleportSplash(vec3_t org) {
+void R_TeleportSplash(vec3 org) {
     int i = 0, j = 0, k = 0;
     particle_t *p = nullptr;
     float vel = NAN;
-    vec3_t dir;
+    vec3 dir;
 
     for (i = -16; i < 16; i += 4)
         for (j = -16; j < 16; j += 4)
@@ -484,19 +483,19 @@ void R_TeleportSplash(vec3_t org) {
 
                 VectorNormalize(dir);
                 vel = 50 + (rand() & 63);
-                VectorScale(dir, vel, p->vel);
+                p->vel = dir * vel;
             }
 }
 
-void R_RocketTrail(vec3_t start, vec3_t end, int type) {
-    vec3_t vec;
+void R_RocketTrail(vec3 start, vec3 end, int type) {
+    vec3 vec;
     float len = NAN;
     int j = 0;
     particle_t *p = nullptr;
     int dec = 0;
     static int tracercount;
 
-    VectorSubtract (end, start, vec);
+    vec = end - start;
     len = VectorNormalize(vec);
     if (type < 128)
         dec = 3;
@@ -515,7 +514,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type) {
         p->next = active_particles;
         active_particles = p;
 
-        VectorCopy (vec3_origin, p->vel);
+        p->vel = vec3_origin;
         p->die = cl.time + 2;
 
         switch (type) {
@@ -553,7 +552,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type) {
 
                 tracercount++;
 
-                VectorCopy (start, p->org);
+                p->org = start;
                 if (tracercount & 1) {
                     p->vel[0] = 30 * vec[1];
                     p->vel[1] = 30 * -vec[0];
@@ -581,7 +580,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type) {
         }
 
 
-        VectorAdd (start, vec, start);
+        start = start + vec;
     }
 }
 
@@ -603,7 +602,7 @@ void R_DrawParticles() {
     float frametime = NAN;
 
 #ifdef GLQUAKE
-    vec3_t			up, right;
+    vec3			up, right;
     float			scale;
 
     GL_Bind(particletexture);
@@ -616,9 +615,9 @@ void R_DrawParticles() {
 #else
     D_StartParticles();
 
-    VectorScale(vright, xscaleshrink, r_pright);
-    VectorScale(vup, yscaleshrink, r_pup);
-    VectorCopy (vpn, r_ppn);
+    r_pright = vright * xscaleshrink;
+    r_pup = vup * yscaleshrink;
+    r_ppn = vpn;
 #endif
     frametime = cl.time - cl.oldtime;
     time3 = frametime * 15;
@@ -668,9 +667,7 @@ void R_DrawParticles() {
 #else
         D_DrawParticle(p);
 #endif
-        p->org[0] += p->vel[0] * frametime;
-        p->org[1] += p->vel[1] * frametime;
-        p->org[2] += p->vel[2] * frametime;
+        p->org += p->vel * frametime;
 
         switch (p->type) {
             case pt_static:

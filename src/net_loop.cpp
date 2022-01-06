@@ -108,7 +108,7 @@ auto Loop_CheckNewConnections() -> qsocket_t * {
 }
 
 
-static auto IntAlign(int value) -> int {
+constexpr auto IntAlign(int value) -> int {
     return (value + (sizeof(int) - 1)) & (~(sizeof(int) - 1));
 }
 
@@ -129,7 +129,7 @@ auto Loop_GetMessage(qsocket_t *sock) -> int {
     length = IntAlign(length + 4);
     sock->receiveMessageLength -= length;
 
-    if (sock->receiveMessageLength)
+    if (sock->receiveMessageLength > 0)
         Q_memcpy(sock->receiveMessage, &sock->receiveMessage[length], sock->receiveMessageLength);
 
     if (sock->driverdata && ret == 1)
@@ -164,7 +164,7 @@ auto Loop_SendMessage(qsocket_t *sock, sizebuf_t *data) -> int {
     buffer++;
 
     // message
-    Q_memcpy(buffer, data->data, data->cursize);
+    memcpy(buffer, data->data, data->cursize);
     *bufferLength = IntAlign(*bufferLength + data->cursize + 4);
 
     sock->canSend = false;
@@ -197,7 +197,7 @@ auto Loop_SendUnreliableMessage(qsocket_t *sock, sizebuf_t *data) -> int {
     buffer++;
 
     // message
-    Q_memcpy(buffer, data->data, data->cursize);
+    memcpy(buffer, data->data, data->cursize);
     *bufferLength = IntAlign(*bufferLength + data->cursize + 4);
     return 1;
 }

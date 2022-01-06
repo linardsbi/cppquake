@@ -674,10 +674,10 @@ void _Host_Frame(float time) {
 //    CDAudio_Update();
 
     if (host_speeds.value) {
-        pass1 = (time1 - time3) * 1000;
+        pass1 = (time1 - time3) * 1000.0;
         time3 = Sys_FloatTime();
-        pass2 = (time2 - time1) * 1000;
-        pass3 = (time3 - time2) * 1000;
+        pass2 = (time2 - time1) * 1000.0;
+        pass3 = (time3 - time2) * 1000.0;
         Con_Printf("%3i tot %3i server %3i gfx %3i snd\n",
                    pass1 + pass2 + pass3, pass1, pass2, pass3);
     }
@@ -703,10 +703,10 @@ void Host_Frame(float time) {
     timetotal += time2 - time1;
     timecount++;
 
-    if (timecount < 1000)
+    if (timecount < 1000.0)
         return;
 
-    m = timetotal * 1000 / timecount;
+    m = timetotal * 1000.0 / timecount;
     timecount = 0;
     timetotal = 0;
     c = 0;

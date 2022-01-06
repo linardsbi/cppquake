@@ -41,8 +41,8 @@ typedef struct efrag_s {
 } efrag_t;
 
 struct entity_state_t {
-    vec3_t origin;
-    vec3_t angles;
+    vec3 origin;
+    vec3 angles;
     int modelindex;
     int frame;
     int colormap;
@@ -58,10 +58,10 @@ typedef struct entity_s {
     entity_state_t baseline;        // to fill in defaults in updates
 
     double msgtime;        // time of last update
-    vec3_t msg_origins[2];    // last two updates (0 is newest)
-    vec3_t origin;
-    vec3_t msg_angles[2];    // last two updates (0 is newest)
-    vec3_t angles;
+    vec3 msg_origins[2];    // last two updates (0 is newest)
+    vec3 origin;
+    vec3 msg_angles[2];    // last two updates (0 is newest)
+    vec3 angles;
     struct model_s *model;            // NULL = no model
     struct efrag_s *efrag;            // linked list of efrags
     int frame;
@@ -104,8 +104,8 @@ typedef struct {
     float xOrigin;            // should probably allways be 0.5
     float yOrigin;            // between be around 0.3 to 0.5
 
-    vec3_t vieworg;
-    vec3_t viewangles;
+    vec3 vieworg;
+    vec3 viewangles;
 
     float fov_x, fov_y;
 
@@ -120,7 +120,7 @@ extern int reinit_surfcache;
 
 
 extern refdef_t r_refdef;
-extern vec3_t r_origin, vpn, vright, vup;
+extern vec3 r_origin, vpn, vright, vup;
 
 extern struct texture_s *r_notexture_mip;
 
@@ -146,9 +146,9 @@ void R_NewMap(void);
 
 void R_ParseParticleEffect(void);
 
-void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count);
+void R_RunParticleEffect(vec3 org, vec3 dir, int color, int count);
 
-void R_RocketTrail(vec3_t start, vec3_t end, int type);
+void R_RocketTrail(vec3 start, vec3 end, int type);
 
 #ifdef QUAKE2
 void R_DarkFieldParticles (entity_t *ent);
@@ -156,15 +156,15 @@ void R_DarkFieldParticles (entity_t *ent);
 
 void R_EntityParticles(entity_t *ent);
 
-void R_BlobExplosion(const vec3_t org);
+void R_BlobExplosion(const vec3 org);
 
-void R_ParticleExplosion(const vec3_t org);
+void R_ParticleExplosion(const vec3 org);
 
-void R_ParticleExplosion2(const vec3_t org, int colorStart, int colorLength);
+void R_ParticleExplosion2(const vec3 org, int colorStart, int colorLength);
 
-void R_LavaSplash(vec3_t org);
+void R_LavaSplash(vec3 org);
 
-void R_TeleportSplash(vec3_t org);
+void R_TeleportSplash(vec3 org);
 
 void R_PushDlights(void);
 
