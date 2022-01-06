@@ -22,7 +22,31 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 extern cvar_t v_gamma;
 
-extern byte gammatable[256];    // palette is sent through this
+constexpr auto BuildGammaTable(float g) {
+    std::array<byte, 256> new_table{};
+    int i = 0, inf = 0;
+
+    if (g == 1.0) {
+        for (i = 0; i < 256; i++)
+            new_table[i] = i;
+        return new_table;
+    }
+
+    for (i = 0; i < 256; i++) {
+        inf = 255 * __builtin_pow((i + 0.5) / 255.5, g) + 0.5;
+        if (inf < 0)
+            inf = 0;
+        if (inf > 255)
+            inf = 255;
+        new_table[i] = inf;
+    }
+    return new_table;
+}
+
+constexpr float default_gamma = 1.F;
+
+// palette is sent through this
+constinit static std::array<byte, 256> gammatable = BuildGammaTable(default_gamma);
 extern byte ramps[3][256];
 extern float v_blend[4];
 

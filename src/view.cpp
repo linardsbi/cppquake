@@ -240,31 +240,10 @@ cshift_t cshift_lava = {{255, 80, 0}, 150};
 
 cvar_t v_gamma = {"gamma", "1", true};
 
-byte gammatable[256];    // palette is sent through this
-
 #ifdef    GLQUAKE
 byte		ramps[3][256];
 float		v_blend[4];		// rgba 0.0 - 1.0
 #endif    // GLQUAKE
-
-void BuildGammaTable(float g) {
-    int i = 0, inf = 0;
-
-    if (g == 1.0) {
-        for (i = 0; i < 256; i++)
-            gammatable[i] = i;
-        return;
-    }
-
-    for (i = 0; i < 256; i++) {
-        inf = 255 * pow((i + 0.5) / 255.5, g) + 0.5;
-        if (inf < 0)
-            inf = 0;
-        if (inf > 255)
-            inf = 255;
-        gammatable[i] = inf;
-    }
-}
 
 /*
 =================
@@ -272,7 +251,7 @@ V_CheckGamma
 =================
 */
 auto V_CheckGamma() -> qboolean {
-    static float oldgammavalue;
+    static float oldgammavalue = default_gamma;
 
     if (v_gamma.value == oldgammavalue)
         return false;
@@ -651,6 +630,8 @@ auto angledelta(float a) -> float {
 /*
 ==================
 CalcGunAngle
+
+TODO: add left/right handedness
 ==================
 */
 void CalcGunAngle() {
@@ -1029,7 +1010,6 @@ void V_Init() {
     Cvar_RegisterVariable(&v_kickroll);
     Cvar_RegisterVariable(&v_kickpitch);
 
-    BuildGammaTable(1.0);    // no gamma yet
     Cvar_RegisterVariable(&v_gamma);
 }
 
