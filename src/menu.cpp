@@ -1037,9 +1037,9 @@ void M_Net_Key(int k) {
 /* OPTIONS MENU */
 
 #ifdef _WIN32
-#define	OPTIONS_ITEMS	14
+#define	OPTIONS_ITEMS	15
 #else
-#define    OPTIONS_ITEMS    13
+#define    OPTIONS_ITEMS    14
 #endif
 
 #define    SLIDER_RANGE    10
@@ -1130,6 +1130,9 @@ void M_AdjustSliders(int dir) {
         case 11:    // lookstrafe
             Cvar_SetValue("lookstrafe", !lookstrafe.value);
             break;
+        case 12:    // mouselook
+            Cvar_SetValue("mouselook", !mouselook.value);
+            break;
 
 #ifdef _WIN32
                                                                                                                                     case 13:	// _windowed_mouse
@@ -1211,14 +1214,17 @@ void M_Options_Draw() {
     M_Print(16, 120, "            Lookstrafe");
     M_DrawCheckbox(220, 120, lookstrafe.value);
 
+    M_Print(16, 128, "            Mouse Look");
+    M_DrawCheckbox(220, 128, mouselook.value);
+
     if (vid_menudrawfn)
-        M_Print(16, 128, "         Video Options");
+        M_Print(16, 136, "         Video Options");
 
 #ifdef _WIN32
                                                                                                                             if (modestate == MS_WINDOWED)
 	{
-		M_Print (16, 136, "             Use Mouse");
-		M_DrawCheckbox (220, 136, _windowed_mouse.value);
+		M_Print (16, 144, "             Use Mouse");
+		M_DrawCheckbox (220, 144, _windowed_mouse.value);
 	}
 #endif
 
@@ -1246,7 +1252,7 @@ void M_Options_Key(int k) {
                 case 2:
                     Cbuf_AddText("exec default.cfg\n");
                     break;
-                case 12:
+                case 13:
                     M_Menu_Video_f();
                     break;
                 default:
@@ -1278,18 +1284,18 @@ void M_Options_Key(int k) {
             break;
     }
 
-    if (options_cursor == 12 && vid_menudrawfn == nullptr) {
+    if (options_cursor == 13 && vid_menudrawfn == nullptr) {
         if (k == K_UPARROW)
-            options_cursor = 11;
+            options_cursor = 12;
         else
             options_cursor = 0;
     }
 
 #ifdef _WIN32
-                                                                                                                            if ((options_cursor == 13) && (modestate != MS_WINDOWED))
+                                                                                                                            if ((options_cursor == 14) && (modestate != MS_WINDOWED))
 	{
 		if (k == K_UPARROW)
-			options_cursor = 12;
+			options_cursor = 13;
 		else
 			options_cursor = 0;
 	}

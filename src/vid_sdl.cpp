@@ -89,7 +89,7 @@ void VID_Init(unsigned char *palette) {
                               SDL_WINDOWPOS_UNDEFINED,
                               SDL_WINDOWPOS_UNDEFINED,
                               vid.width, vid.height,
-                              flags);
+                              flags | SDL_WINDOW_RESIZABLE);
     // Initialize display
     if (window == nullptr) {
         Sys_Error("VID: Couldn't set video mode: %s\n", SDL_GetError());
@@ -176,7 +176,9 @@ void VID_Update() {
     SDL_UnlockTexture(sdltexture);
 
     SDL_RenderCopy(renderer, sdltexture, nullptr, nullptr);
+    
     SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer);
 }
 
 /*
@@ -448,10 +450,11 @@ void IN_Move(usercmd_t *cmd) {
         cmd->sidemove += m_side.value * mouse_x;
     else
         cl.viewangles[YAW] -= m_yaw.value * mouse_x;
-    if (in_mlook.state & 1)
+        
+    if (mouselook.value != 0.f || in_mlook.state & 1)
         V_StopPitchDrift();
 
-    if ((in_mlook.state & 1) && !(in_strafe.state & 1)) {
+    if (mouselook.value != 0.f || ((in_mlook.state & 1) && !(in_strafe.state & 1))) {
         cl.viewangles[PITCH] += m_pitch.value * mouse_y;
         if (cl.viewangles[PITCH] > 80)
             cl.viewangles[PITCH] = 80;

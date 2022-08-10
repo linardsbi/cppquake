@@ -258,6 +258,7 @@ extern cvar_t cl_nolerp;
 
 extern cvar_t cl_pitchdriftspeed;
 extern cvar_t lookspring;
+extern cvar_t mouselook;
 extern cvar_t lookstrafe;
 extern cvar_t sensitivity;
 

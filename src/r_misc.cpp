@@ -344,7 +344,7 @@ R_SetupFrame
 */
 void R_SetupFrame() {
     int edgecount = 0;
-    vrect_t vrect;
+    vrect_t vrect{};
     float w = NAN, h = NAN;
 
 // don't allow cheats in multiplayer
