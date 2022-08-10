@@ -1405,7 +1405,6 @@ void M_Keys_Draw() {
 
 
 void M_Keys_Key(int k) {
-    char cmd[80];
     int keys[2];
 
     if (bind_grab) {    // defining a key
@@ -1413,7 +1412,7 @@ void M_Keys_Key(int k) {
         if (k == K_ESCAPE) {
             bind_grab = false;
         } else if (k != '`') {
-            sprintf(cmd, "bind \"%s\" \"%s\"\n", Key_KeynumToString(k), bindnames[keys_cursor][0]);
+            const auto cmd = fmt::sprintf("bind \"%s\" \"%s\"\n", Key_KeynumToString(k), bindnames[keys_cursor][0]);
             Cbuf_InsertText(cmd);
         }
 
