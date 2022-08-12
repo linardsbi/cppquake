@@ -121,6 +121,7 @@ void VID_Init(unsigned char *palette) {
                              vid.width, vid.height);
 
     // now know everything we need to know about the buffer
+    // todo: handle window resize (separate buffer from actual window width for mouse movements)
     _VGA_width = vid.conwidth = vid.width;
     _VGA_height = vid.conheight = vid.height;
     vid.aspect = ((float) vid.height / (float) vid.width) * (320.0 / 240.0);
@@ -147,36 +148,39 @@ void VID_Init(unsigned char *palette) {
 
     D_InitCaches(cache, cachesize);
 
-    // initialize the mouse
-    SDL_ShowCursor(0);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
 void VID_Shutdown() {
     SDL_Quit();
 }
 
-void VID_Update() {
+void VID_Update(const vrect_t &vrect) {
     void *pixels{};
     int pitch{};
     auto *window_surface = SDL_GetWindowSurface(window);
-
+    SDL_Rect rect = {
+        .x = vrect.x,
+        .y = vrect.y,
+        .w = vrect.width,
+        .h = vrect.height,
+    };
     /*
      * Blit 8-bit palette surface onto the window surface that's
      * closer to the texture's format
      */
-    SDL_BlitSurface(screen, NULL, window_surface, NULL);
+    SDL_BlitSurface(screen, &rect, window_surface, &rect);
 
     /* Modify the texture's pixels */
-    SDL_LockTexture(sdltexture, nullptr, &pixels, &pitch);
-    SDL_ConvertPixels(window_surface->w, window_surface->h,
+    SDL_LockTexture(sdltexture, &rect, &pixels, &pitch);
+    SDL_ConvertPixels(rect.w, rect.h,
                       window_surface->format->format,
                       window_surface->pixels, window_surface->pitch,
                       SDL_PIXELFORMAT_RGBA8888,
                       pixels, pitch);
     SDL_UnlockTexture(sdltexture);
 
-    SDL_RenderCopy(renderer, sdltexture, nullptr, nullptr);
-    
+    SDL_RenderCopy(renderer, sdltexture, &rect, &rect);
     SDL_RenderPresent(renderer);
     SDL_RenderClear(renderer);
 }
@@ -206,10 +210,7 @@ void D_BeginDirectRect(int x, int y, byte *pbitmap, int width, int height) {
 D_EndDirectRect
 ================
 */
-void D_EndDirectRect(int x, int y, int width, int height) {
-    if (!window) return;
-    SDL_RenderPresent(renderer);
-}
+void D_EndDirectRect(int x, int y, int width, int height) {}
 
 
 /*
@@ -385,17 +386,8 @@ void Sys_SendKeyEvents() {
                 break;
 
             case SDL_MOUSEMOTION:
-                if ((event.motion.x != (vid.width / 2)) ||
-                    (event.motion.y != (vid.height / 2))) {
-                    mouse_x = event.motion.xrel * 10;
-                    mouse_y = event.motion.yrel * 10;
-                    if ((event.motion.x < ((vid.width / 2) - (vid.width / 4))) ||
-                        (event.motion.x > ((vid.width / 2) + (vid.width / 4))) ||
-                        (event.motion.y < ((vid.height / 2) - (vid.height / 4))) ||
-                        (event.motion.y > ((vid.height / 2) + (vid.height / 4)))) {
-                        SDL_WarpMouseInWindow(window, vid.width / 2, vid.height / 2);
-                    }
-                }
+                mouse_x = event.motion.xrel * 10;
+                mouse_y = event.motion.yrel * 10;          
                 break;
 
             case SDL_QUIT:

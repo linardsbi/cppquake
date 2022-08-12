@@ -211,11 +211,10 @@ void Draw_Character(int x, int y, int num) {
 Draw_String
 ================
 */
-void Draw_String(int x, int y, char *str) {
-    while (*str) {
-        Draw_Character(x, y, *str);
-        str++;
-        x += 8;
+void Draw_String(int x, int y, std::string_view str) {
+    for (const auto ch : str) {
+        Draw_Character(x, y, ch);
+        x += character_width; 
     }
 }
 

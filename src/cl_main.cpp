@@ -30,6 +30,7 @@ cvar_t cl_name = {"_cl_name", "player", true};
 cvar_t cl_color = {"_cl_color", "0", true};
 
 cvar_t cl_shownet = {"cl_shownet", "0"};    // can be 0, 1, or 2
+cvar_t cl_showfps = {"cl_showfps", "0"};
 cvar_t cl_nolerp = {"cl_nolerp", "0"};
 
 cvar_t lookspring = {"lookspring", "0", true};
@@ -682,6 +683,7 @@ void CL_Init() {
     Cvar_RegisterVariable(&cl_pitchspeed);
     Cvar_RegisterVariable(&cl_anglespeedkey);
     Cvar_RegisterVariable(&cl_shownet);
+    Cvar_RegisterVariable(&cl_showfps);
     Cvar_RegisterVariable(&cl_nolerp);
     Cvar_RegisterVariable(&lookspring);
     Cvar_RegisterVariable(&mouselook);

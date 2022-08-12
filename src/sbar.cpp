@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // sbar.c -- status bar code
 
 #include <cmath>
+
 #include "quakedef.hpp"
 
 
@@ -289,7 +290,7 @@ void Sbar_DrawCharacter(int x, int y, int num) {
 Sbar_DrawString
 ================
 */
-void Sbar_DrawString(int x, int y, char *str) {
+void Sbar_DrawString(int x, int y, std::string_view str) {
     if (cl.gametype == GAME_DEATHMATCH)
         Draw_String(x /*+ ((vid.width - 320)>>1)*/, y + vid.height - SBAR_HEIGHT, str);
     else
@@ -843,8 +844,9 @@ void Sbar_Draw() {
 
     sb_updates++;
 
-    if (sb_lines && vid.width > 320)
+    if (sb_lines && vid.width > 320) {
         Draw_TileClear(0, vid.height - sb_lines, vid.width, sb_lines);
+    }
 
     if (sb_lines > 24) {
         Sbar_DrawInventory();

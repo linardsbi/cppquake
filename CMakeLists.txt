@@ -5,7 +5,7 @@ find_package(SDL2 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(glm REQUIRED)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(LIB_FOLDER lib)
 
@@ -21,6 +21,8 @@ if (BUILD_DEBUG)
 else ()
     add_compile_options("-O3")
 endif ()
+
+add_compile_options("-march=native")
 
 if (WIN32)
     # TODO

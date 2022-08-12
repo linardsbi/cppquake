@@ -254,6 +254,7 @@ extern cvar_t cl_anglespeedkey;
 extern cvar_t cl_autofire;
 
 extern cvar_t cl_shownet;
+extern cvar_t cl_showfps;
 extern cvar_t cl_nolerp;
 
 extern cvar_t cl_pitchdriftspeed;

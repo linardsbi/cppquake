@@ -53,7 +53,7 @@ void Show() {
     vr.width = vid.width;
     vr.height = vid.height;
     vr.pnext = nullptr;
-    VID_Update();
+    VID_Update(vr);
 }
 
 
@@ -88,7 +88,7 @@ void R_TimeRefresh_f() {
         vr.width = r_refdef.vrect.width;
         vr.height = r_refdef.vrect.height;
         vr.pnext = nullptr;
-        VID_Update();
+        VID_Update(vr);
     }
     stop = Sys_FloatTime();
     time = stop - start;
