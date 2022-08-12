@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // window.c -- master for refresh, status bar, console, chat, notify, etc
 
 #include <cmath>
+#include <SDL.h>
 #include "quakedef.hpp"
 #include "r_local.hpp"
 
@@ -32,9 +33,12 @@ float scr_con_current;
 float scr_conlines;        // lines of console to display
 
 float oldscreensize, oldfov;
+
+constexpr auto default_conspeed = 300.;
+
 cvar_t scr_viewsize = {"viewsize", "100", true};
 cvar_t scr_fov = {"fov", "90"};    // 10 - 170
-cvar_t scr_conspeed = {"scr_conspeed", "300"};
+cvar_t scr_conspeed = {"scr_conspeed", "300"}; // 300 = 1 second
 cvar_t scr_centertime = {"scr_centertime", "2"};
 cvar_t scr_showram = {"showram", "1"};
 cvar_t scr_showturtle = {"showturtle", "0"};
@@ -63,6 +67,7 @@ float scr_disabled_time;
 qboolean scr_skipupdate;
 
 qboolean block_drawing;
+
 
 void SCR_ScreenShot_f();
 
@@ -417,8 +422,8 @@ inline void SCR_DrawLoading() {
 
 
 //=============================================================================
-
-
+auto old_time = realtime;
+bool scrollingUp = true;
 /*
 ==================
 SCR_SetUpToDrawConsole
@@ -442,12 +447,24 @@ void SCR_SetUpToDrawConsole() {
         scr_conlines = 0;                // none visible
 
     if (scr_conlines < scr_con_current) {
-        scr_con_current -= scr_conspeed.value * host_frametime;
+        if (!scrollingUp) {
+            old_time = realtime;
+            scrollingUp = true;
+            return;
+        }
+        scr_con_current -= ((realtime - old_time) / (default_conspeed / scr_conspeed.value) * scr_con_current);
+        
         if (scr_conlines > scr_con_current)
             scr_con_current = scr_conlines;
 
     } else if (scr_conlines > scr_con_current) {
-        scr_con_current += scr_conspeed.value * host_frametime;
+        if (scrollingUp) {
+            old_time = realtime;
+            scrollingUp = false;
+            return;
+        }
+        scr_con_current = (realtime - old_time) / (default_conspeed / scr_conspeed.value) * scr_conlines;
+        
         if (scr_conlines < scr_con_current)
             scr_con_current = scr_conlines;
     }
@@ -743,6 +760,13 @@ void SCR_BringDownConsole() {
     VID_SetPalette(host_basepal);
 }
 
+void SCR_DrawPerformanceInfo() { 
+    if (cl_showfps.value) {
+        int fps_value = 1 / (host_frametime > 0.0 ? host_frametime : 0.001);
+        const auto fps = "FPS: " + std::to_string(fps_value);
+        Draw_String(vid.width - fps.length() * character_width, 0, fps);
+    }
+}
 
 /*
 ==================
@@ -834,7 +858,7 @@ void SCR_UpdateScreen() {
     VID_UnlockBuffer ();
 
     D_EnableBackBufferAccess();    // of all overlay stuff if drawing directly
-
+    
     if (scr_drawdialog) {
         Sbar_Draw();
         Draw_FadeScreen();
@@ -866,10 +890,17 @@ void SCR_UpdateScreen() {
     if (pconupdate) {
         D_UpdateRects(pconupdate);
     }
-
+    
     V_UpdatePalette();
 
-    VID_Update(); // Update everything
+    SCR_DrawPerformanceInfo();
+
+    VID_Update({
+        .x = 0,
+        .y = 0,
+        .width = static_cast<int>(vid.width),
+        .height = static_cast<int>(vid.height),
+    });
 }
 
 

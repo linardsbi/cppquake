@@ -5,7 +5,7 @@ find_package(SDL2 REQUIRED)
 find_package(fmt REQUIRED)
 find_package(glm REQUIRED)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(LIB_FOLDER lib)
 
@@ -17,10 +17,12 @@ endif ()
 if (BUILD_DEBUG)
     add_compile_options("-O0" "-fno-strict-aliasing" "-fno-rtti" "-g" "-Wall" "-Wextra" "-Wpedantic" "-Wconversion" "-w" "-fsanitize=address,leak,undefined" "-fno-omit-frame-pointer")
     set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address,leak,undefined -fno-omit-frame-pointer -flto")
-    set(DEBUG_DEFINES "-DPARANOID")
+    set(DEBUG_DEFINES "")
 else ()
     add_compile_options("-O3")
 endif ()
+
+add_compile_options("-march=native")
 
 if (WIN32)
     # TODO

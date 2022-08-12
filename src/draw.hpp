@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // to touch the vid buffer
 #pragma once
 
+constexpr auto character_width = 8;
+
 extern qpic_t *draw_disc;    // also used on sbar
 
 void Draw_Init();
@@ -48,7 +50,7 @@ void Draw_Fill(int x, int y, int w, int h, int c);
 
 void Draw_FadeScreen();
 
-void Draw_String(int x, int y, char *str);
+void Draw_String(int x, int y, std::string_view str);
 
 qpic_t *Draw_PicFromWad(std::string_view name);
 

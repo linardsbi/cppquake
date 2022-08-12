@@ -53,7 +53,7 @@ void Show() {
     vr.width = vid.width;
     vr.height = vid.height;
     vr.pnext = nullptr;
-    VID_Update();
+    VID_Update(vr);
 }
 
 
@@ -88,7 +88,7 @@ void R_TimeRefresh_f() {
         vr.width = r_refdef.vrect.width;
         vr.height = r_refdef.vrect.height;
         vr.pnext = nullptr;
-        VID_Update();
+        VID_Update(vr);
     }
     stop = Sys_FloatTime();
     time = stop - start;
@@ -344,7 +344,7 @@ R_SetupFrame
 */
 void R_SetupFrame() {
     int edgecount = 0;
-    vrect_t vrect;
+    vrect_t vrect{};
     float w = NAN, h = NAN;
 
 // don't allow cheats in multiplayer

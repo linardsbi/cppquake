@@ -74,7 +74,7 @@ void VID_Init(unsigned char *palette);
 void VID_Shutdown(void);
 // Called at shutdown
 
-void VID_Update();
+void VID_Update(const vrect_t&);
 // flushes the given rectangles from the view buffer to the window
 
 int VID_SetMode(int modenum, unsigned char *palette);

@@ -254,10 +254,12 @@ extern cvar_t cl_anglespeedkey;
 extern cvar_t cl_autofire;
 
 extern cvar_t cl_shownet;
+extern cvar_t cl_showfps;
 extern cvar_t cl_nolerp;
 
 extern cvar_t cl_pitchdriftspeed;
 extern cvar_t lookspring;
+extern cvar_t mouselook;
 extern cvar_t lookstrafe;
 extern cvar_t sensitivity;
 

@@ -305,18 +305,11 @@ void floating_point_exception_handler(int whatever) {
     signal(SIGFPE, floating_point_exception_handler);
 }
 
-void moncontrol(double x) {
-
-}
-
 auto main(int c, char **v) -> int {
     extern int vcrFile;
     extern int recording;
-    int frame{};
     constexpr int memPoolSize = sizeof(void *) * 16 * 1024 * 1024;
-    constexpr float fpsInterval = 1.0;
 
-    moncontrol(0);
     COM_InitArgv(c, v);
 //	signal(SIGFPE, floating_point_exception_handler);
     signal(SIGFPE, SIG_IGN);
@@ -337,8 +330,7 @@ auto main(int c, char **v) -> int {
     Cvar_RegisterVariable(&sys_nostdout);
 
     double oldtime = Sys_FloatTime() - 0.1;
-    auto fpsLastTime = SDL_GetTicks();
-    const bool showFPS = COM_CheckParm("-showfps");
+
     while (true) {
 // find time spent rendering last frame
 
@@ -359,16 +351,6 @@ auto main(int c, char **v) -> int {
             oldtime += time;
 
         Host_Frame(time);
-
-        if (showFPS) {
-            ++frame;
-            if (fpsLastTime < SDL_GetTicks() - fpsInterval * 1000) {
-                fpsLastTime = SDL_GetTicks();
-                Con_Printf("FPS: %d\n", frame); // profile only while we do each Quake frame
-                frame = 0;
-            }
-        }
-//        moncontrol(time);
 
 // graphic debugging aids
         if (sys_linerefresh.value != 0)

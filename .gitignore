@@ -1,7 +1,9 @@
 .idea
 .deps
+.vscode
 CMakeFiles
 cmake-build-debug
+build
 cmake_install.cmake
 Testing/Temporary
 
