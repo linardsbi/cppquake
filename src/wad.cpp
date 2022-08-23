@@ -38,8 +38,7 @@ Space padding is so names can be printed nicely in tables.
 Can safely be performed in place.
 ==================
 */
-//fixme make const
-void W_CleanupName(char *in, char *out) {
+void W_CleanupName(std::string_view in, char *out) {
     int i = 0;
     int c = 0;
 
@@ -63,7 +62,7 @@ void W_CleanupName(char *in, char *out) {
 W_LoadWadFile
 ====================
 */
-void W_LoadWadFile(char *filename) {
+void W_LoadWadFile(std::string_view filename) {
     lumpinfo_t *lump_p = nullptr;
     wadinfo_t *header = nullptr;
     unsigned i = 0;
@@ -71,7 +70,7 @@ void W_LoadWadFile(char *filename) {
 
     wad_base = COM_LoadHunkFile(filename);
     if (!wad_base)
-        Sys_Error("W_LoadWadFile: couldn't load %s", filename);
+        Sys_Error("W_LoadWadFile: couldn't load %s", filename.data());
 
     header = (wadinfo_t *) wad_base;
 
@@ -79,7 +78,7 @@ void W_LoadWadFile(char *filename) {
         || header->identification[1] != 'A'
         || header->identification[2] != 'D'
         || header->identification[3] != '2')
-        Sys_Error("Wad file %s doesn't have WAD2 id\n", filename);
+        Sys_Error("Wad file %s doesn't have WAD2 id\n", filename.data());
 
     wad_numlumps = LittleLong(header->numlumps);
     infotableofs = LittleLong(header->infotableofs);
@@ -101,19 +100,19 @@ W_GetLumpinfo
 =============
 */
 
-auto W_GetLumpinfo(char *name) -> lumpinfo_t * {
+auto W_GetLumpinfo(std::string_view name) -> lumpinfo_t * {
     int i = 0;
     lumpinfo_t *lump_p = nullptr;
     char clean[16];
 
-    W_CleanupName(name, clean);
+    W_CleanupName(name.data(), clean);
 
     for (lump_p = wad_lumps, i = 0; i < wad_numlumps; i++, lump_p++) {
         if (!strcmp(clean, lump_p->name))
             return lump_p;
     }
 
-    Sys_Error("W_GetLumpinfo: %s not found", name);
+    Sys_Error("W_GetLumpinfo: %s not found", name.data());
     return nullptr;
 }
 

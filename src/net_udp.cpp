@@ -168,7 +168,7 @@ this lets you type only as much of the net address as required, using
 the local network components to fill in the rest
 ============
 */
-static auto PartialIPAddress(char *in, struct qsockaddr *hostaddr) -> int {
+static auto PartialIPAddress(std::string_view in, struct qsockaddr *hostaddr) -> int {
     char buff[256];
     char *b = nullptr;
     int addr = 0;
@@ -179,7 +179,7 @@ static auto PartialIPAddress(char *in, struct qsockaddr *hostaddr) -> int {
 
     buff[0] = '.';
     b = buff;
-    strcpy(buff + 1, in);
+    strncpy(buff + 1, in.data(), in.length());
     if (buff[1] == '.')
         b++;
 
@@ -357,13 +357,13 @@ auto UDP_GetNameFromAddr(struct qsockaddr *addr, char *name) -> int {
 
 //=============================================================================
 
-auto UDP_GetAddrFromName(char *name, struct qsockaddr *addr) -> int {
+auto UDP_GetAddrFromName(std::string_view name, struct qsockaddr *addr) -> int {
     struct hostent *hostentry = nullptr;
 
     if (name[0] >= '0' && name[0] <= '9')
         return PartialIPAddress(name, addr);
 
-    hostentry = gethostbyname(name);
+    hostentry = gethostbyname(name.data());
     if (!hostentry)
         return -1;
 

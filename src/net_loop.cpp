@@ -58,9 +58,10 @@ void Loop_SearchForHosts(qboolean xmit) {
 }
 
 
-auto Loop_Connect(char *host) -> qsocket_t * {
-    if (Q_strcmp(host, "local") != 0)
+auto Loop_Connect(std::string_view host) -> qsocket_t * {
+    if (host != "local") {
         return nullptr;
+    }
 
     localconnectpending = true;
 

@@ -192,24 +192,20 @@ void Con_CheckResize(void) {
     con_current = con_totallines - 1;
 }
 
-
+#include <filesystem>
+namespace fs = std::filesystem;
 /*
 ================
 Con_Init
 ================
 */
 void Con_Init(void) {
-#define MAXGAMEDIRLEN    1000
-    char temp[MAXGAMEDIRLEN + 1];
-    char *t2 = "/qconsole.log";
+    // constexpr auto MAXGAMEDIRLEN = 1000;
 
     con_debuglog = COM_CheckParm("-condebug");
 
     if (con_debuglog) {
-        if (strlen(com_gamedir) < (MAXGAMEDIRLEN - strlen(t2))) {
-            sprintf(temp, "%s%s", com_gamedir, t2);
-            unlink(temp);
-        }
+        fs::remove(fs::path{com_gamedir} / "qconsole.log");
     }
 
     con_text = hunkAllocName<decltype(con_text)>(CON_TEXTSIZE, "context");

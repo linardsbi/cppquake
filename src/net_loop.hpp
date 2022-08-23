@@ -25,7 +25,7 @@ void Loop_Listen(qboolean state);
 
 void Loop_SearchForHosts(qboolean xmit);
 
-qsocket_t *Loop_Connect(char *host);
+qsocket_t *Loop_Connect(std::string_view host);
 
 qsocket_t *Loop_CheckNewConnections(void);
 

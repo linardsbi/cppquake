@@ -24,7 +24,7 @@ if (BUILD_DEBUG)
     set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address,leak,undefined -fno-omit-frame-pointer -flto")
     set(DEBUG_DEFINES "")
 else ()
-    add_compile_options("-O3" "-flto")
+    add_compile_options("-O3")
 endif ()
 
 add_compile_options("-march=native")
@@ -119,6 +119,10 @@ add_executable(sdlquake
         src/world.cpp
         src/zone.cpp
         )
+
+if (BUILD_RELEASE)
+    set_property(TARGET sdlquake PROPERTY INTERPROCEDURAL_OPTIMIZATION true)
+endif()
 
 target_link_libraries(sdlquake
         ${SDL_LIBRARY}

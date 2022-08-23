@@ -158,7 +158,7 @@ int Q_memcmp(void *m1, void *m2, int count);
 
 void Q_strcpy(char *dest, const char *src);
 
-void Q_strncpy(char *dest, char *src, int count);
+void Q_strncpy(char *dest, std::string_view src, int count);
 
 int Q_strlen(const char *str);
 

@@ -180,7 +180,7 @@ auto GetLittleLong() -> int {
     return val;
 }
 
-void FindNextChunk(char *name) {
+void FindNextChunk(std::string_view name) {
     while (true) {
         data_p = last_chunk;
 
@@ -204,7 +204,7 @@ void FindNextChunk(char *name) {
     }
 }
 
-void FindChunk(char *name) {
+void FindChunk(std::string_view name) {
     last_chunk = iff_data;
     FindNextChunk(name);
 }

@@ -31,7 +31,7 @@ void VCR_Listen(qboolean state);
 
 void VCR_SearchForHosts(qboolean xmit);
 
-qsocket_t *VCR_Connect(char *host);
+qsocket_t *VCR_Connect(std::string_view host);
 
 qsocket_t *VCR_CheckNewConnections(void);
 

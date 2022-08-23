@@ -26,7 +26,7 @@ void Datagram_Listen(qboolean state);
 
 void Datagram_SearchForHosts(qboolean xmit);
 
-qsocket_t *Datagram_Connect(char *host);
+qsocket_t *Datagram_Connect(std::string_view host);
 
 qsocket_t *Datagram_CheckNewConnections(void);
 

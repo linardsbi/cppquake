@@ -172,11 +172,11 @@ void Q_strcpy(char *dest, const char *src) {
     *dest++ = 0;
 }
 
-void Q_strncpy(char *dest, char *src, int count) {
-    while (*src && count--) {
-        *dest++ = *src++;
+void Q_strncpy(char *dest, std::string_view src, int count) {
+    for (const auto ch : src | std::ranges::views::take(count)) {
+        *dest++ = ch;
     }
-    if (count)
+    if (dest)
         *dest++ = 0;
 }
 

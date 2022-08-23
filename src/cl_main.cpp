@@ -142,7 +142,7 @@ CL_EstablishConnection
 Host should be either "local" or a net address to be passed on
 =====================
 */
-void CL_EstablishConnection(char *host) {
+void CL_EstablishConnection(std::string_view host) {
     if (cls.state == ca_dedicated)
         return;
 
@@ -154,7 +154,7 @@ void CL_EstablishConnection(char *host) {
     cls.netcon = NET_Connect(host);
     if (!cls.netcon)
         Host_Error("CL_Connect: connect failed\n");
-    Con_DPrintf("CL_EstablishConnection: connected to %s\n", host);
+    Con_DPrintf("CL_EstablishConnection: connected to %s\n", host.data());
 
     cls.demonum = -1;            // not in the demo loop now
     cls.state = ca_connected;

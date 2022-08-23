@@ -1304,30 +1304,29 @@ void M_Options_Key(int k) {
 
 //=============================================================================
 /* KEYS MENU */
+using bind_t = std::pair<std::string_view, std::string_view>;
+static constexpr std::array bindnames = {
+                bind_t{"+attack",    "attack"},
+                bind_t{"impulse 10", "change weapon"},
+                bind_t{"+jump",      "jump / swim up"},
+                bind_t{"+forward",   "walk forward"},
+                bind_t{"+back",      "backpedal"},
+                bind_t{"+left",      "turn left"},
+                bind_t{"+right",     "turn right"},
+                bind_t{"+speed",     "run"},
+                bind_t{"+moveleft",  "step left"},
+                bind_t{"+moveright", "step right"},
+                bind_t{"+strafe",    "sidestep"},
+                bind_t{"+lookup",    "look up"},
+                bind_t{"+lookdown",  "look down"},
+                bind_t{"centerview", "center view"},
+                bind_t{"+mlook",     "mouse look"},
+                bind_t{"+klook",     "keyboard look"},
+                bind_t{"+moveup",    "swim up"},
+                bind_t{"+movedown",  "swim down"}
+};  
 
-char *bindnames[][2] =
-        {
-                {"+attack",    "attack"},
-                {"impulse 10", "change weapon"},
-                {"+jump",      "jump / swim up"},
-                {"+forward",   "walk forward"},
-                {"+back",      "backpedal"},
-                {"+left",      "turn left"},
-                {"+right",     "turn right"},
-                {"+speed",     "run"},
-                {"+moveleft",  "step left"},
-                {"+moveright", "step right"},
-                {"+strafe",    "sidestep"},
-                {"+lookup",    "look up"},
-                {"+lookdown",  "look down"},
-                {"centerview", "center view"},
-                {"+mlook",     "mouse look"},
-                {"+klook",     "keyboard look"},
-                {"+moveup",    "swim up"},
-                {"+movedown",  "swim down"}
-        };
-
-#define    NUMCOMMANDS    (sizeof(bindnames)/sizeof(bindnames[0]))
+constexpr auto NUMCOMMANDS = bindnames.size();
 
 int keys_cursor;
 int bind_grab;
@@ -1367,7 +1366,7 @@ void M_UnbindCommand(std::string_view command) {
 
 
 void M_Keys_Draw() {
-    int i = 0, l = 0;
+    int i = 0;
     int keys[2];
     int y = 0;
     qpic_t *p = nullptr;
@@ -1384,11 +1383,9 @@ void M_Keys_Draw() {
     for (i = 0; i < NUMCOMMANDS; i++) {
         y = 48 + 8 * i;
 
-        M_Print(16, y, bindnames[i][1]);
+        M_Print(16, y, bindnames[i].second);
 
-        l = strlen(bindnames[i][0]);
-
-        M_FindKeysForCommand(bindnames[i][0], keys);
+        M_FindKeysForCommand(bindnames[i].first, keys);
 
         if (keys[0] == -1) {
             M_Print(140, y, "???");
@@ -1418,7 +1415,7 @@ void M_Keys_Key(int k) {
         if (k == K_ESCAPE) {
             bind_grab = false;
         } else if (k != '`') {
-            const auto cmd = fmt::sprintf("bind \"%s\" \"%s\"\n", Key_KeynumToString(k), bindnames[keys_cursor][0]);
+            const auto cmd = fmt::sprintf("bind \"%s\" \"%s\"\n", Key_KeynumToString(k), bindnames[keys_cursor].first);
             Cbuf_InsertText(cmd);
         }
 
@@ -1448,17 +1445,17 @@ void M_Keys_Key(int k) {
             break;
 
         case K_ENTER:        // go into bind mode
-            M_FindKeysForCommand(bindnames[keys_cursor][0], keys);
+            M_FindKeysForCommand(bindnames[keys_cursor].first, keys);
             S_LocalSound("misc/menu2.wav");
             if (keys[1] != -1)
-                M_UnbindCommand(bindnames[keys_cursor][0]);
+                M_UnbindCommand(bindnames[keys_cursor].first);
             bind_grab = true;
             break;
 
         case K_BACKSPACE:        // delete bindings
         case K_DEL:                // delete bindings
             S_LocalSound("misc/menu2.wav");
-            M_UnbindCommand(bindnames[keys_cursor][0]);
+            M_UnbindCommand(bindnames[keys_cursor].first);
             break;
     }
 }
@@ -2119,22 +2116,15 @@ void M_Menu_LanConfig_f() {
 void M_LanConfig_Draw() {
     qpic_t *p = nullptr;
     int basex = 0;
-    char *startJoin = nullptr;
-    char *protocol = nullptr;
 
     M_DrawTransPic(16, 4, Draw_CachePic("gfx/qplaque.lmp"));
     p = Draw_CachePic("gfx/p_multi.lmp");
     basex = (320 - p->width) / 2;
     M_DrawPic(basex, 4, p);
 
-    if (StartingGame)
-        startJoin = "New Game";
-    else
-        startJoin = "Join Game";
-    if (IPXConfig)
-        protocol = "IPX";
-    else
-        protocol = "TCP/IP";
+    const auto startJoin = StartingGame ? "New Game" : "Join Game";
+    const auto protocol = IPXConfig ? "IPX" : "TCP/IP";
+
     M_Print(basex, 32, va("%s - %s", startJoin, protocol));
     basex += 8;
 

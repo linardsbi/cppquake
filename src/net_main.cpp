@@ -345,17 +345,14 @@ NET_Connect
 int hostCacheCount = 0;
 hostcache_t hostcache[HOSTCACHESIZE];
 
-auto NET_Connect(char *host) -> qsocket_t * {
+auto NET_Connect(std::string_view host) -> qsocket_t * {
     qsocket_t *ret = nullptr;
     int n = 0;
     int numdrivers = net_numdrivers;
 
     SetNetTime();
 
-    if (host && *host == 0)
-        host = nullptr;
-
-    if (host) {
+    if (!host.empty()) {
         if (Q_strcasecmp(host, "local") == 0) {
             numdrivers = 1;
             goto JustDoIt;
@@ -364,7 +361,7 @@ auto NET_Connect(char *host) -> qsocket_t * {
         if (hostCacheCount) {
             for (n = 0; n < hostCacheCount; n++)
                 if (host == hostcache[n].name) {
-                    host = hostcache[n].cname.data();
+                    host = hostcache[n].cname;
                     break;
                 }
             if (n < hostCacheCount)
@@ -372,23 +369,23 @@ auto NET_Connect(char *host) -> qsocket_t * {
         }
     }
 
-    slistSilent = host != nullptr;
+    slistSilent = !host.empty();
     NET_Slist_f();
 
     while (slistInProgress)
         NET_Poll();
 
-    if (host == nullptr) {
+    if (host.empty()) {
         if (hostCacheCount != 1)
             return nullptr;
-        host = hostcache[0].cname.data();
-        Con_Printf("Connecting to...\n%s @ %s\n\n", hostcache[0].name.c_str(), host);
+        host = hostcache[0].cname;
+        Con_Printf("Connecting to...\n%s @ %s\n\n", hostcache[0].name, host);
     }
 
     if (hostCacheCount)
         for (n = 0; n < hostCacheCount; n++)
             if (host == hostcache[n].name) {
-                host = hostcache[n].cname.data();
+                host = hostcache[n].cname;
                 break;
             }
 
@@ -396,12 +393,12 @@ auto NET_Connect(char *host) -> qsocket_t * {
     for (net_driverlevel = 0; net_driverlevel < numdrivers; net_driverlevel++) {
         if (!net_drivers[net_driverlevel].initialized)
             continue;
-        ret = dfunc.Connect(host);
+        ret = dfunc.Connect(host.data());
         if (ret)
             return ret;
     }
 
-    if (host) {
+    if (!host.empty()) {
         Con_Printf("\n");
         PrintSlistHeader();
         PrintSlist();

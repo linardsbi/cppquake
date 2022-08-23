@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <arpa/inet.h>
 #else
 #define AF_INET        2    /* internet */
-struct in_addr {
+struct _in_addr {
     union {
         struct {
             unsigned char s_b1, s_b2, s_b3, s_b4;
@@ -42,13 +42,13 @@ struct in_addr {
     } S_un;
 };
 #define    s_addr    S_un.S_addr    /* can be used for most tcp & ip code */
-struct sockaddr_in {
+struct _sockaddr_in {
     short sin_family;
     unsigned short sin_port;
-    struct in_addr sin_addr;
+    struct _in_addr sin_addr;
     char sin_zero[8];
 };
-//char *inet_ntoa(struct in_addr in);
+//char *inet_ntoa(struct _in_addr in);
 //unsigned long inet_addr(const char *cp);
 #endif
 #endif    // BAN_TEST
@@ -113,7 +113,7 @@ void NET_Ban_f() {
 
         return (ha1 << 24) | (ha2 << 16) | (ha3 << 8) | ha4;
     };
-    auto inet_ntoa = [](in_addr in) {
+    auto inet_ntoa = [](_in_addr in) {
         return fmt::sprintf("%u.%u.%u.%u", in.S_un.S_un_b.s_b1, in.S_un.S_un_b.s_b2, in.S_un.S_un_b.s_b3, in.S_un.S_un_b.s_b4);
     };
     bool print_to_console = false;
@@ -133,10 +133,10 @@ void NET_Ban_f() {
 
     switch (Cmd_Argc()) {
         case 1:
-            if (((struct in_addr *) &banAddr)->s_addr) {
+            if (((struct _in_addr *) &banAddr)->s_addr) {
                 buffer = fmt::sprintf("Banning %s [%s]\n",
-                                       inet_ntoa(*(struct in_addr *) &banAddr),
-                                       inet_ntoa(*(struct in_addr *) &banMask));
+                                       inet_ntoa(*(struct _in_addr *) &banAddr),
+                                       inet_ntoa(*(struct _in_addr *) &banMask));
             } else {
                 buffer = "Banning not active\n";
             }
@@ -926,7 +926,7 @@ static auto _Datagram_CheckNewConnections() -> qsocket_t * {
     // check for a ban
     if (clientaddr.sa_family == AF_INET) {
         unsigned long testAddr = 0;
-        testAddr = ((struct sockaddr_in *) &clientaddr)->sin_addr.s_addr;
+        testAddr = ((struct _sockaddr_in *) &clientaddr)->sin_addr.s_addr;
         if ((testAddr & banMask) == banAddr) {
             SZ_Clear(&net_message);
             // save space for the header, filled in later
@@ -1129,7 +1129,7 @@ void Datagram_SearchForHosts(qboolean xmit) {
 }
 
 
-static auto _Datagram_Connect(char *host) -> qsocket_t * {
+static auto _Datagram_Connect(std::string_view host) -> qsocket_t * {
     struct qsockaddr sendaddr{};
     struct qsockaddr readaddr{};
     qsocket_t *sock = nullptr;
@@ -1138,7 +1138,6 @@ static auto _Datagram_Connect(char *host) -> qsocket_t * {
     int reps = 0;
     double start_time = NAN;
     int control = 0;
-    char *reason = nullptr;
 
     // see if we can resolve the host name
     if (dfunc.GetAddrFromName(host, &sendaddr) == -1)
@@ -1221,14 +1220,14 @@ static auto _Datagram_Connect(char *host) -> qsocket_t * {
     }
 
     if (ret == 0) {
-        reason = "No Response";
+        const auto reason = "No Response";
         Con_Printf("%s\n", reason);
         Q_strcpy(m_return_reason, reason);
         goto ErrorReturn;
     }
 
     if (ret == -1) {
-        reason = "Network Error";
+        const auto reason = "Network Error";
         Con_Printf("%s\n", reason);
         Q_strcpy(m_return_reason, reason);
         goto ErrorReturn;
@@ -1236,7 +1235,7 @@ static auto _Datagram_Connect(char *host) -> qsocket_t * {
 
     ret = MSG_ReadByte();
     if (ret == CCREP_REJECT) {
-        reason = MSG_ReadString();
+        const auto reason = MSG_ReadString();
         Con_Printf(reason);
         Q_strncpy(m_return_reason, reason, 31);
         goto ErrorReturn;
@@ -1246,7 +1245,7 @@ static auto _Datagram_Connect(char *host) -> qsocket_t * {
         memcpy(&sock->addr, &sendaddr, sizeof(struct qsockaddr));
         dfunc.SetSocketPort(&sock->addr, MSG_ReadLong());
     } else {
-        reason = "Bad Response";
+        const auto reason = "Bad Response";
         Con_Printf("%s\n", reason);
         Q_strcpy(m_return_reason, reason);
         goto ErrorReturn;
@@ -1259,7 +1258,7 @@ static auto _Datagram_Connect(char *host) -> qsocket_t * {
 
     // switch the connection to the specified address
     if (dfunc.Connect(newsock, &sock->addr) == -1) {
-        reason = "Connect to Game failed";
+        const auto reason = "Connect to Game failed";
         Con_Printf("%s\n", reason);
         Q_strcpy(m_return_reason, reason);
         goto ErrorReturn;
@@ -1280,7 +1279,7 @@ static auto _Datagram_Connect(char *host) -> qsocket_t * {
     return nullptr;
 }
 
-auto Datagram_Connect(char *host) -> qsocket_t * {
+auto Datagram_Connect(std::string_view host) -> qsocket_t * {
     qsocket_t *ret = nullptr;
 
     for (net_landriverlevel = 0; net_landriverlevel < net_numlandrivers; net_landriverlevel++)

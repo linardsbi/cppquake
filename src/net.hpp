@@ -154,7 +154,7 @@ extern qsocket_t *net_freeSockets;
 extern int net_numsockets;
 
 typedef struct {
-    char *name;
+    std::string_view name;
     qboolean initialized;
     int controlSock;
 
@@ -186,7 +186,7 @@ typedef struct {
 
     int (*GetNameFromAddr)(struct qsockaddr *addr, char *name);
 
-    int (*GetAddrFromName)(char *name, struct qsockaddr *addr);
+    int (*GetAddrFromName)(std::string_view name, struct qsockaddr *addr);
 
     int (*AddrCompare)(struct qsockaddr *addr1, struct qsockaddr *addr2);
 
@@ -200,7 +200,7 @@ extern int net_numlandrivers;
 extern net_landriver_t net_landrivers[MAX_NET_DRIVERS];
 
 typedef struct {
-    char *name;
+    std::string_view name;
     qboolean initialized;
 
     int (*Init)(void);
@@ -209,7 +209,7 @@ typedef struct {
 
     void (*SearchForHosts)(qboolean xmit);
 
-    qsocket_t *(*Connect)(char *host);
+    qsocket_t *(*Connect)(std::string_view host);
 
     qsocket_t *(*CheckNewConnections)(void);
 
@@ -305,7 +305,7 @@ void NET_Shutdown(void);
 struct qsocket_s *NET_CheckNewConnections(void);
 // returns a new connection number if there is one pending, else -1
 
-struct qsocket_s *NET_Connect(char *host);
+struct qsocket_s *NET_Connect(std::string_view host);
 // called by client to connect to a host.  Returns -1 if not able to
 
 qboolean NET_CanSendMessage(qsocket_t *sock);

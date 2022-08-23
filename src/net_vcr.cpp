@@ -126,7 +126,7 @@ void VCR_SearchForHosts(qboolean xmit) {
 }
 
 
-auto VCR_Connect(char *host) -> qsocket_t * {
+auto VCR_Connect(std::string_view host) -> qsocket_t * {
     return nullptr;
 }
 

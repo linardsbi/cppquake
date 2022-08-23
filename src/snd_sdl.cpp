@@ -8,7 +8,7 @@ static int snd_inited;
 static void paint_audio(void *unused, Uint8 *stream, int len) {
     if (shm != nullptr) {
         shm->buffer = stream;
-        shm->samplepos += len / (shm->samplebits / 8) / 2;
+        shm->samplepos = shm->samplepos + len / (shm->samplebits / 8) / 2;
         // Check for samplepos overflow?
         S_PaintChannels(shm->samplepos);
     }

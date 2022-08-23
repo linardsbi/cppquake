@@ -47,7 +47,7 @@ int UDP_GetSocketAddr(int socket, struct qsockaddr *addr);
 
 int UDP_GetNameFromAddr(struct qsockaddr *addr, char *name);
 
-int UDP_GetAddrFromName(char *name, struct qsockaddr *addr);
+int UDP_GetAddrFromName(std::string_view name, struct qsockaddr *addr);
 
 int UDP_AddrCompare(struct qsockaddr *addr1, struct qsockaddr *addr2);
 

@@ -672,16 +672,15 @@ void SCR_EndLoadingPlaque() {
 
 //=============================================================================
 
-char *scr_notifystring;
+std::string_view scr_notifystring;
 qboolean scr_drawdialog;
 
 void SCR_DrawNotifyString() {
-    char *start = nullptr;
     int l = 0;
     int j = 0;
     int x = 0, y = 0;
 
-    start = scr_notifystring;
+    auto start = scr_notifystring.begin();
 
     y = vid.height * 0.35;
 
@@ -713,7 +712,7 @@ Displays a text string in the center of the window and waits for a Y or N
 keypress.  
 ==================
 */
-auto SCR_ModalMessage(char *text) -> int {
+auto SCR_ModalMessage(std::string_view text) -> int {
     if (cls.state == ca_dedicated)
         return true;
 

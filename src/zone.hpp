@@ -281,7 +281,7 @@ auto zmalloc(int size) -> MemType {
 }
 
 template<typename MemType>
-auto hunkHighAllocName(int size, char *name) -> MemType {
+auto hunkHighAllocName(int size, std::string_view name) -> MemType {
     if (size < 0)
         Sys_Error("Hunk_HighAllocName: bad size: %i", size);
 

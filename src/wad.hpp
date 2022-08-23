@@ -63,18 +63,18 @@ extern int wad_numlumps;
 extern lumpinfo_t *wad_lumps;
 extern byte *wad_base;
 
-void W_LoadWadFile(char *filename);
+void W_LoadWadFile(std::string_view filename);
 
-void W_CleanupName(char *in, char *out);
+void W_CleanupName(std::string_view in, char *out);
 
-lumpinfo_t *W_GetLumpinfo(char *name);
+lumpinfo_t *W_GetLumpinfo(std::string_view name);
 
 void *W_GetLumpName(char *name);
 
 void *W_GetLumpNum(int num);
 
 template<typename LumpType>
-LumpType getLumpName(char *name) {
+LumpType getLumpName(std::string_view name) {
     lumpinfo_t *lump = W_GetLumpinfo(name);
 
     return reinterpret_cast<LumpType>(wad_base + lump->filepos);
