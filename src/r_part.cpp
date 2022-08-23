@@ -22,14 +22,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.hpp"
 #include "r_local.hpp"
 
-#define MAX_PARTICLES            2048    // default max # of particles at one
+#define MAX_PARTICLES            8192    // default max # of particles at one
 //  time
 #define ABSOLUTE_MIN_PARTICLES    512        // no fewer than this no matter what's
 //  on the command line
 
-int ramp1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
-int ramp2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
-int ramp3[8] = {0x6d, 0x6b, 6, 5, 4, 3};
+constexpr int ramp1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
+constexpr int ramp2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
+constexpr int ramp3[8] = {0x6d, 0x6b, 6, 5, 4, 3};
 
 particle_t *active_particles, *free_particles;
 

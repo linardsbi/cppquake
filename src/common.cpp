@@ -1430,7 +1430,7 @@ void COM_LoadCacheFile(std::string_view path, cache_user_s *cu) {
 }
 
 // uses temp hunk if larger than bufsize
-auto COM_LoadStackFile(char *path, void *buffer, int bufsize) -> byte * {
+auto COM_LoadStackFile(std::string_view path, void *buffer, int bufsize) -> byte * {
     byte *buf;
 
     loadbuf = (byte *) buffer;

@@ -426,11 +426,11 @@ ED_Write
 For savegames
 =============
 */
-void ED_Write(std::ofstream &f, edict_t *ed) {
-    fmt::fprintf(f, "{\n");
+void ED_Write(fmt::ostream &f, edict_t *ed) {
+    f.print("{{\n");
 
     if (ed->free) {
-        fmt::fprintf(f, "}\n");
+        f.print("}}\n");
         return;
     }
 
@@ -456,11 +456,11 @@ void ED_Write(std::ofstream &f, edict_t *ed) {
           continue;
         }
 
-        fmt::fprintf(f, "\"%s\" ", name);
-        fmt::fprintf(f, "\"%s\"\n", PR_UglyValueString(static_cast<etype_t>(d->type), (eval_t *) v));
+        f.print("\"{}\" ", name);
+        f.print("\"{}\"\n", PR_UglyValueString(static_cast<etype_t>(d->type), (eval_t *) v));
     }
 
-    fmt::fprintf(f, "}\n");
+    f.print("}}\n");
 }
 
 void ED_PrintNum(int ent) {
@@ -543,8 +543,8 @@ void ED_Count() {
 ED_WriteGlobals
 =============
 */
-void ED_WriteGlobals(std::ofstream &f) {
-    fmt::fprintf(f, "{\n");
+void ED_WriteGlobals(fmt::ostream &f) {
+    f.print("{{\n");
     for (int i = 0; i < progs->numglobaldefs; i++) {
         const auto *def = &pr_globaldefs[i];
         if ((def->type & DEF_SAVEGLOBAL) == 0)
@@ -556,11 +556,10 @@ void ED_WriteGlobals(std::ofstream &f) {
             && type != ev_float
             && type != ev_entity)
             continue;
-
-        fmt::fprintf(f, "\"%s\" ", getStringByOffset(def->s_name));
-        fmt::fprintf(f, "\"%s\"\n", PR_UglyValueString(type, reinterpret_cast<eval_t *>(&pr_globals[def->ofs])));
+        f.print("\"{}\" ", getStringByOffset(def->s_name));
+        f.print("\"{}\"\n", PR_UglyValueString(type, reinterpret_cast<eval_t *>(&pr_globals[def->ofs])));
     }
-    fmt::fprintf(f, "}\n");
+    f.print("}}\n");
 }
 
 /*

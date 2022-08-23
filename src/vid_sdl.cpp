@@ -77,6 +77,10 @@ void VID_Init(unsigned char *palette) {
         vid.height = static_cast<unsigned>(std::atoi(com_argv[height_offset + 1]));
     }
 
+    if (COM_CheckParm("-vsync") != 0) {
+        SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
+    }
+
     if (!vid.width || !vid.height)
         Sys_Error("VID: Bad window width/height\n");
 
@@ -103,6 +107,7 @@ void VID_Init(unsigned char *palette) {
 
     constexpr Uint8 video_bpp = 8;
     screen = SDL_CreateRGBSurface(0, vid.width, vid.height, video_bpp, 0, 0, 0, 0);
+    
 
     if (screen == nullptr) {
         Sys_Error("VID: Couldn't create screen: %s\n", SDL_GetError());
@@ -116,12 +121,11 @@ void VID_Init(unsigned char *palette) {
                                    vid.width,
                                    vid.height);
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
     SDL_RenderSetLogicalSize(renderer,
                              vid.width, vid.height);
 
     // now know everything we need to know about the buffer
-    // todo: handle window resize (separate buffer from actual window width for mouse movements)
     _VGA_width = vid.conwidth = vid.width;
     _VGA_height = vid.conheight = vid.height;
     vid.aspect = ((float) vid.height / (float) vid.width) * (320.0 / 240.0);

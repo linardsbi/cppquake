@@ -631,21 +631,38 @@ void R_AliasSetupFrame() {
     numframes = paliasgroup->numframes;
     fullinterval = pintervals[numframes - 1];
 
-    time = cl.time + currententity->syncbase;
+    time = realtime + currententity->syncbase;
 
 //
 // when loading in Mod_LoadAliasGroup, we guaranteed all interval values
 // are positive, so we don't have to worry about division by 0
 //
+    // todo: seperate timer for current animation duration? this function seems to be called every .1 seconds 
     targettime = time - ((int) (time / fullinterval)) * fullinterval;
-
+    float time_diff{};
     for (i = 0; i < (numframes - 1); i++) {
-        if (pintervals[i] > targettime)
+        if (pintervals[i] > targettime) {
+            time_diff = pintervals[i] - targettime;
             break;
+        }
     }
 
-    r_apverts = (trivertx_t *)
+    auto *new_frame = (trivertx_t *)
             ((byte *) paliashdr + paliasgroup->frames[i].frame);
+
+    if (i > 0) {
+        const auto *old_frame = (trivertx_t *)
+            ((byte *) paliashdr + paliasgroup->frames[i - 1].frame);
+        const auto old_start_time = pintervals[i - 1];
+        float next_start_time = pintervals[i];
+        const auto part = (time_diff / (next_start_time - old_start_time));
+        
+        new_frame->v[0] = ((new_frame->v[0] - old_frame->v[0]) * part) + old_frame->v[0];
+        new_frame->v[1] = ((new_frame->v[1] - old_frame->v[1]) * part) + old_frame->v[1];
+        new_frame->v[2] = ((new_frame->v[2] - old_frame->v[2]) * part) + old_frame->v[2];
+    }
+
+    r_apverts = new_frame;
 }
 
 

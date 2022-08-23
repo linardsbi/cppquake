@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <cmath>
+#include <fmt/os.h>
 #include "quakedef.hpp"
 #include "util.hpp"
 
@@ -466,31 +467,29 @@ void Host_Savegame_f() {
 
     Con_Printf("Saving game to %s...\n", name);
 
-    std::ofstream file(name);
+    auto file = fmt::output_file(name);
 
-    if (!file) {
-        Con_Printf("ERROR: couldn't open file.\n");
-        return;
-    }
-
-    fmt::fprintf(file, "%i\n", SAVEGAME_VERSION);
-
-    fmt::fprintf(file, "%s\n", Host_SavegameComment());
+    // if (!file) {
+    //     Con_Printf("ERROR: couldn't open file.\n");
+    //     return;
+    // }
+    file.print("{}\n", SAVEGAME_VERSION);
+    file.print("{}\n", Host_SavegameComment());
 
     for (int i = 0; i < NUM_SPAWN_PARMS; i++)
-        fmt::fprintf(file, "%f\n", svs.clients->spawn_parms[i]);
+    file.print("{}\n", svs.clients->spawn_parms[i]);
 
-    fmt::fprintf(file, "%d\n", current_skill);
-    fmt::fprintf(file, "%s\n", sv.name);
-    fmt::fprintf(file, "%f\n", sv.time);
+    file.print("{}\n", current_skill);
+    file.print("{}\n", sv.name);
+    file.print("{}\n", sv.time);
 
 // write the light styles
 
     for (int i = 0; i < MAX_LIGHTSTYLES; i++) {
         if (sv.lightstyles[i])
-            fmt::fprintf(file, "%s\n", sv.lightstyles[i]);
+            file.print("{}\n", sv.lightstyles[i]);
         else
-            fmt::fprintf(file, "m\n");
+            file.print("m\n");
     }
 
     ED_WriteGlobals(file);
@@ -667,23 +666,23 @@ void SaveGamestate()
         return;
     }
 
-    fmt::fprintf (f, "%i\n", SAVEGAME_VERSION);
+    fmt::printf (f, "%i\n", SAVEGAME_VERSION);
     Host_SavegameComment (comment);
-    fmt::fprintf (f, "%s\n", comment);
+    fmt::printf (f, "%s\n", comment);
 //	for (i=0 ; i<NUM_SPAWN_PARMS ; i++)
 //		fprintf (f, "%f\n", svs.clients->spawn_parms[i]);
-    fmt::fprintf (f, "%f\n", skill.value);
-    fmt::fprintf (f, "%s\n", sv.name);
-    fmt::fprintf (f, "%f\n", sv.time);
+    fmt::printf (f, "%f\n", skill.value);
+    fmt::printf (f, "%s\n", sv.name);
+    fmt::printf (f, "%f\n", sv.time);
 
 // write the light styles
 
     for (i=0 ; i<MAX_LIGHTSTYLES ; i++)
     {
         if (sv.lightstyles[i])
-            fmt::fprintf (f, "%s\n", sv.lightstyles[i]);
+            fmt::printf (f, "%s\n", sv.lightstyles[i]);
         else
-            fmt::fprintf (f,"m\n");
+            fmt::printf (f,"m\n");
     }
 
 
@@ -692,7 +691,7 @@ void SaveGamestate()
         ent = EDICT_NUM(i);
         if ((int)ent->v.flags & FL_ARCHIVE_OVERRIDE)
             continue;
-        fmt::fprintf (f, "%i\n",i);
+        fmt::printf (f, "%i\n",i);
         ED_Write (f, ent);
         fflush (f);
     }

@@ -1096,27 +1096,24 @@ Mod_LoadAliasFrame
 */
 auto Mod_LoadAliasFrame(void *pin, int *pframeindex, int numv,
                         trivertx_t *pbboxmin, trivertx_t *pbboxmax, aliashdr_t *pheader, char *name) -> void * {
-    trivertx_t *pframe = nullptr, *pinframe = nullptr;
-    int i = 0, j = 0;
-    daliasframe_t *pdaliasframe = nullptr;
 
-    pdaliasframe = (daliasframe_t *) pin;
+    const auto *pdaliasframe = (daliasframe_t *) pin;
 
     strcpy(name, pdaliasframe->name);
 
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         // these are byte values, so we don't have to worry about
         // endianness
         pbboxmin->v[i] = pdaliasframe->bboxmin.v[i];
         pbboxmax->v[i] = pdaliasframe->bboxmax.v[i];
     }
 
-    pinframe = (trivertx_t *) (pdaliasframe + 1);
-    pframe = hunkAllocName<decltype(pframe)>(numv * sizeof(*pframe), loadname);
+    auto *pinframe = (trivertx_t *) (pdaliasframe + 1);
+    auto *pframe = hunkAllocName<trivertx_t *>(numv * sizeof(trivertx_t), loadname);
 
     *pframeindex = (byte *) pframe - (byte *) pheader;
 
-    for (j = 0; j < numv; j++) {
+    for (int j = 0; j < numv; j++) {
         int k = 0;
 
         // these are all byte values, so no need to deal with endianness
@@ -1443,7 +1440,12 @@ void Mod_LoadAliasModel(model_t *mod, void *buffer) {
         Sys_Error("Mod_LoadAliasModel: Invalid # of frames: %d\n", numframes);
 
     pframetype = (daliasframetype_t *) &pintriangles[pmodel->numtris];
-
+    // auto *test = (maliasframedesc_t*) malloc(numframes * 2 * sizeof(maliasframedesc_t));
+    // memcpy(test, pheader->frames, numframes);
+    // memcpy(test + numframes, pheader->frames, numframes);
+    // const auto *dest = static_cast<void*>(pheader->frames);
+    // dest = static_cast<void*>(test);
+    // const auto test = pheader->frames[numframes];
     for (i = 0; i < numframes; i++) {
         auto frametype = static_cast<aliasframetype_t>(LittleLong(pframetype->type));
         pheader->frames[i].type = frametype;
@@ -1610,7 +1612,6 @@ void Mod_LoadSpriteModel(model_t *mod, void *buffer) {
                   "(%i should be %i)", mod->name, version, SPRITE_VERSION);
 
     numframes = static_cast<decltype(numframes)>(LittleLong(pin->numframes));
-
     long size = sizeof(msprite_t) + (numframes - 1) * sizeof(psprite->frames);
 
     psprite = hunkAllocName<decltype(psprite)>(size, loadname);

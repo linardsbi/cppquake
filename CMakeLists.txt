@@ -14,12 +14,17 @@ if (CMAKE_BUILD_TYPE)
     set(BUILD_${_upper_build_type} 1)
 endif ()
 
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
 if (BUILD_DEBUG)
     add_compile_options("-O0" "-fno-strict-aliasing" "-fno-rtti" "-g" "-Wall" "-Wextra" "-Wpedantic" "-Wconversion" "-w" "-fsanitize=address,leak,undefined" "-fno-omit-frame-pointer")
     set(CMAKE_EXE_LINKER_FLAGS "-fsanitize=address,leak,undefined -fno-omit-frame-pointer -flto")
     set(DEBUG_DEFINES "")
 else ()
-    add_compile_options("-O3")
+    add_compile_options("-O3" "-flto")
 endif ()
 
 add_compile_options("-march=native")
@@ -125,3 +130,7 @@ set_target_properties(sdlquake PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY_DEBUG ~/quake
         RUNTIME_OUTPUT_DIRECTORY_RELEASE ~/quake
         )
+
+target_precompile_headers(sdlquake
+        PUBLIC
+          src/quakedef.hpp)

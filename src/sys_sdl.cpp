@@ -307,7 +307,7 @@ void floating_point_exception_handler(int whatever) {
 
 auto main(int c, char **v) -> int {
     extern int vcrFile;
-    extern int recording;
+    extern bool recording;
     constexpr int memPoolSize = sizeof(void *) * 16 * 1024 * 1024;
 
     COM_InitArgv(c, v);

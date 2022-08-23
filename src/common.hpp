@@ -244,7 +244,7 @@ int COM_FOpenFile(std::string_view filename, FILE **file);
 
 void COM_CloseFile(int h);
 
-byte *COM_LoadStackFile(char *path, void *buffer, int bufsize);
+byte *COM_LoadStackFile(std::string_view path, void *buffer, int bufsize);
 
 byte *COM_LoadTempFile(char *path);
 

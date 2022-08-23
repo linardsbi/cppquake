@@ -837,8 +837,8 @@ void SCR_UpdateScreen() {
     D_EnableBackBufferAccess();    // of all overlay stuff if drawing directly
 
     if (scr_fullupdate++ < vid.numpages) {    // clear the entire window
-        scr_copyeverything = 1;
-        Draw_TileClear(0, 0, vid.width, vid.height);
+        // scr_copyeverything = 1;
+        // Draw_TileClear(0, 0, vid.width, vid.height);
         Sbar_Changed();
     }
 
